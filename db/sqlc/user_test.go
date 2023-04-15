@@ -18,7 +18,7 @@ func TestUpdateUserFirstName(t *testing.T) {
 
 	_, err := testQueries.UpdateUser(context.Background(), UpdateUserParams{
 		FirstName: newFirstName,
-		UUIDTOBIN: user.ID,
+		UserID:    user.ID,
 	})
 	require.NoError(t, err)
 
@@ -36,8 +36,8 @@ func TestUpdateUserLastName(t *testing.T) {
 	newLastName := util.RandomStr(5)
 
 	_, err := testQueries.UpdateUser(context.Background(), UpdateUserParams{
-		LastName:  newLastName,
-		UUIDTOBIN: user.ID,
+		LastName: newLastName,
+		UserID:   user.ID,
 	})
 	require.NoError(t, err)
 
@@ -57,7 +57,7 @@ func TestUpdateEmail(t *testing.T) {
 
 	_, err := testQueries.UpdateUser(context.Background(), UpdateUserParams{
 		EmailAddress: newEmailAddress,
-		UUIDTOBIN:    user.ID,
+		UserID:       user.ID,
 	})
 	require.NoError(t, err)
 

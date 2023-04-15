@@ -37,13 +37,10 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Res
 }
 
 const deleteUser = `-- name: DeleteUser :execresult
-
 DELETE FROM user
 WHERE id = UUID_TO_BIN(?)
 `
 
-// @todo using this UUID to Bin function results in the field name being called "UUIDTOBIN"
-// look into sqlc naming parameters. sqlc.narg was resulting in the struct having an interface type for id instead of a string
 func (q *Queries) DeleteUser(ctx context.Context, uuidTOBIN string) (sql.Result, error) {
 	return q.exec(ctx, q.deleteUserStmt, deleteUser, uuidTOBIN)
 }
@@ -84,7 +81,7 @@ type UpdateUserParams struct {
 	FirstName    interface{} `json:"first_name"`
 	LastName     interface{} `json:"last_name"`
 	EmailAddress interface{} `json:"email_address"`
-	UUIDTOBIN    string      `json:"UUID_TO_BIN"`
+	UserID       string      `json:"user_id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Result, error) {
@@ -92,6 +89,6 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Res
 		arg.FirstName,
 		arg.LastName,
 		arg.EmailAddress,
-		arg.UUIDTOBIN,
+		arg.UserID,
 	)
 }
