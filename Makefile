@@ -19,4 +19,10 @@ migratedown:
 sqlc:
 	docker run --rm -v $(shell pwd):/src -w /src kjconroy/sqlc generate
 
-.PHONY: dbcontainer createdb dropdb mysqlshell migrateup migratedown sqlc
+ctest:
+	go clean -testcache && go test -v -cover ./...
+
+coveragereport:
+	go tool cover -html=coverage.out -o=coverage.html
+
+.PHONY: dbcontainer createdb dropdb mysqlshell migrateup migratedown sqlc ctest
