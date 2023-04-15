@@ -16,4 +16,4 @@ migrateup:
 migratedown:
 	migrate -path db/migration -database "mysql://root:secret@tcp(localhost:3307)/ismogged" --verbose down 
 
-.PHONY: dbcontainer createdb dropdb mysqlshell migrateup
+.PHONY: dbcontainer createdb dropdb mysqlshell migrateup migratedown
