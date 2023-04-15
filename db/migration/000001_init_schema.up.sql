@@ -59,5 +59,13 @@ CREATE TABLE `template` (
 	`id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`name` VARCHAR(50) UNIQUE NOT NULL,
 	`lifts` JSON NOT NULL DEFAULT ('{}'),
-	`date_last_used` DATETIME NOT NULL DEFAULT NOW()
+	`date_last_used` DATETIME NOT NULL DEFAULT NOW(),
+	`created_by` BINARY(16) NOT NULL
 );
+
+CREATE INDEX `user_index_0` ON `user` (`id`);
+CREATE INDEX `exercise_muscle_group_index_0` ON `exercise` (`muscle_group`);
+CREATE INDEX `exercise_name_index_0` ON `exercise` (`name`);
+CREATE INDEX `category_index_0` ON `exercise` (`category`);
+CREATE INDEX `workout_user_index_0` ON `workout` (`user_id`);
+CREATE INDEX `lift_user_index_0` ON `lift` (`user_id`);
