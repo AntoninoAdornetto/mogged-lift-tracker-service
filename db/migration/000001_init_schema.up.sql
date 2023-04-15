@@ -44,3 +44,12 @@ CREATE TABLE `workout` (
 	`lifts` JSON NOT NULL DEFAULT ('{}'),
 	`user_id` BINARY(16) NOT NULL
 );
+
+CREATE TABLE `lift` (
+  `id` BINARY(16) PRIMARY KEY NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
+	`exercise_name` VARCHAR(50) NOT NULL,
+	`weight_lifted` REAL NOT NULL,
+	`reps` SMALLINT NOT NULL,
+	`user_id` BINARY(16) NOT NULL,
+	`workout_id` BINARY(16) NOT NULL
+);
