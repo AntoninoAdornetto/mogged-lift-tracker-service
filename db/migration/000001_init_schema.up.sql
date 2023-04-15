@@ -37,3 +37,10 @@ CREATE TABLE `exercise` (
 	`rest_timer` TIME NOT NULL DEFAULT '00:00:00',
 	`user_id` BINARY(16) NOT NULL
 );
+
+CREATE TABLE `workout` (
+  `id` BINARY(16) PRIMARY KEY NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
+	`duration` TIME NOT NULL DEFAULT '00:00:00',
+	`lifts` JSON NOT NULL DEFAULT ('{}'),
+	`user_id` BINARY(16) NOT NULL
+);
