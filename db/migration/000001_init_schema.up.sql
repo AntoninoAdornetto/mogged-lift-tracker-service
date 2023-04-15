@@ -69,3 +69,18 @@ CREATE INDEX `exercise_name_index_0` ON `exercise` (`name`);
 CREATE INDEX `category_index_0` ON `exercise` (`category`);
 CREATE INDEX `workout_user_index_0` ON `workout` (`user_id`);
 CREATE INDEX `lift_user_index_0` ON `lift` (`user_id`);
+
+
+ALTER TABLE `profile` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
+
+ALTER TABLE `exercise` ADD FOREIGN KEY (`muscle_group`) REFERENCES `muscle_group` (`name`);
+ALTER TABLE `exercise` ADD FOREIGN KEY (`category`) REFERENCES `category` (`name`);
+ALTER TABLE `exercise` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
+
+ALTER TABLE `workout` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
+
+ALTER TABLE `lift` ADD FOREIGN KEY (`exercise_name`) REFERENCES `exercise` (`name`);
+ALTER TABLE `lift` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
+ALTER TABLE `lift` ADD FOREIGN KEY (`workout_id`) REFERENCES `workout` (`id`);
+
+ALTER TABLE `template` ADD FOREIGN KEY (`created_by`) REFERENCES `user` (`id`);
