@@ -42,7 +42,7 @@ CREATE TABLE `exercise` (
 CREATE TABLE `workout` (
   `id` BINARY(16) PRIMARY KEY NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
 	`duration` TIME NOT NULL DEFAULT '00:00:00',
-	`lifts` JSON NOT NULL DEFAULT ('{}'),
+	`lifts` JSON,
 	`user_id` BINARY(16) NOT NULL
 );
 
@@ -58,7 +58,7 @@ CREATE TABLE `lift` (
 CREATE TABLE `template` (
 	`id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`name` VARCHAR(50) UNIQUE NOT NULL,
-	`lifts` JSON NOT NULL DEFAULT ('{}'),
+	`lifts` JSON,
 	`date_last_used` DATETIME NOT NULL DEFAULT NOW(),
 	`created_by` BINARY(16) NOT NULL
 );
