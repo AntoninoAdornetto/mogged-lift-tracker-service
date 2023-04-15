@@ -16,4 +16,7 @@ migrateup:
 migratedown:
 	migrate -path db/migration -database "mysql://root:secret@tcp(localhost:3307)/ismogged" --verbose down 
 
-.PHONY: dbcontainer createdb dropdb mysqlshell migrateup migratedown
+sqlc:
+	docker run --rm -v $(shell pwd):/src -w /src kjconroy/sqlc generate
+
+.PHONY: dbcontainer createdb dropdb mysqlshell migrateup migratedown sqlc
