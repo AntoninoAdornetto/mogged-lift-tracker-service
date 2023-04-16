@@ -35,7 +35,7 @@ func TestUpdateBodyFat(t *testing.T) {
 	userId := getNewUserId(t)
 	profile := GenRandProfile(t, userId)
 
-	newBodyFat := float64(util.RandomInt(10, 20))
+	newBodyFat := float64(util.RandomInt(50, 100))
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
 		BodyFat: newBodyFat,
 		UserID:  userId.String(),
@@ -52,7 +52,7 @@ func TestUpdateBodyWeight(t *testing.T) {
 	userId := getNewUserId(t)
 	profile := GenRandProfile(t, userId)
 
-	newBodyWeight := float64(util.RandomInt(10, 20))
+	newBodyWeight := float64(util.RandomInt(300, 500))
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
 		BodyWeight: newBodyWeight,
 		UserID:     userId.String(),
