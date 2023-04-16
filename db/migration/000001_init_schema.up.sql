@@ -27,6 +27,8 @@ CREATE TABLE `category` (
 	`name` VARCHAR(20) NOT NULL UNIQUE
 );
 
+-- using TIME for rest_timer results in a typing error with sqlc when using a default value of '00:00:00'
+-- we can store as a string and later parse it as a duration using go's parseDuration method
 CREATE TABLE `exercise` (
 	`id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`name` VARCHAR(50) UNIQUE NOT NULL,
@@ -35,13 +37,15 @@ CREATE TABLE `exercise` (
 	`isStock` BOOL NOT NULL DEFAULT false,
 	`most_weight_lifted` REAL NOT NULL DEFAULT 0,
 	`most_reps_lifted` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
-	`rest_timer` TIME NOT NULL DEFAULT '00:00:00',
+	`rest_timer` VARCHAR(15) NOT NULL DEFAULT '00:00:00s', 
 	`user_id` BINARY(16) NOT NULL
 );
 
+-- using TIME for duration results in a typing error with sqlc when using a default value of '00:00:00'
+-- we can store as a string and later parse it as a duration using go's parseDuration method
 CREATE TABLE `workout` (
   `id` BINARY(16) PRIMARY KEY NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
-	`duration` TIME NOT NULL DEFAULT '00:00:00',
+	`duration` VARCHAR(10) NOT NULL DEFAULT '00:00:00s',
 	`lifts` JSON,
 	`user_id` BINARY(16) NOT NULL
 );
