@@ -20,15 +20,6 @@ func (q *Queries) CreateCategory(ctx context.Context, name string) (sql.Result, 
 	return q.exec(ctx, q.createCategoryStmt, createCategory, name)
 }
 
-const deleteAllCategories = `-- name: DeleteAllCategories :execresult
-DELETE FROM category
-`
-
-// no API for this query, only for testing purposes
-func (q *Queries) DeleteAllCategories(ctx context.Context) (sql.Result, error) {
-	return q.exec(ctx, q.deleteAllCategoriesStmt, deleteAllCategories)
-}
-
 const deleteCategory = `-- name: DeleteCategory :execresult
 DELETE FROM category
 WHERE id = ?
@@ -51,7 +42,7 @@ func (q *Queries) GetCategory(ctx context.Context, id int32) (Category, error) {
 }
 
 const listCategories = `-- name: ListCategories :many
-SELECT id, name FROM category ORDER BY id
+SELECT id, name FROM category
 `
 
 func (q *Queries) ListCategories(ctx context.Context) ([]Category, error) {
