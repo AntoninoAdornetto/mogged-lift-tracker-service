@@ -8,7 +8,7 @@ SELECT * FROM category
 WHERE id = ?;
 
 -- name: ListCategories :many
-SELECT * FROM category ORDER BY id;
+SELECT * FROM category;
 
 -- name: UpdateCategory :execresult
 UPDATE category SET
@@ -18,7 +18,3 @@ WHERE id = ?;
 -- name: DeleteCategory :execresult
 DELETE FROM category
 WHERE id = ?;
-
--- name: DeleteAllCategories :execresult
--- no API for this query, only for testing purposes
-DELETE FROM category;
