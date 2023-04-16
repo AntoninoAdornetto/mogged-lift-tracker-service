@@ -66,7 +66,7 @@ func TestDeleteMuscleGroup(t *testing.T) {
 
 	query, err := testQueries.GetMuscleGroup(context.Background(), muscleGroup.ID)
 	require.Error(t, err)
-	require.Zero(t, query.ID)
+	require.Empty(t, query.ID)
 	require.Empty(t, query.Name)
 }
 
