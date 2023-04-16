@@ -11,12 +11,12 @@ import (
 
 func TestCreateProfile(t *testing.T) {
 	userId := getNewUserId(t)
-	GenRanProfile(t, userId)
+	GenRandProfile(t, userId)
 }
 
 func TestUpdateCountry(t *testing.T) {
 	userId := getNewUserId(t)
-	profile := GenRanProfile(t, userId)
+	profile := GenRandProfile(t, userId)
 
 	newCountry := util.RandomStr(3)
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
@@ -33,7 +33,7 @@ func TestUpdateCountry(t *testing.T) {
 
 func TestUpdateBodyFat(t *testing.T) {
 	userId := getNewUserId(t)
-	profile := GenRanProfile(t, userId)
+	profile := GenRandProfile(t, userId)
 
 	newBodyFat := float64(util.RandomInt(10, 20))
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
@@ -50,7 +50,7 @@ func TestUpdateBodyFat(t *testing.T) {
 
 func TestUpdateBodyWeight(t *testing.T) {
 	userId := getNewUserId(t)
-	profile := GenRanProfile(t, userId)
+	profile := GenRandProfile(t, userId)
 
 	newBodyWeight := float64(util.RandomInt(10, 20))
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
@@ -67,7 +67,7 @@ func TestUpdateBodyWeight(t *testing.T) {
 
 func TestUpdateTimezone(t *testing.T) {
 	userId := getNewUserId(t)
-	profile := GenRanProfile(t, userId)
+	profile := GenRandProfile(t, userId)
 
 	newTimezone := util.RandomStr(10)
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
@@ -84,7 +84,7 @@ func TestUpdateTimezone(t *testing.T) {
 
 func TestUpdateMeasurementSystem(t *testing.T) {
 	userId := getNewUserId(t)
-	profile := GenRanProfile(t, userId)
+	profile := GenRandProfile(t, userId)
 
 	newMeasurementSystem := util.RandomStr(10)
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
@@ -103,7 +103,7 @@ func TestDeleteProfile(t *testing.T) {
 	user := GenRandUser(t)
 	userId, err := uuid.Parse(user.ID)
 	require.NoError(t, err)
-	GenRanProfile(t, userId)
+	GenRandProfile(t, userId)
 
 	_, err = testQueries.DeleteProfile(context.Background(), userId.String())
 	require.NoError(t, err)
@@ -121,7 +121,7 @@ func getNewUserId(t *testing.T) uuid.UUID {
 }
 
 // asserts both create and get one queries
-func GenRanProfile(t *testing.T, userId uuid.UUID) Profile {
+func GenRandProfile(t *testing.T, userId uuid.UUID) Profile {
 	p := &CreateProfileParams{
 		Country:           util.RandomStr(3),
 		BodyFat:           float64(util.RandomInt(8, 20)),
