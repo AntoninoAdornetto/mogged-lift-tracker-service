@@ -4,7 +4,6 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,9 +19,10 @@ func TestRandomStr(t *testing.T) {
 }
 
 func TestRandomInt(t *testing.T) {
+	min := 1
 	max := 10
-	for i := 0; i < 50; i++ {
-		result := RandomInt(max)
-		assert.True(t, result >= 0 && result < max)
+	for i := 0; i < 100; i++ {
+		result := RandomInt(min, max)
+		require.True(t, result >= min && result <= max)
 	}
 }
