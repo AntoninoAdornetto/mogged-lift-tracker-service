@@ -23,6 +23,6 @@ ctest:
 	go clean -testcache && go test -v -cover ./...
 
 coveragereport:
-	go tool cover -html=coverage.out -o=coverage.html
+	go test -coverprofile=coverage/coverage.out ./... && go tool cover -html=coverage/coverage.out -o=coverage/coverage.html
 
 .PHONY: dbcontainer createdb dropdb mysqlshell migrateup migratedown sqlc ctest
