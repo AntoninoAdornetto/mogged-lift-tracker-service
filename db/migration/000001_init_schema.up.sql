@@ -32,7 +32,7 @@ CREATE TABLE `exercise` (
 	`name` VARCHAR(50) UNIQUE NOT NULL,
 	`muscle_group` VARCHAR(20) NOT NULL,
 	`category` VARCHAR(20) NOT NULL,
-	`isStock` BOOL NOT NULL,
+	`isStock` BOOL NOT NULL DEFAULT false,
 	`most_weight_lifted` REAL NOT NULL DEFAULT 0,
 	`most_reps_lifted` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
 	`rest_timer` TIME NOT NULL DEFAULT '00:00:00',
