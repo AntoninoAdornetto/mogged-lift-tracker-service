@@ -51,7 +51,7 @@ func (q *Queries) GetMuscleGroup(ctx context.Context, id int32) (MuscleGroup, er
 }
 
 const listMuscleGroups = `-- name: ListMuscleGroups :many
-SELECT id, name FROM muscle_group
+SELECT id, name FROM muscle_group ORDER BY id
 `
 
 func (q *Queries) ListMuscleGroups(ctx context.Context) ([]MuscleGroup, error) {
