@@ -44,6 +44,18 @@ func TestUpdateMuscleGroupName(t *testing.T) {
 	require.Equal(t, query.ID, muscleGroup.ID)
 }
 
+func TestDeleteMuscleGroup(t *testing.T) {
+	muscleGroup := GenRandMuscleGroup(t)
+
+	_, err := testQueries.DeleteMuscleGroup(context.Background(), muscleGroup.ID)
+	require.NoError(t, err)
+
+	query, err := testQueries.GetMuscleGroup(context.Background(), muscleGroup.ID)
+	require.Error(t, err)
+	require.Zero(t, query.ID)
+	require.Empty(t, query.Name)
+}
+
 // asserts both create and get one queries
 func GenRandMuscleGroup(t *testing.T) MuscleGroup {
 	muscleGroupName := util.RandomStr(5)
