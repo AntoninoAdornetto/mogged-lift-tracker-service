@@ -8,7 +8,7 @@ SELECT * FROM muscle_group
 WHERE id = ?;
 
 -- name: ListMuscleGroups :many
-SELECT * FROM muscle_group;
+SELECT * FROM muscle_group ORDER BY id;
 
 -- name: UpdateMuscleGroup :execresult
 UPDATE muscle_group SET
