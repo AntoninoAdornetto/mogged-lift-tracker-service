@@ -24,11 +24,20 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
+	if q.createMuscleGroupStmt, err = db.PrepareContext(ctx, createMuscleGroup); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateMuscleGroup: %w", err)
+	}
 	if q.createProfileStmt, err = db.PrepareContext(ctx, createProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateProfile: %w", err)
 	}
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
+	}
+	if q.deleteAllMuscleGroupsStmt, err = db.PrepareContext(ctx, deleteAllMuscleGroups); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteAllMuscleGroups: %w", err)
+	}
+	if q.deleteMuscleGroupStmt, err = db.PrepareContext(ctx, deleteMuscleGroup); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteMuscleGroup: %w", err)
 	}
 	if q.deleteProfileStmt, err = db.PrepareContext(ctx, deleteProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteProfile: %w", err)
@@ -36,11 +45,20 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
 	}
+	if q.getMuscleGroupStmt, err = db.PrepareContext(ctx, getMuscleGroup); err != nil {
+		return nil, fmt.Errorf("error preparing query GetMuscleGroup: %w", err)
+	}
 	if q.getProfileStmt, err = db.PrepareContext(ctx, getProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query GetProfile: %w", err)
 	}
 	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
+	}
+	if q.listMuscleGroupsStmt, err = db.PrepareContext(ctx, listMuscleGroups); err != nil {
+		return nil, fmt.Errorf("error preparing query ListMuscleGroups: %w", err)
+	}
+	if q.updateMuscleGroupStmt, err = db.PrepareContext(ctx, updateMuscleGroup); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateMuscleGroup: %w", err)
 	}
 	if q.updateProfileStmt, err = db.PrepareContext(ctx, updateProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateProfile: %w", err)
@@ -53,6 +71,11 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 
 func (q *Queries) Close() error {
 	var err error
+	if q.createMuscleGroupStmt != nil {
+		if cerr := q.createMuscleGroupStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createMuscleGroupStmt: %w", cerr)
+		}
+	}
 	if q.createProfileStmt != nil {
 		if cerr := q.createProfileStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createProfileStmt: %w", cerr)
@@ -61,6 +84,16 @@ func (q *Queries) Close() error {
 	if q.createUserStmt != nil {
 		if cerr := q.createUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
+		}
+	}
+	if q.deleteAllMuscleGroupsStmt != nil {
+		if cerr := q.deleteAllMuscleGroupsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteAllMuscleGroupsStmt: %w", cerr)
+		}
+	}
+	if q.deleteMuscleGroupStmt != nil {
+		if cerr := q.deleteMuscleGroupStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteMuscleGroupStmt: %w", cerr)
 		}
 	}
 	if q.deleteProfileStmt != nil {
@@ -73,6 +106,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing deleteUserStmt: %w", cerr)
 		}
 	}
+	if q.getMuscleGroupStmt != nil {
+		if cerr := q.getMuscleGroupStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getMuscleGroupStmt: %w", cerr)
+		}
+	}
 	if q.getProfileStmt != nil {
 		if cerr := q.getProfileStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getProfileStmt: %w", cerr)
@@ -81,6 +119,16 @@ func (q *Queries) Close() error {
 	if q.getUserStmt != nil {
 		if cerr := q.getUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserStmt: %w", cerr)
+		}
+	}
+	if q.listMuscleGroupsStmt != nil {
+		if cerr := q.listMuscleGroupsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listMuscleGroupsStmt: %w", cerr)
+		}
+	}
+	if q.updateMuscleGroupStmt != nil {
+		if cerr := q.updateMuscleGroupStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateMuscleGroupStmt: %w", cerr)
 		}
 	}
 	if q.updateProfileStmt != nil {
@@ -130,29 +178,41 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                DBTX
-	tx                *sql.Tx
-	createProfileStmt *sql.Stmt
-	createUserStmt    *sql.Stmt
-	deleteProfileStmt *sql.Stmt
-	deleteUserStmt    *sql.Stmt
-	getProfileStmt    *sql.Stmt
-	getUserStmt       *sql.Stmt
-	updateProfileStmt *sql.Stmt
-	updateUserStmt    *sql.Stmt
+	db                        DBTX
+	tx                        *sql.Tx
+	createMuscleGroupStmt     *sql.Stmt
+	createProfileStmt         *sql.Stmt
+	createUserStmt            *sql.Stmt
+	deleteAllMuscleGroupsStmt *sql.Stmt
+	deleteMuscleGroupStmt     *sql.Stmt
+	deleteProfileStmt         *sql.Stmt
+	deleteUserStmt            *sql.Stmt
+	getMuscleGroupStmt        *sql.Stmt
+	getProfileStmt            *sql.Stmt
+	getUserStmt               *sql.Stmt
+	listMuscleGroupsStmt      *sql.Stmt
+	updateMuscleGroupStmt     *sql.Stmt
+	updateProfileStmt         *sql.Stmt
+	updateUserStmt            *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                tx,
-		tx:                tx,
-		createProfileStmt: q.createProfileStmt,
-		createUserStmt:    q.createUserStmt,
-		deleteProfileStmt: q.deleteProfileStmt,
-		deleteUserStmt:    q.deleteUserStmt,
-		getProfileStmt:    q.getProfileStmt,
-		getUserStmt:       q.getUserStmt,
-		updateProfileStmt: q.updateProfileStmt,
-		updateUserStmt:    q.updateUserStmt,
+		db:                        tx,
+		tx:                        tx,
+		createMuscleGroupStmt:     q.createMuscleGroupStmt,
+		createProfileStmt:         q.createProfileStmt,
+		createUserStmt:            q.createUserStmt,
+		deleteAllMuscleGroupsStmt: q.deleteAllMuscleGroupsStmt,
+		deleteMuscleGroupStmt:     q.deleteMuscleGroupStmt,
+		deleteProfileStmt:         q.deleteProfileStmt,
+		deleteUserStmt:            q.deleteUserStmt,
+		getMuscleGroupStmt:        q.getMuscleGroupStmt,
+		getProfileStmt:            q.getProfileStmt,
+		getUserStmt:               q.getUserStmt,
+		listMuscleGroupsStmt:      q.listMuscleGroupsStmt,
+		updateMuscleGroupStmt:     q.updateMuscleGroupStmt,
+		updateProfileStmt:         q.updateProfileStmt,
+		updateUserStmt:            q.updateUserStmt,
 	}
 }
