@@ -20,6 +20,15 @@ func (q *Queries) CreateMuscleGroup(ctx context.Context, name string) (sql.Resul
 	return q.exec(ctx, q.createMuscleGroupStmt, createMuscleGroup, name)
 }
 
+const deleteAllMuscleGroups = `-- name: DeleteAllMuscleGroups :execresult
+DELETE FROM muscle_group
+`
+
+// no API for this query, only for testing purposes
+func (q *Queries) DeleteAllMuscleGroups(ctx context.Context) (sql.Result, error) {
+	return q.exec(ctx, q.deleteAllMuscleGroupsStmt, deleteAllMuscleGroups)
+}
+
 const deleteMuscleGroup = `-- name: DeleteMuscleGroup :execresult
 DELETE FROM muscle_group
 WHERE id = ?
