@@ -12,6 +12,19 @@ func TestCreateMuscleGroup(t *testing.T) {
 	GenRandMuscleGroup(t)
 }
 
+func TestListMuscleGroups(t *testing.T) {
+	n := 5
+	muscleGroups := make([]MuscleGroup, n)
+
+	for i := 0; i < n; i++ {
+		muscleGroups[i] = GenRandMuscleGroup(t)
+	}
+
+	query, err := testQueries.ListMuscleGroups(context.Background())
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(query), n)
+}
+
 // asserts both create and get one queries
 func GenRandMuscleGroup(t *testing.T) MuscleGroup {
 	muscleGroupName := util.RandomStr(5)
