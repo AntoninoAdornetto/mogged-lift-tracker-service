@@ -18,3 +18,7 @@ WHERE id = ?;
 -- name: DeleteMuscleGroup :execresult
 DELETE FROM muscle_group
 WHERE id = ?;
+
+-- name: DeleteAllMuscleGroups :execresult
+-- no API for this query, only for testing purposes
+DELETE FROM muscle_group;
