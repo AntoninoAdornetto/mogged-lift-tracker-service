@@ -40,6 +40,20 @@ func (q *Queries) CreateExercise(ctx context.Context, arg CreateExerciseParams) 
 	)
 }
 
+const deleteExercise = `-- name: DeleteExercise :execresult
+DELETE FROM exercise
+WHERE id = ? AND user_id = UUID_TO_BIN(?)
+`
+
+type DeleteExerciseParams struct {
+	ID     int32  `json:"id"`
+	UserID string `json:"user_id"`
+}
+
+func (q *Queries) DeleteExercise(ctx context.Context, arg DeleteExerciseParams) (sql.Result, error) {
+	return q.exec(ctx, q.deleteExerciseStmt, deleteExercise, arg.ID, arg.UserID)
+}
+
 const getExercise = `-- name: GetExercise :one
 SELECT id, name, muscle_group, category, isstock, most_weight_lifted, most_reps_lifted, rest_timer, user_id FROM exercise
 WHERE id = ? LIMIT 1
@@ -98,4 +112,39 @@ func (q *Queries) ListExercises(ctx context.Context, userID string) ([]Exercise,
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateExercise = `-- name: UpdateExercise :execresult
+UPDATE exercise SET
+name = IFNULL(?, name),
+muscle_group = IFNULL(?, muscle_group),
+category = IFNULL(?, category),
+most_weight_lifted = IFNULL(?, most_weight_lifted),
+most_reps_lifted = IFNULL(?, most_reps_lifted),
+rest_timer = IFNULL(?, rest_timer)
+WHERE user_id = UUID_TO_BIN(?) AND id = ?
+`
+
+type UpdateExerciseParams struct {
+	Name             interface{} `json:"name"`
+	MuscleGroup      interface{} `json:"muscle_group"`
+	Category         interface{} `json:"category"`
+	MostWeightLifted interface{} `json:"most_weight_lifted"`
+	MostRepsLifted   interface{} `json:"most_reps_lifted"`
+	RestTimer        interface{} `json:"rest_timer"`
+	UserID           string      `json:"user_id"`
+	ID               int32       `json:"id"`
+}
+
+func (q *Queries) UpdateExercise(ctx context.Context, arg UpdateExerciseParams) (sql.Result, error) {
+	return q.exec(ctx, q.updateExerciseStmt, updateExercise,
+		arg.Name,
+		arg.MuscleGroup,
+		arg.Category,
+		arg.MostWeightLifted,
+		arg.MostRepsLifted,
+		arg.RestTimer,
+		arg.UserID,
+		arg.ID,
+	)
 }
