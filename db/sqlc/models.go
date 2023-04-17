@@ -15,15 +15,15 @@ type Category struct {
 }
 
 type Exercise struct {
-	ID               int32     `json:"id"`
-	Name             string    `json:"name"`
-	MuscleGroup      string    `json:"muscle_group"`
-	Category         string    `json:"category"`
-	Isstock          bool      `json:"isstock"`
-	MostWeightLifted float64   `json:"most_weight_lifted"`
-	MostRepsLifted   int32     `json:"most_reps_lifted"`
-	RestTimer        time.Time `json:"rest_timer"`
-	UserID           []byte    `json:"user_id"`
+	ID               int32   `json:"id"`
+	Name             string  `json:"name"`
+	MuscleGroup      string  `json:"muscle_group"`
+	Category         string  `json:"category"`
+	Isstock          bool    `json:"isstock"`
+	MostWeightLifted float64 `json:"most_weight_lifted"`
+	MostRepsLifted   int32   `json:"most_reps_lifted"`
+	RestTimer        string  `json:"rest_timer"`
+	UserID           []byte  `json:"user_id"`
 }
 
 type Lift struct {
@@ -50,6 +50,13 @@ type Profile struct {
 	UserID            []byte  `json:"user_id"`
 }
 
+type StockExercise struct {
+	ID          []byte `json:"id"`
+	Name        string `json:"name"`
+	MuscleGroup string `json:"muscle_group"`
+	Category    string `json:"category"`
+}
+
 type Template struct {
 	ID           int32           `json:"id"`
 	Name         string          `json:"name"`
@@ -69,7 +76,7 @@ type User struct {
 
 type Workout struct {
 	ID       []byte          `json:"id"`
-	Duration time.Time       `json:"duration"`
+	Duration string          `json:"duration"`
 	Lifts    json.RawMessage `json:"lifts"`
 	UserID   []byte          `json:"user_id"`
 }
