@@ -172,6 +172,29 @@ func TestUpdateMostRepsLifted(t *testing.T) {
 	require.NotEqual(t, query.MostRepsLifted, exercise.MostRepsLifted)
 }
 
+func TestUpdateRestTimer(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+
+	exercise := GenRandExercise(t, userId.String())
+	newRestTimer := "01:30:00s"
+
+	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
+		RestTimer: newRestTimer,
+		UserID:    userId.String(),
+		ID:        exercise.ID,
+	})
+	require.NoError(t, err)
+
+	query, err := testQueries.GetExercise(context.Background(), exercise.ID)
+	require.NoError(t, err)
+	require.NotZero(t, query.ID)
+	require.Equal(t, query.ID, exercise.ID)
+	require.Equal(t, query.RestTimer, newRestTimer)
+	require.NotEqual(t, query.RestTimer, exercise.RestTimer)
+}
+
 func GenRandExercise(t *testing.T, userID string) Exercise {
 	exercise := &Exercise{}
 
