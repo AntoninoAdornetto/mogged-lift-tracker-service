@@ -195,6 +195,25 @@ func TestUpdateRestTimer(t *testing.T) {
 	require.NotEqual(t, query.RestTimer, exercise.RestTimer)
 }
 
+func TestDeleteExercise(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+
+	exercise := GenRandExercise(t, userId.String())
+
+	_, err = testQueries.DeleteExercise(context.Background(), DeleteExerciseParams{
+		ID:     exercise.ID,
+		UserID: userId.String(),
+	})
+
+	require.NoError(t, err)
+
+	query, err := testQueries.GetExercise(context.Background(), exercise.ID)
+	require.Error(t, err)
+	require.Empty(t, query)
+}
+
 func GenRandExercise(t *testing.T, userID string) Exercise {
 	exercise := &Exercise{}
 
