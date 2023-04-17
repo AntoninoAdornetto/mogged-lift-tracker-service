@@ -8,3 +8,7 @@ INSERT INTO workout (
 	?,
 	UUID_TO_BIN(sqlc.arg('user_id'))
 );
+
+-- name: GetWorkout :one
+SELECT * FROM workout
+WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
