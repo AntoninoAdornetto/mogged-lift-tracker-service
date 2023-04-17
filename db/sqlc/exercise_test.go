@@ -126,6 +126,29 @@ func TestUpdateCategory(t *testing.T) {
 	require.NotEqual(t, query.Category, exercise.Category)
 }
 
+func TestUpdateMostWeightLifted(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+
+	exercise := GenRandExercise(t, userId.String())
+	newMostWeightLifted := float64(util.RandomInt(150, 500))
+
+	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
+		MostWeightLifted: newMostWeightLifted,
+		UserID:           userId.String(),
+		ID:               exercise.ID,
+	})
+	require.NoError(t, err)
+
+	query, err := testQueries.GetExercise(context.Background(), exercise.ID)
+	require.NoError(t, err)
+	require.NotZero(t, query.ID)
+	require.Equal(t, query.ID, exercise.ID)
+	require.Equal(t, query.MostWeightLifted, newMostWeightLifted)
+	require.NotEqual(t, query.MostWeightLifted, exercise.MostWeightLifted)
+}
+
 func GenRandExercise(t *testing.T, userID string) Exercise {
 	exercise := &Exercise{}
 
