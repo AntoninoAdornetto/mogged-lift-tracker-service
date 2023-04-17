@@ -27,4 +27,4 @@ category = IFNULL(sqlc.arg('category'), category),
 most_weight_lifted = IFNULL(sqlc.arg('most_weight_lifted'), most_weight_lifted),
 most_reps_lifted = IFNULL(sqlc.arg('most_reps_lifted'), most_reps_lifted),
 rest_timer = IFNULL(sqlc.arg('rest_timer'), rest_timer)
-WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'));
+WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id')) AND id = sqlc.arg('id');
