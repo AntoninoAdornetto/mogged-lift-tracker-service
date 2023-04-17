@@ -69,6 +69,7 @@ CREATE TABLE `template` (
 
 CREATE INDEX `user_index_0` ON `user` (`id`);
 CREATE INDEX `exercise_muscle_group_index_0` ON `exercise` (`muscle_group`);
+CREATE INDEX `user_exercises_index_0` ON `exercise` (`user_id`);
 CREATE INDEX `exercise_name_index_0` ON `exercise` (`name`);
 CREATE INDEX `category_index_0` ON `exercise` (`category`);
 CREATE INDEX `workout_user_index_0` ON `workout` (`user_id`);
