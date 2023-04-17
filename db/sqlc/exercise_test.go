@@ -57,6 +57,29 @@ func TestListExercises(t *testing.T) {
 	require.Empty(t, otherUserQuery)
 }
 
+func TestUpdateExerciseName(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+
+	exercise := GenRandExercise(t, userId.String())
+	newExerciseName := util.RandomStr(5)
+
+	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
+		Name:   newExerciseName,
+		UserID: userId.String(),
+		ID:     exercise.ID,
+	})
+	require.NoError(t, err)
+
+	query, err := testQueries.GetExercise(context.Background(), exercise.ID)
+	require.NoError(t, err)
+	require.NotZero(t, query.ID)
+	require.Equal(t, query.ID, exercise.ID)
+	require.Equal(t, query.Name, newExerciseName)
+	require.NotEqual(t, query.Name, exercise.Name)
+}
+
 func GenRandExercise(t *testing.T, userID string) Exercise {
 	exercise := &Exercise{}
 
