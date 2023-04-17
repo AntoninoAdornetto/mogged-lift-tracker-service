@@ -103,6 +103,29 @@ func TestUpdateMuscleGroup(t *testing.T) {
 	require.NotEqual(t, query.MuscleGroup, exercise.MuscleGroup)
 }
 
+func TestUpdateCategory(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+
+	exercise := GenRandExercise(t, userId.String())
+	newCategory := GenRandCategory(t).Name
+
+	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
+		Category: newCategory,
+		UserID:   userId.String(),
+		ID:       exercise.ID,
+	})
+	require.NoError(t, err)
+
+	query, err := testQueries.GetExercise(context.Background(), exercise.ID)
+	require.NoError(t, err)
+	require.NotZero(t, query.ID)
+	require.Equal(t, query.ID, exercise.ID)
+	require.Equal(t, query.Category, newCategory)
+	require.NotEqual(t, query.Category, exercise.Category)
+}
+
 func GenRandExercise(t *testing.T, userID string) Exercise {
 	exercise := &Exercise{}
 
