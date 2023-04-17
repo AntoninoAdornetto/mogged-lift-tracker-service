@@ -40,38 +40,6 @@ func (q *Queries) CreateExercise(ctx context.Context, arg CreateExerciseParams) 
 	)
 }
 
-const createStockExercise = `-- name: CreateStockExercise :execresult
-INSERT INTO exercise (
-	name,
-	muscle_group,
-	category,
-	isStock,
-	user_id
-) VALUES (
-	?,
-	?,
-	?,
-	?,
-	CONVERT('*', BINARY)
-)
-`
-
-type CreateStockExerciseParams struct {
-	Name        string `json:"name"`
-	MuscleGroup string `json:"muscle_group"`
-	Category    string `json:"category"`
-	Isstock     bool   `json:"isstock"`
-}
-
-func (q *Queries) CreateStockExercise(ctx context.Context, arg CreateStockExerciseParams) (sql.Result, error) {
-	return q.exec(ctx, q.createStockExerciseStmt, createStockExercise,
-		arg.Name,
-		arg.MuscleGroup,
-		arg.Category,
-		arg.Isstock,
-	)
-}
-
 const getExercise = `-- name: GetExercise :one
 SELECT id, name, muscle_group, category, isstock, most_weight_lifted, most_reps_lifted, rest_timer, user_id FROM exercise
 WHERE id = ? LIMIT 1
@@ -96,7 +64,7 @@ func (q *Queries) GetExercise(ctx context.Context, id int32) (Exercise, error) {
 
 const listExercises = `-- name: ListExercises :many
 SELECT id, name, muscle_group, category, isstock, most_weight_lifted, most_reps_lifted, rest_timer, user_id FROM exercise
-WHERE stock = true OR user_id = UUID_TO_BIN(?)
+WHERE user_id = UUID_TO_BIN(?)
 `
 
 func (q *Queries) ListExercises(ctx context.Context, userID string) ([]Exercise, error) {

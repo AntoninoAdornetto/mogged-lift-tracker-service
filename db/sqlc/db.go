@@ -36,9 +36,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createProfileStmt, err = db.PrepareContext(ctx, createProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateProfile: %w", err)
 	}
-	if q.createStockExerciseStmt, err = db.PrepareContext(ctx, createStockExercise); err != nil {
-		return nil, fmt.Errorf("error preparing query CreateStockExercise: %w", err)
-	}
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
 	}
@@ -113,11 +110,6 @@ func (q *Queries) Close() error {
 	if q.createProfileStmt != nil {
 		if cerr := q.createProfileStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createProfileStmt: %w", cerr)
-		}
-	}
-	if q.createStockExerciseStmt != nil {
-		if cerr := q.createStockExerciseStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing createStockExerciseStmt: %w", cerr)
 		}
 	}
 	if q.createUserStmt != nil {
@@ -242,57 +234,55 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                      DBTX
-	tx                      *sql.Tx
-	createCategoryStmt      *sql.Stmt
-	createExerciseStmt      *sql.Stmt
-	createMuscleGroupStmt   *sql.Stmt
-	createProfileStmt       *sql.Stmt
-	createStockExerciseStmt *sql.Stmt
-	createUserStmt          *sql.Stmt
-	deleteCategoryStmt      *sql.Stmt
-	deleteMuscleGroupStmt   *sql.Stmt
-	deleteProfileStmt       *sql.Stmt
-	deleteUserStmt          *sql.Stmt
-	getCategoryStmt         *sql.Stmt
-	getExerciseStmt         *sql.Stmt
-	getMuscleGroupStmt      *sql.Stmt
-	getProfileStmt          *sql.Stmt
-	getUserStmt             *sql.Stmt
-	listCategoriesStmt      *sql.Stmt
-	listExercisesStmt       *sql.Stmt
-	listMuscleGroupsStmt    *sql.Stmt
-	updateCategoryStmt      *sql.Stmt
-	updateMuscleGroupStmt   *sql.Stmt
-	updateProfileStmt       *sql.Stmt
-	updateUserStmt          *sql.Stmt
+	db                    DBTX
+	tx                    *sql.Tx
+	createCategoryStmt    *sql.Stmt
+	createExerciseStmt    *sql.Stmt
+	createMuscleGroupStmt *sql.Stmt
+	createProfileStmt     *sql.Stmt
+	createUserStmt        *sql.Stmt
+	deleteCategoryStmt    *sql.Stmt
+	deleteMuscleGroupStmt *sql.Stmt
+	deleteProfileStmt     *sql.Stmt
+	deleteUserStmt        *sql.Stmt
+	getCategoryStmt       *sql.Stmt
+	getExerciseStmt       *sql.Stmt
+	getMuscleGroupStmt    *sql.Stmt
+	getProfileStmt        *sql.Stmt
+	getUserStmt           *sql.Stmt
+	listCategoriesStmt    *sql.Stmt
+	listExercisesStmt     *sql.Stmt
+	listMuscleGroupsStmt  *sql.Stmt
+	updateCategoryStmt    *sql.Stmt
+	updateMuscleGroupStmt *sql.Stmt
+	updateProfileStmt     *sql.Stmt
+	updateUserStmt        *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                      tx,
-		tx:                      tx,
-		createCategoryStmt:      q.createCategoryStmt,
-		createExerciseStmt:      q.createExerciseStmt,
-		createMuscleGroupStmt:   q.createMuscleGroupStmt,
-		createProfileStmt:       q.createProfileStmt,
-		createStockExerciseStmt: q.createStockExerciseStmt,
-		createUserStmt:          q.createUserStmt,
-		deleteCategoryStmt:      q.deleteCategoryStmt,
-		deleteMuscleGroupStmt:   q.deleteMuscleGroupStmt,
-		deleteProfileStmt:       q.deleteProfileStmt,
-		deleteUserStmt:          q.deleteUserStmt,
-		getCategoryStmt:         q.getCategoryStmt,
-		getExerciseStmt:         q.getExerciseStmt,
-		getMuscleGroupStmt:      q.getMuscleGroupStmt,
-		getProfileStmt:          q.getProfileStmt,
-		getUserStmt:             q.getUserStmt,
-		listCategoriesStmt:      q.listCategoriesStmt,
-		listExercisesStmt:       q.listExercisesStmt,
-		listMuscleGroupsStmt:    q.listMuscleGroupsStmt,
-		updateCategoryStmt:      q.updateCategoryStmt,
-		updateMuscleGroupStmt:   q.updateMuscleGroupStmt,
-		updateProfileStmt:       q.updateProfileStmt,
-		updateUserStmt:          q.updateUserStmt,
+		db:                    tx,
+		tx:                    tx,
+		createCategoryStmt:    q.createCategoryStmt,
+		createExerciseStmt:    q.createExerciseStmt,
+		createMuscleGroupStmt: q.createMuscleGroupStmt,
+		createProfileStmt:     q.createProfileStmt,
+		createUserStmt:        q.createUserStmt,
+		deleteCategoryStmt:    q.deleteCategoryStmt,
+		deleteMuscleGroupStmt: q.deleteMuscleGroupStmt,
+		deleteProfileStmt:     q.deleteProfileStmt,
+		deleteUserStmt:        q.deleteUserStmt,
+		getCategoryStmt:       q.getCategoryStmt,
+		getExerciseStmt:       q.getExerciseStmt,
+		getMuscleGroupStmt:    q.getMuscleGroupStmt,
+		getProfileStmt:        q.getProfileStmt,
+		getUserStmt:           q.getUserStmt,
+		listCategoriesStmt:    q.listCategoriesStmt,
+		listExercisesStmt:     q.listExercisesStmt,
+		listMuscleGroupsStmt:  q.listMuscleGroupsStmt,
+		updateCategoryStmt:    q.updateCategoryStmt,
+		updateMuscleGroupStmt: q.updateMuscleGroupStmt,
+		updateProfileStmt:     q.updateProfileStmt,
+		updateUserStmt:        q.updateUserStmt,
 	}
 }
