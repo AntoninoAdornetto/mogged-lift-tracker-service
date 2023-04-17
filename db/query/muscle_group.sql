@@ -8,7 +8,7 @@ SELECT * FROM muscle_group
 WHERE id = ?;
 
 -- name: ListMuscleGroups :many
-SELECT * FROM muscle_group ORDER BY id;
+SELECT * FROM muscle_group;
 
 -- name: UpdateMuscleGroup :execresult
 UPDATE muscle_group SET
@@ -18,7 +18,3 @@ WHERE id = ?;
 -- name: DeleteMuscleGroup :execresult
 DELETE FROM muscle_group
 WHERE id = ?;
-
--- name: DeleteAllMuscleGroups :execresult
--- no API for this query, only for testing purposes
-DELETE FROM muscle_group;

@@ -1,0 +1,6 @@
+CREATE TABLE `stock_exercise` (
+	`id` BINARY(16) PRIMARY KEY NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
+	`name` VARCHAR(50) UNIQUE NOT NULL,
+	`muscle_group` VARCHAR(20) NOT NULL,
+	`category` VARCHAR(20) NOT NULL
+);

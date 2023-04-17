@@ -20,15 +20,6 @@ func (q *Queries) CreateMuscleGroup(ctx context.Context, name string) (sql.Resul
 	return q.exec(ctx, q.createMuscleGroupStmt, createMuscleGroup, name)
 }
 
-const deleteAllMuscleGroups = `-- name: DeleteAllMuscleGroups :execresult
-DELETE FROM muscle_group
-`
-
-// no API for this query, only for testing purposes
-func (q *Queries) DeleteAllMuscleGroups(ctx context.Context) (sql.Result, error) {
-	return q.exec(ctx, q.deleteAllMuscleGroupsStmt, deleteAllMuscleGroups)
-}
-
 const deleteMuscleGroup = `-- name: DeleteMuscleGroup :execresult
 DELETE FROM muscle_group
 WHERE id = ?
@@ -51,7 +42,7 @@ func (q *Queries) GetMuscleGroup(ctx context.Context, id int32) (MuscleGroup, er
 }
 
 const listMuscleGroups = `-- name: ListMuscleGroups :many
-SELECT id, name FROM muscle_group ORDER BY id
+SELECT id, name FROM muscle_group
 `
 
 func (q *Queries) ListMuscleGroups(ctx context.Context) ([]MuscleGroup, error) {
