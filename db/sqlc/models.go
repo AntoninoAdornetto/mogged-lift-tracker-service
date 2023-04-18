@@ -27,12 +27,12 @@ type Exercise struct {
 }
 
 type Lift struct {
-	ID           []byte  `json:"id"`
+	ID           int64   `json:"id"`
 	ExerciseName string  `json:"exercise_name"`
 	WeightLifted float64 `json:"weight_lifted"`
 	Reps         int32   `json:"reps"`
 	UserID       []byte  `json:"user_id"`
-	WorkoutID    []byte  `json:"workout_id"`
+	WorkoutID    int32   `json:"workout_id"`
 }
 
 type MuscleGroup struct {
