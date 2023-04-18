@@ -107,6 +107,28 @@ func TestUpdateWorkout(t *testing.T) {
 	require.NotEqual(t, query.Duration, workout.Duration)
 }
 
+func TestDeleteWorkout(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+	workout := GenRandWorkout(t, userId.String())
+
+	_, err = testQueries.DeleteWorkout(context.Background(), DeleteWorkoutParams{
+		ID:     workout.ID,
+		UserID: userId.String(),
+	})
+	require.NoError(t, err)
+
+	query, err := testQueries.GetWorkout(context.Background(), GetWorkoutParams{
+		ID:     workout.ID,
+		UserID: userId.String(),
+	})
+	require.Error(t, err)
+	require.Zero(t, query.ID)
+	require.Empty(t, query.UserID)
+	require.Empty(t, query.Lifts)
+}
+
 func createLift(exerciseName string, mp *WorkoutJSON) *WorkoutJSON {
 	liftSetRange := int(util.RandomInt(1, 3))
 
