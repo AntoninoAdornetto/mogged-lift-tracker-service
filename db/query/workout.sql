@@ -17,4 +17,7 @@ WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 UPDATE workout SET
 duration = IFNULL(sqlc.arg('duration'), duration),
 lifts = IFNULL(sqlc.arg('lifts'), lifts)
-WHERE id = ? AND user_id = sqlc.arg('user_id');
+WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
+
+-- name: DeleteWorkout :execresult
+DELETE FROM lift WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg(''));
