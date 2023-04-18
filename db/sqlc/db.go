@@ -39,6 +39,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
 	}
+	if q.createWorkoutStmt, err = db.PrepareContext(ctx, createWorkout); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateWorkout: %w", err)
+	}
 	if q.deleteCategoryStmt, err = db.PrepareContext(ctx, deleteCategory); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteCategory: %w", err)
 	}
@@ -53,6 +56,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
+	}
+	if q.deleteWorkoutStmt, err = db.PrepareContext(ctx, deleteWorkout); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteWorkout: %w", err)
 	}
 	if q.getCategoryStmt, err = db.PrepareContext(ctx, getCategory); err != nil {
 		return nil, fmt.Errorf("error preparing query GetCategory: %w", err)
@@ -69,6 +75,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
 	}
+	if q.getWorkoutStmt, err = db.PrepareContext(ctx, getWorkout); err != nil {
+		return nil, fmt.Errorf("error preparing query GetWorkout: %w", err)
+	}
 	if q.listCategoriesStmt, err = db.PrepareContext(ctx, listCategories); err != nil {
 		return nil, fmt.Errorf("error preparing query ListCategories: %w", err)
 	}
@@ -77,6 +86,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.listMuscleGroupsStmt, err = db.PrepareContext(ctx, listMuscleGroups); err != nil {
 		return nil, fmt.Errorf("error preparing query ListMuscleGroups: %w", err)
+	}
+	if q.listWorkoutsStmt, err = db.PrepareContext(ctx, listWorkouts); err != nil {
+		return nil, fmt.Errorf("error preparing query ListWorkouts: %w", err)
 	}
 	if q.updateCategoryStmt, err = db.PrepareContext(ctx, updateCategory); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateCategory: %w", err)
@@ -92,6 +104,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.updateUserStmt, err = db.PrepareContext(ctx, updateUser); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateUser: %w", err)
+	}
+	if q.updateWorkoutStmt, err = db.PrepareContext(ctx, updateWorkout); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateWorkout: %w", err)
 	}
 	return &q, nil
 }
@@ -123,6 +138,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
 		}
 	}
+	if q.createWorkoutStmt != nil {
+		if cerr := q.createWorkoutStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createWorkoutStmt: %w", cerr)
+		}
+	}
 	if q.deleteCategoryStmt != nil {
 		if cerr := q.deleteCategoryStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteCategoryStmt: %w", cerr)
@@ -146,6 +166,11 @@ func (q *Queries) Close() error {
 	if q.deleteUserStmt != nil {
 		if cerr := q.deleteUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteUserStmt: %w", cerr)
+		}
+	}
+	if q.deleteWorkoutStmt != nil {
+		if cerr := q.deleteWorkoutStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteWorkoutStmt: %w", cerr)
 		}
 	}
 	if q.getCategoryStmt != nil {
@@ -173,6 +198,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getUserStmt: %w", cerr)
 		}
 	}
+	if q.getWorkoutStmt != nil {
+		if cerr := q.getWorkoutStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getWorkoutStmt: %w", cerr)
+		}
+	}
 	if q.listCategoriesStmt != nil {
 		if cerr := q.listCategoriesStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listCategoriesStmt: %w", cerr)
@@ -186,6 +216,11 @@ func (q *Queries) Close() error {
 	if q.listMuscleGroupsStmt != nil {
 		if cerr := q.listMuscleGroupsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listMuscleGroupsStmt: %w", cerr)
+		}
+	}
+	if q.listWorkoutsStmt != nil {
+		if cerr := q.listWorkoutsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listWorkoutsStmt: %w", cerr)
 		}
 	}
 	if q.updateCategoryStmt != nil {
@@ -211,6 +246,11 @@ func (q *Queries) Close() error {
 	if q.updateUserStmt != nil {
 		if cerr := q.updateUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateUserStmt: %w", cerr)
+		}
+	}
+	if q.updateWorkoutStmt != nil {
+		if cerr := q.updateWorkoutStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateWorkoutStmt: %w", cerr)
 		}
 	}
 	return err
@@ -257,24 +297,29 @@ type Queries struct {
 	createMuscleGroupStmt *sql.Stmt
 	createProfileStmt     *sql.Stmt
 	createUserStmt        *sql.Stmt
+	createWorkoutStmt     *sql.Stmt
 	deleteCategoryStmt    *sql.Stmt
 	deleteExerciseStmt    *sql.Stmt
 	deleteMuscleGroupStmt *sql.Stmt
 	deleteProfileStmt     *sql.Stmt
 	deleteUserStmt        *sql.Stmt
+	deleteWorkoutStmt     *sql.Stmt
 	getCategoryStmt       *sql.Stmt
 	getExerciseStmt       *sql.Stmt
 	getMuscleGroupStmt    *sql.Stmt
 	getProfileStmt        *sql.Stmt
 	getUserStmt           *sql.Stmt
+	getWorkoutStmt        *sql.Stmt
 	listCategoriesStmt    *sql.Stmt
 	listExercisesStmt     *sql.Stmt
 	listMuscleGroupsStmt  *sql.Stmt
+	listWorkoutsStmt      *sql.Stmt
 	updateCategoryStmt    *sql.Stmt
 	updateExerciseStmt    *sql.Stmt
 	updateMuscleGroupStmt *sql.Stmt
 	updateProfileStmt     *sql.Stmt
 	updateUserStmt        *sql.Stmt
+	updateWorkoutStmt     *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -286,23 +331,28 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		createMuscleGroupStmt: q.createMuscleGroupStmt,
 		createProfileStmt:     q.createProfileStmt,
 		createUserStmt:        q.createUserStmt,
+		createWorkoutStmt:     q.createWorkoutStmt,
 		deleteCategoryStmt:    q.deleteCategoryStmt,
 		deleteExerciseStmt:    q.deleteExerciseStmt,
 		deleteMuscleGroupStmt: q.deleteMuscleGroupStmt,
 		deleteProfileStmt:     q.deleteProfileStmt,
 		deleteUserStmt:        q.deleteUserStmt,
+		deleteWorkoutStmt:     q.deleteWorkoutStmt,
 		getCategoryStmt:       q.getCategoryStmt,
 		getExerciseStmt:       q.getExerciseStmt,
 		getMuscleGroupStmt:    q.getMuscleGroupStmt,
 		getProfileStmt:        q.getProfileStmt,
 		getUserStmt:           q.getUserStmt,
+		getWorkoutStmt:        q.getWorkoutStmt,
 		listCategoriesStmt:    q.listCategoriesStmt,
 		listExercisesStmt:     q.listExercisesStmt,
 		listMuscleGroupsStmt:  q.listMuscleGroupsStmt,
+		listWorkoutsStmt:      q.listWorkoutsStmt,
 		updateCategoryStmt:    q.updateCategoryStmt,
 		updateExerciseStmt:    q.updateExerciseStmt,
 		updateMuscleGroupStmt: q.updateMuscleGroupStmt,
 		updateProfileStmt:     q.updateProfileStmt,
 		updateUserStmt:        q.updateUserStmt,
+		updateWorkoutStmt:     q.updateWorkoutStmt,
 	}
 }

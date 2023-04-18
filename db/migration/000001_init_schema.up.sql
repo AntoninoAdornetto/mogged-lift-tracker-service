@@ -8,7 +8,7 @@ CREATE TABLE `user` (
 );
 
 CREATE TABLE `profile` (
-	`id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`country` VARCHAR(5) NOT NULL,
 	`measurement_system` VARCHAR(20) NOT NULL,
 	`body_weight` REAL NOT NULL DEFAULT 0,
@@ -30,7 +30,7 @@ CREATE TABLE `category` (
 -- using TIME for rest_timer results in a typing error with sqlc when using a default value of '00:00:00'
 -- we can store as a string and later parse it as a duration using go's parseDuration method
 CREATE TABLE `exercise` (
-	`id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`name` VARCHAR(50) UNIQUE NOT NULL,
 	`muscle_group` VARCHAR(20) NOT NULL,
 	`category` VARCHAR(20) NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE `exercise` (
 -- using TIME for duration results in a typing error with sqlc when using a default value of '00:00:00'
 -- we can store as a string and later parse it as a duration using go's parseDuration method
 CREATE TABLE `workout` (
-  `id` BINARY(16) PRIMARY KEY NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
+  `id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`duration` VARCHAR(10) NOT NULL DEFAULT '00:00:00s',
 	`lifts` JSON,
 	`user_id` BINARY(16) NOT NULL
@@ -60,7 +60,7 @@ CREATE TABLE `lift` (
 );
 
 CREATE TABLE `template` (
-	`id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`name` VARCHAR(50) UNIQUE NOT NULL,
 	`lifts` JSON,
 	`date_last_used` DATETIME NOT NULL DEFAULT NOW(),
@@ -86,6 +86,7 @@ ALTER TABLE `workout` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
 
 ALTER TABLE `lift` ADD FOREIGN KEY (`exercise_name`) REFERENCES `exercise` (`name`);
 ALTER TABLE `lift` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
-ALTER TABLE `lift` ADD FOREIGN KEY (`workout_id`) REFERENCES `workout` (`id`);
+-- removed below fk due to not being able to retreive last insert id with uuid in sqlc, keeping just in case I switch back later or find a solution
+-- ALTER TABLE `lift` ADD FOREIGN KEY (`workout_id`) REFERENCES `workout` (`id`);
 
 ALTER TABLE `template` ADD FOREIGN KEY (`created_by`) REFERENCES `user` (`id`);
