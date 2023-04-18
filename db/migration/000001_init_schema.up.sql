@@ -51,7 +51,7 @@ CREATE TABLE `workout` (
 );
 
 CREATE TABLE `lift` (
-  `id` BINARY(16) PRIMARY KEY NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
+  `id` SERIAL PRIMARY KEY,
 	`exercise_name` VARCHAR(50) NOT NULL,
 	`weight_lifted` REAL NOT NULL,
 	`reps` SMALLINT NOT NULL,
