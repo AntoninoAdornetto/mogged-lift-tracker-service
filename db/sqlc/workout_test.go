@@ -75,7 +75,7 @@ func TestUpdateWorkout(t *testing.T) {
 	exercises := make([]Exercise, n)
 	for i := 0; i < n; i++ {
 		exercises[i] = GenRandExercise(t, userId.String())
-		createLift(exercises[i].Name, newLifts)
+		insertIntoWorkoutMap(exercises[i].Name, newLifts)
 	}
 
 	newLiftsRaw, err := json.Marshal(*newLifts)
@@ -129,7 +129,7 @@ func TestDeleteWorkout(t *testing.T) {
 	require.Empty(t, query.Lifts)
 }
 
-func createLift(exerciseName string, mp *WorkoutJSON) *WorkoutJSON {
+func insertIntoWorkoutMap(exerciseName string, mp *WorkoutJSON) *WorkoutJSON {
 	liftSetRange := int(util.RandomInt(1, 3))
 
 	lift := &LiftJSON{
@@ -156,7 +156,7 @@ func GenRandWorkout(t *testing.T, userId string) Workout {
 
 	for i := 0; i < n; i++ {
 		exercises[i] = GenRandExercise(t, userId)
-		createLift(exercises[i].Name, buildWorkout)
+		insertIntoWorkoutMap(exercises[i].Name, buildWorkout)
 	}
 
 	rawJson, err := json.Marshal(*buildWorkout)
