@@ -13,6 +13,10 @@ INSERT INTO workout (
 SELECT * FROM workout
 WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
+-- name: ListWorkouts :many
+SELECT * FROM workout
+WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'));
+
 -- name: UpdateWorkout :execresult
 UPDATE workout SET
 duration = IFNULL(sqlc.arg('duration'), duration),
