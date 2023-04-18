@@ -24,4 +24,5 @@ lifts = IFNULL(sqlc.arg('lifts'), lifts)
 WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
 -- name: DeleteWorkout :execresult
-DELETE FROM lift WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
+DELETE FROM workout 
+WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
