@@ -67,3 +67,43 @@ func (q *Queries) GetLift(ctx context.Context, arg GetLiftParams) (Lift, error) 
 	)
 	return i, err
 }
+
+const listLiftsFromWorkout = `-- name: ListLiftsFromWorkout :many
+SELECT id, exercise_name, weight_lifted, reps, user_id, workout_id FROM lift
+WHERE workout_id = ? AND user_id = UUID_TO_BIN(?)
+`
+
+type ListLiftsFromWorkoutParams struct {
+	WorkoutID int32  `json:"workout_id"`
+	UserID    string `json:"user_id"`
+}
+
+func (q *Queries) ListLiftsFromWorkout(ctx context.Context, arg ListLiftsFromWorkoutParams) ([]Lift, error) {
+	rows, err := q.query(ctx, q.listLiftsFromWorkoutStmt, listLiftsFromWorkout, arg.WorkoutID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Lift
+	for rows.Next() {
+		var i Lift
+		if err := rows.Scan(
+			&i.ID,
+			&i.ExerciseName,
+			&i.WeightLifted,
+			&i.Reps,
+			&i.UserID,
+			&i.WorkoutID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
