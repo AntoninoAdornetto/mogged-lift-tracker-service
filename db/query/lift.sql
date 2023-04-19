@@ -16,3 +16,7 @@ INSERT INTO lift (
 -- name: GetLift :one
 SELECT * FROM lift
 WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
+
+-- name: ListLiftsFromWorkout :many
+SELECT * FROM lift
+WHERE workout_id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
