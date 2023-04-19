@@ -28,7 +28,6 @@ func TestListLiftsFromWorkout(t *testing.T) {
 	user := GenRandUser(t)
 	userId, err := uuid.Parse(user.ID)
 	require.NoError(t, err)
-
 	workout := GenRandWorkout(t, userId.String())
 
 	query, err := testQueries.ListLiftsFromWorkout(context.Background(), ListLiftsFromWorkoutParams{
@@ -50,6 +49,38 @@ func TestListLiftsFromWorkout(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Len(t, query, n)
+}
+
+func TestListMaxWeightPrs(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+	n := 5
+	workout := GenRandWorkout(t, userId.String())
+
+	query, err := testQueries.ListMaxWeightPrs(context.Background(), ListMaxWeightPrsParams{
+		UserID: userId.String(),
+		Limit:  int32(n),
+	})
+	require.NoError(t, err)
+	require.Empty(t, query)
+
+	for i := 0; i < n; i++ {
+		GenRandLift(t, NewLiftArgs{UserID: userId.String(), WorkoutID: workout.ID})
+	}
+
+	query, err = testQueries.ListMaxWeightPrs(context.Background(), ListMaxWeightPrsParams{
+		UserID: userId.String(),
+		Limit:  int32(n),
+	})
+	require.NoError(t, err)
+	require.Len(t, query, n)
+
+	weight := query[0].WeightLifted
+	for i := 1; i < n; i++ {
+		require.LessOrEqual(t, query[i].WeightLifted, weight)
+		weight = query[i].WeightLifted
+	}
 }
 
 func GenRandLift(t *testing.T, args NewLiftArgs) Lift {
