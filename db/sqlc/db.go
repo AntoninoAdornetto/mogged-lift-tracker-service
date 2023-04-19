@@ -93,6 +93,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.listLiftsFromWorkoutStmt, err = db.PrepareContext(ctx, listLiftsFromWorkout); err != nil {
 		return nil, fmt.Errorf("error preparing query ListLiftsFromWorkout: %w", err)
 	}
+	if q.listMaxWeightPrsStmt, err = db.PrepareContext(ctx, listMaxWeightPrs); err != nil {
+		return nil, fmt.Errorf("error preparing query ListMaxWeightPrs: %w", err)
+	}
 	if q.listMuscleGroupsStmt, err = db.PrepareContext(ctx, listMuscleGroups); err != nil {
 		return nil, fmt.Errorf("error preparing query ListMuscleGroups: %w", err)
 	}
@@ -237,6 +240,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listLiftsFromWorkoutStmt: %w", cerr)
 		}
 	}
+	if q.listMaxWeightPrsStmt != nil {
+		if cerr := q.listMaxWeightPrsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listMaxWeightPrsStmt: %w", cerr)
+		}
+	}
 	if q.listMuscleGroupsStmt != nil {
 		if cerr := q.listMuscleGroupsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listMuscleGroupsStmt: %w", cerr)
@@ -339,6 +347,7 @@ type Queries struct {
 	listCategoriesStmt       *sql.Stmt
 	listExercisesStmt        *sql.Stmt
 	listLiftsFromWorkoutStmt *sql.Stmt
+	listMaxWeightPrsStmt     *sql.Stmt
 	listMuscleGroupsStmt     *sql.Stmt
 	listWorkoutsStmt         *sql.Stmt
 	updateCategoryStmt       *sql.Stmt
@@ -376,6 +385,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		listCategoriesStmt:       q.listCategoriesStmt,
 		listExercisesStmt:        q.listExercisesStmt,
 		listLiftsFromWorkoutStmt: q.listLiftsFromWorkoutStmt,
+		listMaxWeightPrsStmt:     q.listMaxWeightPrsStmt,
 		listMuscleGroupsStmt:     q.listMuscleGroupsStmt,
 		listWorkoutsStmt:         q.listWorkoutsStmt,
 		updateCategoryStmt:       q.updateCategoryStmt,

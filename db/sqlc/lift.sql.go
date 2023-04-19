@@ -107,3 +107,44 @@ func (q *Queries) ListLiftsFromWorkout(ctx context.Context, arg ListLiftsFromWor
 	}
 	return items, nil
 }
+
+const listMaxWeightPrs = `-- name: ListMaxWeightPrs :many
+SELECT id, exercise_name, weight_lifted, reps, user_id, workout_id FROM lift
+WHERE user_id = UUID_TO_BIN(?)
+ORDER BY weight_lifted DESC LIMIT ?
+`
+
+type ListMaxWeightPrsParams struct {
+	UserID string `json:"user_id"`
+	Limit  int32  `json:"limit"`
+}
+
+func (q *Queries) ListMaxWeightPrs(ctx context.Context, arg ListMaxWeightPrsParams) ([]Lift, error) {
+	rows, err := q.query(ctx, q.listMaxWeightPrsStmt, listMaxWeightPrs, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Lift
+	for rows.Next() {
+		var i Lift
+		if err := rows.Scan(
+			&i.ID,
+			&i.ExerciseName,
+			&i.WeightLifted,
+			&i.Reps,
+			&i.UserID,
+			&i.WorkoutID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
