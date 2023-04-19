@@ -83,6 +83,38 @@ func TestListMaxWeightPrs(t *testing.T) {
 	}
 }
 
+func TestListMaxRepPrs(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+	n := 5
+	workout := GenRandWorkout(t, userId.String())
+
+	query, err := testQueries.ListMaxRepPrs(context.Background(), ListMaxRepPrsParams{
+		UserID: userId.String(),
+		Limit:  int32(n),
+	})
+	require.NoError(t, err)
+	require.Empty(t, query)
+
+	for i := 0; i < n; i++ {
+		GenRandLift(t, NewLiftArgs{UserID: userId.String(), WorkoutID: workout.ID})
+	}
+
+	query, err = testQueries.ListMaxRepPrs(context.Background(), ListMaxRepPrsParams{
+		UserID: userId.String(),
+		Limit:  int32(n),
+	})
+	require.NoError(t, err)
+	require.Len(t, query, n)
+
+	reps := query[0].Reps
+	for i := 1; i < n; i++ {
+		require.LessOrEqual(t, query[i].Reps, reps)
+		reps = query[i].Reps
+	}
+}
+
 func GenRandLift(t *testing.T, args NewLiftArgs) Lift {
 	lift := &Lift{}
 	exercise := GenRandExercise(t, args.UserID)
