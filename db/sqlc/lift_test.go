@@ -9,38 +9,72 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type NewLiftArgs struct {
+	UserID    string
+	WorkoutID int32
+}
+
 // asserts both create and get one queries
 func TestCreateLift(t *testing.T) {
 	user := GenRandUser(t)
 	userId, err := uuid.Parse(user.ID)
 	require.NoError(t, err)
-	GenRandLift(t, userId.String())
+
+	workout := GenRandWorkout(t, userId.String())
+	GenRandLift(t, NewLiftArgs{UserID: userId.String(), WorkoutID: workout.ID})
 }
 
-func GenRandLift(t *testing.T, userId string) Lift {
-	lift := &Lift{}
-	exercise := GenRandExercise(t, userId)
-	workout := GenRandWorkout(t, userId)
+func TestListLiftsFromWorkout(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
 
-	args := CreateLiftParams{
+	workout := GenRandWorkout(t, userId.String())
+
+	query, err := testQueries.ListLiftsFromWorkout(context.Background(), ListLiftsFromWorkoutParams{
+		UserID:    userId.String(),
+		WorkoutID: workout.ID,
+	})
+	require.NoError(t, err)
+	require.Empty(t, query)
+
+	n := 5
+	lifts := make([]Lift, n)
+	for i := 0; i < n; i++ {
+		lifts[i] = GenRandLift(t, NewLiftArgs{UserID: userId.String(), WorkoutID: workout.ID})
+	}
+
+	query, err = testQueries.ListLiftsFromWorkout(context.Background(), ListLiftsFromWorkoutParams{
+		UserID:    userId.String(),
+		WorkoutID: workout.ID,
+	})
+	require.NoError(t, err)
+	require.Len(t, query, n)
+}
+
+func GenRandLift(t *testing.T, args NewLiftArgs) Lift {
+	lift := &Lift{}
+	exercise := GenRandExercise(t, args.UserID)
+
+	createLiftArgs := CreateLiftParams{
 		ExerciseName: exercise.Name,
 		Reps:         int32(util.RandomInt(3, 12)),
 		WeightLifted: float64(util.RandomInt(100, 300)),
-		UserID:       userId,
-		WorkoutID:    workout.ID,
+		UserID:       args.UserID,
+		WorkoutID:    args.WorkoutID,
 	}
-	record, err := testQueries.CreateLift(context.Background(), args)
+	record, err := testQueries.CreateLift(context.Background(), createLiftArgs)
 	require.NoError(t, err)
 	lastId, err := record.LastInsertId()
 	require.NoError(t, err)
 	require.NotZero(t, lastId)
 
-	query, err := testQueries.GetLift(context.Background(), GetLiftParams{UserID: userId, ID: lastId})
+	query, err := testQueries.GetLift(context.Background(), GetLiftParams{UserID: args.UserID, ID: lastId})
 	require.NoError(t, err)
 	require.NotZero(t, query.ID)
-	require.Equal(t, query.ExerciseName, args.ExerciseName)
-	require.Equal(t, query.Reps, args.Reps)
-	require.Equal(t, query.WeightLifted, args.WeightLifted)
+	require.Equal(t, query.ExerciseName, createLiftArgs.ExerciseName)
+	require.Equal(t, query.Reps, createLiftArgs.Reps)
+	require.Equal(t, query.WeightLifted, createLiftArgs.WeightLifted)
 	require.Equal(t, query.WorkoutID, args.WorkoutID)
 
 	queryUserId, err := uuid.FromBytes(query.UserID)
