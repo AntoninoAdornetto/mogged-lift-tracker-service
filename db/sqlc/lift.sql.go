@@ -189,3 +189,29 @@ func (q *Queries) ListMaxWeightPrs(ctx context.Context, arg ListMaxWeightPrsPara
 	}
 	return items, nil
 }
+
+const updateLift = `-- name: UpdateLift :execresult
+UPDATE lift set
+exercise_name = IFNULL(?, exercise_name),
+weight_lifted = IFNULL(?, weight_lifted),
+reps = IFNULL(?, reps)
+WHERE id = ? AND user_id = UUID_TO_BIN(?)
+`
+
+type UpdateLiftParams struct {
+	ExerciseName interface{} `json:"exercise_name"`
+	WeightLifted interface{} `json:"weight_lifted"`
+	Reps         interface{} `json:"reps"`
+	ID           int64       `json:"id"`
+	UserID       string      `json:"user_id"`
+}
+
+func (q *Queries) UpdateLift(ctx context.Context, arg UpdateLiftParams) (sql.Result, error) {
+	return q.exec(ctx, q.updateLiftStmt, updateLift,
+		arg.ExerciseName,
+		arg.WeightLifted,
+		arg.Reps,
+		arg.ID,
+		arg.UserID,
+	)
+}
