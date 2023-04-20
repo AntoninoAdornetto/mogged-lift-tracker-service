@@ -44,6 +44,20 @@ func (q *Queries) CreateLift(ctx context.Context, arg CreateLiftParams) (sql.Res
 	)
 }
 
+const deleteLift = `-- name: DeleteLift :execresult
+DELETE FROM lift
+WHERE id = ? AND user_id = UUID_TO_BIN(?)
+`
+
+type DeleteLiftParams struct {
+	ID     int64  `json:"id"`
+	UserID string `json:"user_id"`
+}
+
+func (q *Queries) DeleteLift(ctx context.Context, arg DeleteLiftParams) (sql.Result, error) {
+	return q.exec(ctx, q.deleteLiftStmt, deleteLift, arg.ID, arg.UserID)
+}
+
 const getLift = `-- name: GetLift :one
 SELECT id, exercise_name, weight_lifted, reps, user_id, workout_id FROM lift
 WHERE id = ? AND user_id = UUID_TO_BIN(?)
