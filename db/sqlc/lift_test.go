@@ -170,6 +170,27 @@ func TestUpdateLift(t *testing.T) {
 	require.Equal(t, query.Reps, newReps)
 }
 
+func TestDeleteLift(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+	workout := GenRandWorkout(t, userId.String())
+	lift := GenRandLift(t, NewLiftArgs{UserID: userId.String(), WorkoutID: workout.ID})
+
+	_, err = testQueries.DeleteLift(context.Background(), DeleteLiftParams{
+		ID:     lift.ID,
+		UserID: userId.String(),
+	})
+	require.NoError(t, err)
+
+	query, err := testQueries.GetLift(context.Background(), GetLiftParams{
+		ID:     lift.ID,
+		UserID: userId.String(),
+	})
+	require.Error(t, err)
+	require.Zero(t, query.ID)
+}
+
 func GenRandLift(t *testing.T, args NewLiftArgs) Lift {
 	lift := &Lift{}
 	exercise := GenRandExercise(t, args.UserID)
