@@ -115,6 +115,61 @@ func TestListMaxRepPrs(t *testing.T) {
 	}
 }
 
+func TestUpdateLift(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+	workout := GenRandWorkout(t, userId.String())
+	lift := GenRandLift(t, NewLiftArgs{UserID: userId.String(), WorkoutID: workout.ID})
+
+	newExerciseName := GenRandExercise(t, userId.String()).Name
+	_, err = testQueries.UpdateLift(context.Background(), UpdateLiftParams{
+		ExerciseName: newExerciseName,
+		UserID:       userId.String(),
+		ID:           lift.ID,
+	})
+	require.NoError(t, err)
+	require.NoError(t, err)
+
+	query, err := testQueries.GetLift(context.Background(), GetLiftParams{
+		UserID: userId.String(),
+		ID:     lift.ID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, query.ID, lift.ID)
+	require.Equal(t, query.ExerciseName, newExerciseName)
+
+	newWeightLifted := float64(util.RandomInt(100, 500))
+	_, err = testQueries.UpdateLift(context.Background(), UpdateLiftParams{
+		WeightLifted: newWeightLifted,
+		UserID:       userId.String(),
+		ID:           lift.ID,
+	})
+
+	query, err = testQueries.GetLift(context.Background(), GetLiftParams{
+		UserID: userId.String(),
+		ID:     lift.ID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, query.ID, lift.ID)
+	require.Equal(t, query.WeightLifted, newWeightLifted)
+
+	newReps := int32(util.RandomInt(100, 500))
+	_, err = testQueries.UpdateLift(context.Background(), UpdateLiftParams{
+		Reps:   newReps,
+		UserID: userId.String(),
+		ID:     lift.ID,
+	})
+
+	query, err = testQueries.GetLift(context.Background(), GetLiftParams{
+		UserID: userId.String(),
+		ID:     lift.ID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, query.ID, lift.ID)
+	require.Equal(t, query.Reps, newReps)
+}
+
 func GenRandLift(t *testing.T, args NewLiftArgs) Lift {
 	lift := &Lift{}
 	exercise := GenRandExercise(t, args.UserID)
