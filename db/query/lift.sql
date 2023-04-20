@@ -30,3 +30,10 @@ ORDER BY weight_lifted DESC LIMIT ?;
 SELECT * FROM lift
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'))
 ORDER BY reps DESC LIMIT ?;
+
+-- name: UpdateLift :execresult
+UPDATE lift set
+exercise_name = IFNULL(sqlc.arg('exercise_name'), exercise_name),
+weight_lifted = IFNULL(sqlc.arg('weight_lifted'), weight_lifted),
+reps = IFNULL(sqlc.arg('reps'), reps)
+WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
