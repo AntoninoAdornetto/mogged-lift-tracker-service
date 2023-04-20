@@ -51,12 +51,12 @@ CREATE TABLE `workout` (
 );
 
 CREATE TABLE `lift` (
-  `id` BINARY(16) PRIMARY KEY NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
+  `id` SERIAL PRIMARY KEY,
 	`exercise_name` VARCHAR(50) NOT NULL,
 	`weight_lifted` REAL NOT NULL,
 	`reps` SMALLINT NOT NULL,
 	`user_id` BINARY(16) NOT NULL,
-	`workout_id` BINARY(16) NOT NULL
+	`workout_id` MEDIUMINT UNSIGNED NOT NULL 
 );
 
 CREATE TABLE `template` (
@@ -86,7 +86,7 @@ ALTER TABLE `workout` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
 
 ALTER TABLE `lift` ADD FOREIGN KEY (`exercise_name`) REFERENCES `exercise` (`name`);
 ALTER TABLE `lift` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
--- removed below fk due to not being able to retreive last insert id with uuid in sqlc, keeping just in case I switch back later or find a solution
--- ALTER TABLE `lift` ADD FOREIGN KEY (`workout_id`) REFERENCES `workout` (`id`);
+ALTER TABLE `lift` ADD FOREIGN KEY (`workout_id`) REFERENCES `workout` (`id`);
+-- @TODO: determine if index on lift.workout_id can be beneficial
 
 ALTER TABLE `template` ADD FOREIGN KEY (`created_by`) REFERENCES `user` (`id`);
