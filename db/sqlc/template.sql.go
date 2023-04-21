@@ -33,6 +33,20 @@ func (q *Queries) CreateTemplate(ctx context.Context, arg CreateTemplateParams) 
 	return q.exec(ctx, q.createTemplateStmt, createTemplate, arg.Name, arg.Lifts, arg.CreatedBy)
 }
 
+const deleteTemplate = `-- name: DeleteTemplate :execresult
+DELETE FROM template
+WHERE id = ? AND created_by = UUID_TO_BIN(?)
+`
+
+type DeleteTemplateParams struct {
+	ID        int32  `json:"id"`
+	CreatedBy string `json:"created_by"`
+}
+
+func (q *Queries) DeleteTemplate(ctx context.Context, arg DeleteTemplateParams) (sql.Result, error) {
+	return q.exec(ctx, q.deleteTemplateStmt, deleteTemplate, arg.ID, arg.CreatedBy)
+}
+
 const getTemplate = `-- name: GetTemplate :one
 SELECT id, name, lifts, date_last_used, created_by FROM template
 WHERE id = ? AND created_by = UUID_TO_BIN(?)

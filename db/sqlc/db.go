@@ -63,6 +63,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.deleteProfileStmt, err = db.PrepareContext(ctx, deleteProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteProfile: %w", err)
 	}
+	if q.deleteTemplateStmt, err = db.PrepareContext(ctx, deleteTemplate); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteTemplate: %w", err)
+	}
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
 	}
@@ -209,6 +212,11 @@ func (q *Queries) Close() error {
 	if q.deleteProfileStmt != nil {
 		if cerr := q.deleteProfileStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteProfileStmt: %w", cerr)
+		}
+	}
+	if q.deleteTemplateStmt != nil {
+		if cerr := q.deleteTemplateStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteTemplateStmt: %w", cerr)
 		}
 	}
 	if q.deleteUserStmt != nil {
@@ -393,6 +401,7 @@ type Queries struct {
 	deleteLiftStmt           *sql.Stmt
 	deleteMuscleGroupStmt    *sql.Stmt
 	deleteProfileStmt        *sql.Stmt
+	deleteTemplateStmt       *sql.Stmt
 	deleteUserStmt           *sql.Stmt
 	deleteWorkoutStmt        *sql.Stmt
 	getCategoryStmt          *sql.Stmt
@@ -438,6 +447,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		deleteLiftStmt:           q.deleteLiftStmt,
 		deleteMuscleGroupStmt:    q.deleteMuscleGroupStmt,
 		deleteProfileStmt:        q.deleteProfileStmt,
+		deleteTemplateStmt:       q.deleteTemplateStmt,
 		deleteUserStmt:           q.deleteUserStmt,
 		deleteWorkoutStmt:        q.deleteWorkoutStmt,
 		getCategoryStmt:          q.getCategoryStmt,
