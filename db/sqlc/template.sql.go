@@ -95,13 +95,14 @@ UPDATE template SET
 name = IFNULL(?, name),
 lifts = IFNULL(?, lifts),
 date_last_used = IFNULL(?, date_last_used)
-WHERE created_by = UUID_TO_BIN(?)
+WHERE id = ? AND created_by = UUID_TO_BIN(?)
 `
 
 type UpdateTemplateParams struct {
 	Name         interface{} `json:"name"`
 	Lifts        interface{} `json:"lifts"`
 	DateLastUsed interface{} `json:"date_last_used"`
+	ID           int32       `json:"id"`
 	CreatedBy    string      `json:"created_by"`
 }
 
@@ -110,6 +111,7 @@ func (q *Queries) UpdateTemplate(ctx context.Context, arg UpdateTemplateParams) 
 		arg.Name,
 		arg.Lifts,
 		arg.DateLastUsed,
+		arg.ID,
 		arg.CreatedBy,
 	)
 	if err != nil {
