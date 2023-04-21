@@ -39,6 +39,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createProfileStmt, err = db.PrepareContext(ctx, createProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateProfile: %w", err)
 	}
+	if q.createTemplateStmt, err = db.PrepareContext(ctx, createTemplate); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateTemplate: %w", err)
+	}
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
 	}
@@ -60,6 +63,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.deleteProfileStmt, err = db.PrepareContext(ctx, deleteProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteProfile: %w", err)
 	}
+	if q.deleteTemplateStmt, err = db.PrepareContext(ctx, deleteTemplate); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteTemplate: %w", err)
+	}
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
 	}
@@ -80,6 +86,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getProfileStmt, err = db.PrepareContext(ctx, getProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query GetProfile: %w", err)
+	}
+	if q.getTemplateStmt, err = db.PrepareContext(ctx, getTemplate); err != nil {
+		return nil, fmt.Errorf("error preparing query GetTemplate: %w", err)
 	}
 	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
@@ -105,6 +114,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.listMuscleGroupsStmt, err = db.PrepareContext(ctx, listMuscleGroups); err != nil {
 		return nil, fmt.Errorf("error preparing query ListMuscleGroups: %w", err)
 	}
+	if q.listTemplatesStmt, err = db.PrepareContext(ctx, listTemplates); err != nil {
+		return nil, fmt.Errorf("error preparing query ListTemplates: %w", err)
+	}
 	if q.listWorkoutsStmt, err = db.PrepareContext(ctx, listWorkouts); err != nil {
 		return nil, fmt.Errorf("error preparing query ListWorkouts: %w", err)
 	}
@@ -122,6 +134,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.updateProfileStmt, err = db.PrepareContext(ctx, updateProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateProfile: %w", err)
+	}
+	if q.updateTemplateStmt, err = db.PrepareContext(ctx, updateTemplate); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateTemplate: %w", err)
 	}
 	if q.updateUserStmt, err = db.PrepareContext(ctx, updateUser); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateUser: %w", err)
@@ -159,6 +174,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createProfileStmt: %w", cerr)
 		}
 	}
+	if q.createTemplateStmt != nil {
+		if cerr := q.createTemplateStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createTemplateStmt: %w", cerr)
+		}
+	}
 	if q.createUserStmt != nil {
 		if cerr := q.createUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
@@ -194,6 +214,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing deleteProfileStmt: %w", cerr)
 		}
 	}
+	if q.deleteTemplateStmt != nil {
+		if cerr := q.deleteTemplateStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteTemplateStmt: %w", cerr)
+		}
+	}
 	if q.deleteUserStmt != nil {
 		if cerr := q.deleteUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteUserStmt: %w", cerr)
@@ -227,6 +252,11 @@ func (q *Queries) Close() error {
 	if q.getProfileStmt != nil {
 		if cerr := q.getProfileStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getProfileStmt: %w", cerr)
+		}
+	}
+	if q.getTemplateStmt != nil {
+		if cerr := q.getTemplateStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getTemplateStmt: %w", cerr)
 		}
 	}
 	if q.getUserStmt != nil {
@@ -269,6 +299,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listMuscleGroupsStmt: %w", cerr)
 		}
 	}
+	if q.listTemplatesStmt != nil {
+		if cerr := q.listTemplatesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listTemplatesStmt: %w", cerr)
+		}
+	}
 	if q.listWorkoutsStmt != nil {
 		if cerr := q.listWorkoutsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listWorkoutsStmt: %w", cerr)
@@ -297,6 +332,11 @@ func (q *Queries) Close() error {
 	if q.updateProfileStmt != nil {
 		if cerr := q.updateProfileStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateProfileStmt: %w", cerr)
+		}
+	}
+	if q.updateTemplateStmt != nil {
+		if cerr := q.updateTemplateStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateTemplateStmt: %w", cerr)
 		}
 	}
 	if q.updateUserStmt != nil {
@@ -353,6 +393,7 @@ type Queries struct {
 	createLiftStmt           *sql.Stmt
 	createMuscleGroupStmt    *sql.Stmt
 	createProfileStmt        *sql.Stmt
+	createTemplateStmt       *sql.Stmt
 	createUserStmt           *sql.Stmt
 	createWorkoutStmt        *sql.Stmt
 	deleteCategoryStmt       *sql.Stmt
@@ -360,6 +401,7 @@ type Queries struct {
 	deleteLiftStmt           *sql.Stmt
 	deleteMuscleGroupStmt    *sql.Stmt
 	deleteProfileStmt        *sql.Stmt
+	deleteTemplateStmt       *sql.Stmt
 	deleteUserStmt           *sql.Stmt
 	deleteWorkoutStmt        *sql.Stmt
 	getCategoryStmt          *sql.Stmt
@@ -367,6 +409,7 @@ type Queries struct {
 	getLiftStmt              *sql.Stmt
 	getMuscleGroupStmt       *sql.Stmt
 	getProfileStmt           *sql.Stmt
+	getTemplateStmt          *sql.Stmt
 	getUserStmt              *sql.Stmt
 	getWorkoutStmt           *sql.Stmt
 	listCategoriesStmt       *sql.Stmt
@@ -375,12 +418,14 @@ type Queries struct {
 	listMaxRepPrsStmt        *sql.Stmt
 	listMaxWeightPrsStmt     *sql.Stmt
 	listMuscleGroupsStmt     *sql.Stmt
+	listTemplatesStmt        *sql.Stmt
 	listWorkoutsStmt         *sql.Stmt
 	updateCategoryStmt       *sql.Stmt
 	updateExerciseStmt       *sql.Stmt
 	updateLiftStmt           *sql.Stmt
 	updateMuscleGroupStmt    *sql.Stmt
 	updateProfileStmt        *sql.Stmt
+	updateTemplateStmt       *sql.Stmt
 	updateUserStmt           *sql.Stmt
 	updateWorkoutStmt        *sql.Stmt
 }
@@ -394,6 +439,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		createLiftStmt:           q.createLiftStmt,
 		createMuscleGroupStmt:    q.createMuscleGroupStmt,
 		createProfileStmt:        q.createProfileStmt,
+		createTemplateStmt:       q.createTemplateStmt,
 		createUserStmt:           q.createUserStmt,
 		createWorkoutStmt:        q.createWorkoutStmt,
 		deleteCategoryStmt:       q.deleteCategoryStmt,
@@ -401,6 +447,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		deleteLiftStmt:           q.deleteLiftStmt,
 		deleteMuscleGroupStmt:    q.deleteMuscleGroupStmt,
 		deleteProfileStmt:        q.deleteProfileStmt,
+		deleteTemplateStmt:       q.deleteTemplateStmt,
 		deleteUserStmt:           q.deleteUserStmt,
 		deleteWorkoutStmt:        q.deleteWorkoutStmt,
 		getCategoryStmt:          q.getCategoryStmt,
@@ -408,6 +455,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getLiftStmt:              q.getLiftStmt,
 		getMuscleGroupStmt:       q.getMuscleGroupStmt,
 		getProfileStmt:           q.getProfileStmt,
+		getTemplateStmt:          q.getTemplateStmt,
 		getUserStmt:              q.getUserStmt,
 		getWorkoutStmt:           q.getWorkoutStmt,
 		listCategoriesStmt:       q.listCategoriesStmt,
@@ -416,12 +464,14 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		listMaxRepPrsStmt:        q.listMaxRepPrsStmt,
 		listMaxWeightPrsStmt:     q.listMaxWeightPrsStmt,
 		listMuscleGroupsStmt:     q.listMuscleGroupsStmt,
+		listTemplatesStmt:        q.listTemplatesStmt,
 		listWorkoutsStmt:         q.listWorkoutsStmt,
 		updateCategoryStmt:       q.updateCategoryStmt,
 		updateExerciseStmt:       q.updateExerciseStmt,
 		updateLiftStmt:           q.updateLiftStmt,
 		updateMuscleGroupStmt:    q.updateMuscleGroupStmt,
 		updateProfileStmt:        q.updateProfileStmt,
+		updateTemplateStmt:       q.updateTemplateStmt,
 		updateUserStmt:           q.updateUserStmt,
 		updateWorkoutStmt:        q.updateWorkoutStmt,
 	}
