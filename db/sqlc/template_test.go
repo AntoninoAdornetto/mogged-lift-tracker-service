@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -43,6 +44,41 @@ func TestListTemplates(t *testing.T) {
 		require.Equal(t, v.ID, templates[i].ID)
 		require.Equal(t, v.Lifts, templates[i].Lifts)
 	}
+}
+
+// @todo - assert for date updates
+func TestUpdateTemplate(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+
+	template := GenRandTemplate(t, userId.String())
+	newTemplateValues := struct {
+		NewTemplateName string
+		NewLifts        json.RawMessage
+		NewDateLastUsed int64
+	}{
+		NewTemplateName: util.RandomStr(5),
+		NewLifts:        GenRandTemplate(t, userId.String()).Lifts,
+	}
+
+	_, err = testQueries.UpdateTemplate(context.Background(), UpdateTemplateParams{
+		Name:      newTemplateValues.NewTemplateName,
+		CreatedBy: userId.String(),
+		ID:        template.ID,
+		Lifts:     newTemplateValues.NewLifts,
+		// DateLastUsed: time.UnixMilli(newTemplateValues.NewDateLastUsed),
+	})
+	require.NoError(t, err)
+
+	query, err := testQueries.GetTemplate(context.Background(), GetTemplateParams{
+		ID:        template.ID,
+		CreatedBy: userId.String(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, query.ID, template.ID)
+	require.Equal(t, query.Lifts, newTemplateValues.NewLifts)
+	require.Equal(t, query.Name, newTemplateValues.NewTemplateName)
 }
 
 func GenRandTemplate(t *testing.T, userId string) Template {
