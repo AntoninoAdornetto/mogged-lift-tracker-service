@@ -81,6 +81,27 @@ func TestUpdateTemplate(t *testing.T) {
 	require.Equal(t, query.Name, newTemplateValues.NewTemplateName)
 }
 
+func TestDeleteTemplate(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+
+	template := GenRandTemplate(t, userId.String())
+
+	_, err = testQueries.DeleteTemplate(context.Background(), DeleteTemplateParams{
+		ID:        template.ID,
+		CreatedBy: userId.String(),
+	})
+	require.NoError(t, err)
+
+	query, err := testQueries.GetTemplate(context.Background(), GetTemplateParams{
+		ID:        template.ID,
+		CreatedBy: userId.String(),
+	})
+	require.Error(t, err)
+	require.Zero(t, query.ID)
+}
+
 func GenRandTemplate(t *testing.T, userId string) Template {
 	template := &Template{}
 	workout := GenRandWorkout(t, userId)
