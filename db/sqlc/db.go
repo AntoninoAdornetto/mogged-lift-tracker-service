@@ -132,6 +132,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.updateProfileStmt, err = db.PrepareContext(ctx, updateProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateProfile: %w", err)
 	}
+	if q.updateTemplateStmt, err = db.PrepareContext(ctx, updateTemplate); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateTemplate: %w", err)
+	}
 	if q.updateUserStmt, err = db.PrepareContext(ctx, updateUser); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateUser: %w", err)
 	}
@@ -323,6 +326,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing updateProfileStmt: %w", cerr)
 		}
 	}
+	if q.updateTemplateStmt != nil {
+		if cerr := q.updateTemplateStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateTemplateStmt: %w", cerr)
+		}
+	}
 	if q.updateUserStmt != nil {
 		if cerr := q.updateUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateUserStmt: %w", cerr)
@@ -408,6 +416,7 @@ type Queries struct {
 	updateLiftStmt           *sql.Stmt
 	updateMuscleGroupStmt    *sql.Stmt
 	updateProfileStmt        *sql.Stmt
+	updateTemplateStmt       *sql.Stmt
 	updateUserStmt           *sql.Stmt
 	updateWorkoutStmt        *sql.Stmt
 }
@@ -452,6 +461,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		updateLiftStmt:           q.updateLiftStmt,
 		updateMuscleGroupStmt:    q.updateMuscleGroupStmt,
 		updateProfileStmt:        q.updateProfileStmt,
+		updateTemplateStmt:       q.updateTemplateStmt,
 		updateUserStmt:           q.updateUserStmt,
 		updateWorkoutStmt:        q.updateWorkoutStmt,
 	}

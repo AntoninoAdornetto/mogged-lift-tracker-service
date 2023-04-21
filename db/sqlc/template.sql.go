@@ -89,3 +89,31 @@ func (q *Queries) ListTemplates(ctx context.Context, createdBy string) ([]Templa
 	}
 	return items, nil
 }
+
+const updateTemplate = `-- name: UpdateTemplate :execlastid
+UPDATE template SET
+name = IFNULL(?, name),
+lifts = IFNULL(?, lifts),
+date_last_used = IFNULL(?, date_last_used)
+WHERE created_by = UUID_TO_BIN(?)
+`
+
+type UpdateTemplateParams struct {
+	Name         interface{} `json:"name"`
+	Lifts        interface{} `json:"lifts"`
+	DateLastUsed interface{} `json:"date_last_used"`
+	CreatedBy    string      `json:"created_by"`
+}
+
+func (q *Queries) UpdateTemplate(ctx context.Context, arg UpdateTemplateParams) (int64, error) {
+	result, err := q.exec(ctx, q.updateTemplateStmt, updateTemplate,
+		arg.Name,
+		arg.Lifts,
+		arg.DateLastUsed,
+		arg.CreatedBy,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
