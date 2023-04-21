@@ -23,3 +23,7 @@ name = IFNULL(sqlc.arg('name'), name),
 lifts = IFNULL(sqlc.arg('lifts'), lifts),
 date_last_used = IFNULL(sqlc.arg('date_last_used'), date_last_used)
 WHERE id = ? AND created_by = UUID_TO_BIN(sqlc.arg('created_by'));
+
+-- name: DeleteTemplate :execresult
+DELETE FROM template
+WHERE id = ? AND created_by = UUID_TO_BIN(sqlc.arg('created_by'));
