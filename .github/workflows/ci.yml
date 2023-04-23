@@ -14,9 +14,8 @@ jobs:
       db:
         image: mysql:8.0
         ports: 
-          - 3306
+          - 3306:3306
         env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes  
           MYSQL_ROOT_PASSWORD: secret 
           MYSQL_DATABASE: ismogged
 
@@ -28,6 +27,12 @@ jobs:
         with:
           go-version: 1.18
 
+      - name: Set up mysql
+        uses: mirromutth/mysql-action@v1.1
+        with:
+          mysql database: "ismogged"
+          mysql root password: "secret"
+
       - name: Install golang-migrate
         run: |
           curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
@@ -35,12 +40,6 @@ jobs:
           which migrate
 
       - name: Run migrations
-        env: 
-          MYSQL_HOST: 127.0.0.1
-          MYSQL_PORT: 3306
-          MYSQL_USER: root
-          MYSQL_PASSWORD: secret
-          MYSQL_DBNAME: ismogged
         run: make migrateup
 
       - name: Build
