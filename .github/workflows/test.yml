@@ -33,9 +33,6 @@ jobs:
         with:
           go-version: '1.18'
 
-      - name: Build
-        run: go build -v
-
       - name: Install golang-migrate
         run: |
           curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
@@ -45,5 +42,8 @@ jobs:
       - name: Run migrations
         run: migrate -path db/migrations -database "mysql://root:secret@(localhost:3307)/ismogged?parseTime=true" up
 
+      - name: Build 
+        run: go build -b ./...
+
       - name: Test
-        run: go test -v ./...
+        run: make ctest
