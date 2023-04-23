@@ -1,0 +1,55 @@
+name: Go Unit Test with MySQL and Migrate
+
+on: [push, pull_request]
+
+env:
+  MYSQL_ROOT_PASSWORD: secret
+  DB_HOST: localhost
+  DB_PORT: 3307
+  DB_NAME: ismogged
+  DB_USER: root
+  DB_PASSWORD: secret
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: mysql:latest
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ env.MYSQL_ROOT_PASSWORD }}
+        ports:
+          - ${{ env.DB_PORT }}:${{ env.DB_PORT }}
+        options: >-
+          --health-cmd='mysqladmin ping --silent'
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        container-name: mysql
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Start MySQL Container
+        run: docker start mysql
+
+      - name: Wait for MySQL to start
+        run: docker wait mysql
+
+      - name: Create MySQL Database
+        run: docker exec mysql mysql -u ${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -e "CREATE DATABASE ${{ env.DB_NAME }};"
+
+      - name: Run Database Migrations
+        run: |
+          docker run --rm -v $(pwd)/db/migrations:/migrations --network host migrate/migrate \
+            -path=/migrations/ \
+            -database="mysql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@tcp(${{ env.DB_HOST }}:${{ env.DB_PORT }})/${{ env.DB_NAME }}?multiStatements=true" \
+            up
+
+      - name: Build Go Application
+        run: go build -o myapp .
+
+      - name: Run Unit Tests
+        run: go test -v ./...
