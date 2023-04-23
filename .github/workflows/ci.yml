@@ -14,6 +14,8 @@ jobs:
     services:
       db:
         image: mysql 
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
         env:
           MYSQL_ROOT_PASSWORD: secret 
           MYSQL_DATABASE: ismogged
