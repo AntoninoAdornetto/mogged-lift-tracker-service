@@ -17,6 +17,7 @@ jobs:
           - 3307:3306
         env:
           MYSQL_ROOT_PASSWORD: secret 
+          MYSQL_USER: root
           MYSQL_DATABASE: ismogged
 
     steps:
