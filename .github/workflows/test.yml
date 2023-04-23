@@ -1,6 +1,10 @@
 name: Go Unit Test with MySQL and Migrate
 
-on: [push, pull_request]
+on:
+  push:
+    branches: ['master']
+  pull_request:
+    branches: ['master']
 
 env:
   MYSQL_ROOT_PASSWORD: secret
