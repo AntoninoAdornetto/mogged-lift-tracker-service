@@ -13,7 +13,6 @@ jobs:
     services:
       db:
         image: mysql
-        command: --default-authentication-plugin=mysql_native_password
         ports: 
           - 3307:3306
         env:
