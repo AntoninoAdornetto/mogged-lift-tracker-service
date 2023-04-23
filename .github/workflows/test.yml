@@ -40,7 +40,6 @@ jobs:
           which migrate
 
       - name: Run migrations
-        # run: migrate -path db/migration -database "mysql://root:secret@(localhost:3307)/ismogged?parseTime=true" up
         run: make migrateup
 
       - name: Build 
