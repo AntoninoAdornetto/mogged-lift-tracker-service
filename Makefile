@@ -11,7 +11,7 @@ mysqlshell:
 	docker exec -it moggdb bash
 
 migrateup:
-	migrate -path db/migration -database "mysql://root:secret@tcp(localhost:3307)/ismogged?parseTime=true&timeout=30s" --verbose up
+	migrate -path db/migration -database "mysql://root:secret@tcp(localhost:3307)/ismogged?parseTime=true" --verbose up
 
 migratedown:
 	migrate -path db/migration -database "mysql://root:secret@tcp(localhost:3307)/ismogged" --verbose down 
