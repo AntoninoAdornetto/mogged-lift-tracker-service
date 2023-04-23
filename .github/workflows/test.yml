@@ -7,40 +7,47 @@ on:
     branches: ['master']
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     services:
-      mysql:
+      db:
         image: mysql:latest
         env:
-          MYSQL_DATABASE: ismogged
           MYSQL_ROOT_PASSWORD: secret
+          MYSQL_DATABASE: ismogged
+          MYSQL_USER: root
+          MYSQL_PASSWORD: secret
         ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+          - 3307:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: '1.17'
-        
-    - name: Set up MySQL
-      run: |
-        make dbcontainer
-        make createdb
-        make migrateup
-        
-    - name: Build
-      run: go build -v ./...
-      
-    - name: Test
-      env:
-        DB_PORT: 3306
-        DB_URL: "localhost:3306/ismogged?parseTime=true"
-      run: |
-        go test -v -cover ./...
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.18'
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Build
+        run: go build -v
+
+      - name: Install golang-migrate
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/bin/migrate
+          which migrate
+
+      - name: Run migrations
+        run: migrate -path db/migrations -database "mysql://root:secret@(localhost:3307)/ismogged?parseTime=true" up
+
+      - name: Test
+        run: go test -v ./...
