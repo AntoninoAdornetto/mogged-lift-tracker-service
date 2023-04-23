@@ -34,6 +34,12 @@ jobs:
           sudo mv migrate /usr/bin/migrate
           which migrate
 
+      - name: create container
+        run: make dbcontainer
+
+      - name: create db
+        run: make createdb
+
       - name: Run migrations
         run: make migrateup
 
