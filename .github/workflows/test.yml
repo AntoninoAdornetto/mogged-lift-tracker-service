@@ -7,34 +7,40 @@ on:
     branches: ['master']
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
+
     services:
-      db:
+      mysql:
         image: mysql:latest
         env:
+          MYSQL_DATABASE: ismogged
           MYSQL_ROOT_PASSWORD: secret
         ports:
-          - "3307:3306"
-    env:
-      DB_PORT: 3307
-      DB_URL: "mysql://root:secret@localhost:3307/ismogged?parseTime=true"
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Start MySQL container
-        run: docker run --name moggdb -e MYSQL_ROOT_PASSWORD=secret -p 3307:3306 -d mysql:latest
-      - name: Wait for MySQL to start
-        run: docker exec moggdb mysqladmin --silent --wait=30 ping
-      - name: Create database
-        run: docker exec moggdb mysql -u root -p"secret" -e "CREATE DATABASE ismogged;"
-      - name: Run database migrations
-        run: migrate -path db/migration -database "$DB_URL" --verbose up
-      - name: Generate SQLC files
-        run: docker run --rm -v $(shell pwd):/src -w /src kjconroy/sqlc generate
-      - name: Build Go application
-        run: go build -v .
-      - name: Run tests
-        run: go test -v -cover ./...
-      - name: Stop MySQL container
-        run: docker stop moggdb
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.17'
+        
+    - name: Set up MySQL
+      run: |
+        make dbcontainer
+        make createdb
+        make migrateup
+        
+    - name: Build
+      run: go build -v ./...
+      
+    - name: Test
+      env:
+        DB_PORT: 3306
+        DB_URL: "localhost:3306/ismogged?parseTime=true"
+      run: |
+        go test -v -cover ./...
