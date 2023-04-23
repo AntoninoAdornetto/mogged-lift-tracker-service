@@ -12,10 +12,11 @@ jobs:
 
     services:
       db:
-        image: mysql
+        image: mysql:8.0
         ports: 
-          - 3306:3306
+          - 3306
         env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes  
           MYSQL_ROOT_PASSWORD: secret 
           MYSQL_DATABASE: ismogged
 
