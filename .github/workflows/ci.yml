@@ -8,19 +8,18 @@ on:
 
 jobs:
   test:
-    name: Test
     runs-on: ubuntu-latest
 
     services:
       db:
-        image: mysql 
+        image: mysql
         command: --default-authentication-plugin=mysql_native_password
-        restart: always
+        ports: 
+          - 3307:3306
         env:
           MYSQL_ROOT_PASSWORD: secret 
           MYSQL_DATABASE: ismogged
-        ports:
-          - 3307:3306
+
     steps:
       - uses: actions/checkout@v3
 
@@ -36,6 +35,12 @@ jobs:
           which migrate
 
       - name: Run migrations
+        env: 
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PORT: 3307
+          MYSQL_USER: root
+          MYSQL_PASSWORD: secret
+          MYSQL_DBNAME: ismogged
         run: make migrateup
 
       - name: Build
