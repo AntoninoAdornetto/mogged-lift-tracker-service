@@ -30,20 +30,13 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-        container-name: mysql
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Start MySQL Container
-        run: docker start mysql
-
-      - name: Wait for MySQL to start
-        run: docker wait mysql
-
       - name: Create MySQL Database
-        run: docker exec mysql mysql -u ${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -e "CREATE DATABASE ${{ env.DB_NAME }};"
+        run: docker exec db mysql -u ${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -e "CREATE DATABASE ${{ env.DB_NAME }};"
 
       - name: Run Database Migrations
         run: |
