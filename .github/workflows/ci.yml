@@ -17,7 +17,6 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: secret 
           MYSQL_DATABASE: ismogged
-          POSTGRES_EXTENSIONS: uuid-ossp
         ports:
           - 3307:3306
     steps:
@@ -33,12 +32,6 @@ jobs:
           curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
           sudo mv migrate /usr/bin/migrate
           which migrate
-
-      - name: create container
-        run: make dbcontainer
-
-      - name: create db
-        run: make createdb
 
       - name: Run migrations
         run: make migrateup
