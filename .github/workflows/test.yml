@@ -40,7 +40,7 @@ jobs:
           which migrate
 
       - name: Run migrations
-        run: migrate -path db/migrations -database "mysql://root:secret@(localhost:3307)/ismogged?parseTime=true" up
+        run: migrate -path db/migration -database "mysql://root:secret@(localhost:3307)/ismogged?parseTime=true" up
 
       - name: Build 
         run: go build -b ./...
