@@ -10,15 +10,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      db:
-        image: mysql:8.0
-        ports: 
-          - 3306:3306
-        env:
-          MYSQL_ROOT_PASSWORD: secret 
-          MYSQL_DATABASE: ismogged
-
     steps:
       - uses: actions/checkout@v3
 
