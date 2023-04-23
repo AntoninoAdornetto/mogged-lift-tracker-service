@@ -11,10 +11,10 @@ mysqlshell:
 	docker exec -it moggdb bash
 
 migrateup:
-	migrate -path db/migration -database "mysql://root:secret@tcp(localhost:3307)/ismogged?parseTime=true" --verbose up
+	migrate -path db/migration -database "mysql://root:secret@tcp(127.0.0.1:3307)/ismogged?parseTime=true" --verbose up
 
 migratedown:
-	migrate -path db/migration -database "mysql://root:secret@tcp(localhost:3307)/ismogged" --verbose down 
+	migrate -path db/migration -database "mysql://root:secret@tcp(127.0.0.1:3307)/ismogged" --verbose down 
 
 sqlc:
 	docker run --rm -v $(shell pwd):/src -w /src kjconroy/sqlc generate
