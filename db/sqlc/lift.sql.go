@@ -15,9 +15,11 @@ INSERT INTO lift (
 	exercise_name,
 	weight_lifted,
 	reps,
+	set_type,
 	user_id,
 	workout_id
 ) VALUES (
+	?,
 	?,
 	?,
 	?,
@@ -30,6 +32,7 @@ type CreateLiftParams struct {
 	ExerciseName string  `json:"exercise_name"`
 	WeightLifted float64 `json:"weight_lifted"`
 	Reps         int32   `json:"reps"`
+	SetType      string  `json:"set_type"`
 	UserID       string  `json:"user_id"`
 	WorkoutID    int32   `json:"workout_id"`
 }
@@ -39,6 +42,7 @@ func (q *Queries) CreateLift(ctx context.Context, arg CreateLiftParams) (sql.Res
 		arg.ExerciseName,
 		arg.WeightLifted,
 		arg.Reps,
+		arg.SetType,
 		arg.UserID,
 		arg.WorkoutID,
 	)
@@ -59,7 +63,7 @@ func (q *Queries) DeleteLift(ctx context.Context, arg DeleteLiftParams) (sql.Res
 }
 
 const getLift = `-- name: GetLift :one
-SELECT id, exercise_name, weight_lifted, reps, user_id, workout_id FROM lift
+SELECT id, exercise_name, weight_lifted, reps, set_type, user_id, workout_id FROM lift
 WHERE id = ? AND user_id = UUID_TO_BIN(?)
 `
 
@@ -76,6 +80,7 @@ func (q *Queries) GetLift(ctx context.Context, arg GetLiftParams) (Lift, error) 
 		&i.ExerciseName,
 		&i.WeightLifted,
 		&i.Reps,
+		&i.SetType,
 		&i.UserID,
 		&i.WorkoutID,
 	)
@@ -83,7 +88,7 @@ func (q *Queries) GetLift(ctx context.Context, arg GetLiftParams) (Lift, error) 
 }
 
 const listLiftsFromWorkout = `-- name: ListLiftsFromWorkout :many
-SELECT id, exercise_name, weight_lifted, reps, user_id, workout_id FROM lift
+SELECT id, exercise_name, weight_lifted, reps, set_type, user_id, workout_id FROM lift
 WHERE workout_id = ? AND user_id = UUID_TO_BIN(?)
 `
 
@@ -106,6 +111,7 @@ func (q *Queries) ListLiftsFromWorkout(ctx context.Context, arg ListLiftsFromWor
 			&i.ExerciseName,
 			&i.WeightLifted,
 			&i.Reps,
+			&i.SetType,
 			&i.UserID,
 			&i.WorkoutID,
 		); err != nil {
@@ -123,7 +129,7 @@ func (q *Queries) ListLiftsFromWorkout(ctx context.Context, arg ListLiftsFromWor
 }
 
 const listMaxRepPrs = `-- name: ListMaxRepPrs :many
-SELECT id, exercise_name, weight_lifted, reps, user_id, workout_id FROM lift
+SELECT id, exercise_name, weight_lifted, reps, set_type, user_id, workout_id FROM lift
 WHERE user_id = UUID_TO_BIN(?)
 ORDER BY reps DESC LIMIT ?
 `
@@ -147,6 +153,7 @@ func (q *Queries) ListMaxRepPrs(ctx context.Context, arg ListMaxRepPrsParams) ([
 			&i.ExerciseName,
 			&i.WeightLifted,
 			&i.Reps,
+			&i.SetType,
 			&i.UserID,
 			&i.WorkoutID,
 		); err != nil {
@@ -164,7 +171,7 @@ func (q *Queries) ListMaxRepPrs(ctx context.Context, arg ListMaxRepPrsParams) ([
 }
 
 const listMaxWeightPrs = `-- name: ListMaxWeightPrs :many
-SELECT id, exercise_name, weight_lifted, reps, user_id, workout_id FROM lift
+SELECT id, exercise_name, weight_lifted, reps, set_type, user_id, workout_id FROM lift
 WHERE user_id = UUID_TO_BIN(?)
 ORDER BY weight_lifted DESC LIMIT ?
 `
@@ -188,6 +195,7 @@ func (q *Queries) ListMaxWeightPrs(ctx context.Context, arg ListMaxWeightPrsPara
 			&i.ExerciseName,
 			&i.WeightLifted,
 			&i.Reps,
+			&i.SetType,
 			&i.UserID,
 			&i.WorkoutID,
 		); err != nil {
