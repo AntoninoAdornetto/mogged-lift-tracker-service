@@ -145,6 +145,7 @@ func TestUpdateLift(t *testing.T) {
 		UserID:       userId.String(),
 		ID:           lift.ID,
 	})
+	require.NoError(t, err)
 
 	query, err = testQueries.GetLift(context.Background(), GetLiftParams{
 		UserID: userId.String(),
@@ -160,6 +161,7 @@ func TestUpdateLift(t *testing.T) {
 		UserID: userId.String(),
 		ID:     lift.ID,
 	})
+	require.NoError(t, err)
 
 	query, err = testQueries.GetLift(context.Background(), GetLiftParams{
 		UserID: userId.String(),
@@ -201,6 +203,7 @@ func GenRandLift(t *testing.T, args NewLiftArgs) Lift {
 		WeightLifted: float64(util.RandomInt(100, 300)),
 		UserID:       args.UserID,
 		WorkoutID:    args.WorkoutID,
+		SetType:      "Working",
 	}
 	record, err := testQueries.CreateLift(context.Background(), createLiftArgs)
 	require.NoError(t, err)
@@ -215,6 +218,7 @@ func GenRandLift(t *testing.T, args NewLiftArgs) Lift {
 	require.Equal(t, query.Reps, createLiftArgs.Reps)
 	require.Equal(t, query.WeightLifted, createLiftArgs.WeightLifted)
 	require.Equal(t, query.WorkoutID, args.WorkoutID)
+	require.Equal(t, query.SetType, createLiftArgs.SetType)
 
 	queryUserId, err := uuid.FromBytes(query.UserID)
 	require.NoError(t, err)
