@@ -29,10 +29,10 @@ func TestUpdateStockExercise(t *testing.T) {
 	newMuscleGroup := GenRandMuscleGroup(t).Name
 
 	_, err := testQueries.UpdateStockExercise(context.Background(), UpdateStockExerciseParams{
-		ID: exercise.ID,
-		Name: newExerciseName,
+		ID:          exercise.ID,
+		Name:        newExerciseName,
 		MuscleGroup: newMuscleGroup,
-		Category: newCategory,
+		Category:    newCategory,
 	})
 	require.NoError(t, err)
 
@@ -60,9 +60,9 @@ func GenRandStockExercise(t *testing.T) StockExercise {
 	category := GenRandCategory(t)
 
 	args := CreateStockExerciseParams{
-		Name: util.RandomStr(5),
+		Name:        util.RandomStr(5),
 		MuscleGroup: muscleGroup.Name,
-		Category: category.Name,
+		Category:    category.Name,
 	}
 
 	record, err := testQueries.CreateStockExercise(context.Background(), args)
