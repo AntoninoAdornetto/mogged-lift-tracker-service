@@ -55,6 +55,7 @@ CREATE TABLE `lift` (
 	`exercise_name` VARCHAR(50) NOT NULL,
 	`weight_lifted` REAL NOT NULL,
 	`reps` SMALLINT NOT NULL,
+	`set_type` VARCHAR(25) NOT NULL,
 	`user_id` BINARY(16) NOT NULL,
 	`workout_id` MEDIUMINT UNSIGNED NOT NULL 
 );
