@@ -51,7 +51,7 @@ type Profile struct {
 }
 
 type StockExercise struct {
-	ID          []byte `json:"id"`
+	ID          int32  `json:"id"`
 	Name        string `json:"name"`
 	MuscleGroup string `json:"muscle_group"`
 	Category    string `json:"category"`
