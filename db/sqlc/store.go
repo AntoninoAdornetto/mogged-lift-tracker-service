@@ -13,12 +13,12 @@ type Store struct {
 
 func NewStore(db *sql.DB) *Store {
 	return &Store{
-		db: db,
+		db:      db,
 		Queries: New(db),
 	}
 }
 
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error ) error {
+func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error ) error 
 	err = fn(q)
 	if err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {
-			return fmt.Errorf("tx error: %w, rb error: %w", err, rbErr)
+			return fmt.Errorf("tx error: %v, rb error: %v", err, rbErr)
 		}
 		return err
 	}
@@ -36,11 +36,17 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error ) error 
 	return tx.Commit()
 }
 
-type LiftsJson struct {
-	Workout map[string][]Lift
+type WorkoutTxParams struct {
+	*Workout
+	LiftsMap map[string][]Lift
 }
 
-func (store *Store) WorkoutTx(ctx context.Context, wo *Workout) {
-	// lifts := &LiftsJson{}
-	// err := json.Unmarshal(wo.Lifts, lifts.Workout)
+func (store *Store) WorkoutTx(ctx context.Context, args WorkoutTxParams) (Workout, error) {
+	var wo Workout
+
+	err := store.execTx(ctx, func(q *Queries) error {
+		return nil
+	})
+
+	return wo, err
 }
