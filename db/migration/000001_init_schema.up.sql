@@ -44,10 +44,10 @@ CREATE TABLE `exercise` (
 -- using TIME for duration results in a typing error with sqlc when using a default value of '00:00:00'
 -- we can store as a string and later parse it as a duration using go's parseDuration method
 CREATE TABLE `workout` (
-  `id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`duration` VARCHAR(10) NOT NULL DEFAULT '00:00:00s',
 	`lifts` JSON,
-	`user_id` BINARY(16) NOT NULL
+	`user_id` BINARY(16) NOT NULL 
 );
 
 CREATE TABLE `lift` (
@@ -77,17 +77,17 @@ CREATE INDEX `workout_user_index_0` ON `workout` (`user_id`);
 CREATE INDEX `lift_user_index_0` ON `lift` (`user_id`);
 
 
-ALTER TABLE `profile` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
+ALTER TABLE `profile` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
 
 ALTER TABLE `exercise` ADD FOREIGN KEY (`muscle_group`) REFERENCES `muscle_group` (`name`);
 ALTER TABLE `exercise` ADD FOREIGN KEY (`category`) REFERENCES `category` (`name`);
-ALTER TABLE `exercise` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
+ALTER TABLE `exercise` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
 
-ALTER TABLE `workout` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
+ALTER TABLE `workout` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
 
 ALTER TABLE `lift` ADD FOREIGN KEY (`exercise_name`) REFERENCES `exercise` (`name`);
-ALTER TABLE `lift` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
-ALTER TABLE `lift` ADD FOREIGN KEY (`workout_id`) REFERENCES `workout` (`id`);
+ALTER TABLE `lift` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
+ALTER TABLE `lift` ADD FOREIGN KEY (`workout_id`) REFERENCES `workout` (`id`) ON DELETE CASCADE;
 -- @TODO: determine if index on lift.workout_id can be beneficial
 
-ALTER TABLE `template` ADD FOREIGN KEY (`created_by`) REFERENCES `user` (`id`);
+ALTER TABLE `template` ADD FOREIGN KEY (`created_by`) REFERENCES `user` (`id`) ON DELETE CASCADE;
