@@ -10,18 +10,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type LiftJSON struct {
+type BuildLiftMapParams struct {
 	ExerciseName string
-	Reps         int32
-	WeightLifted float64
-	SetType      string
+	UserID string
+	WorkoutID int32
+	WorkoutMap map[string][]Lift
 }
 
-type WorkoutJSON struct {
-	Lifts map[string][]LiftJSON
-}
-
-// asserts both create and get one queries
 func TestCreateWorkout(t *testing.T) {
 	user := GenRandUser(t)
 	userId, err := uuid.Parse(user.ID)
@@ -29,82 +24,70 @@ func TestCreateWorkout(t *testing.T) {
 	GenRandWorkout(t, userId.String())
 }
 
-func TestListWorkouts(t *testing.T) {
+func TestGetWorkout(t *testing.T) {
 	user := GenRandUser(t)
 	userId, err := uuid.Parse(user.ID)
 	require.NoError(t, err)
 
-	// empty
-	query, err := testQueries.ListWorkouts(context.Background(), userId.String())
-	require.NoError(t, err)
-	require.Empty(t, query)
-
-	n := 5
-	workouts := make([]Workout, n)
-	for i := 0; i < n; i++ {
-		workouts[i] = GenRandWorkout(t, userId.String())
-	}
-
-	// not empty
-	query, err = testQueries.ListWorkouts(context.Background(), userId.String())
-	require.NoError(t, err)
-	require.NotEmpty(t, query)
-	require.Len(t, query, n)
-
-	for i, v := range query {
-		userIdFromQuery, err := uuid.FromBytes(v.UserID)
-		require.NoError(t, err)
-		require.Equal(t, userIdFromQuery, userId)
-		require.Equal(t, v.Duration, workouts[i].Duration)
-		require.Equal(t, v.Lifts, workouts[i].Lifts)
-	}
-}
-
-func TestUpdateWorkout(t *testing.T) {
-	n := 5
-	user := GenRandUser(t)
-	userId, err := uuid.Parse(user.ID)
-	require.NoError(t, err)
-
-	workoutJson := &WorkoutJSON{}
+	workoutMap := make(map[string][]Lift)
 	workout := GenRandWorkout(t, userId.String())
-	err = json.Unmarshal(workout.Lifts, workoutJson)
-
-	newLifts := &WorkoutJSON{Lifts: make(map[string][]LiftJSON)}
-	newDuration := "00:30:00s"
-	exercises := make([]Exercise, n)
-	for i := 0; i < n; i++ {
-		exercises[i] = GenRandExercise(t, userId.String())
-		insertIntoWorkoutMap(exercises[i].Name, newLifts)
-	}
-
-	newLiftsRaw, err := json.Marshal(*newLifts)
+	err = json.Unmarshal(workout.Lifts, &workoutMap)
 	require.NoError(t, err)
 
-	_, err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
-		ID:       workout.ID,
-		Duration: newDuration,
-		UserID:   userId.String(),
-		Lifts:    newLiftsRaw,
-	})
-	require.NoError(t, err)
-
+	qWorkoutMap := make(map[string][]Lift)
 	query, err := testQueries.GetWorkout(context.Background(), GetWorkoutParams{
-		ID:     workout.ID,
+		ID: workout.ID,
 		UserID: userId.String(),
 	})
 	require.NoError(t, err)
 
-	// new lifts
-	queryJson := &WorkoutJSON{}
-	err = json.Unmarshal(query.Lifts, queryJson)
-	require.Equal(t, query.ID, workout.ID)
-	require.Equal(t, *queryJson, *newLifts)
-	require.NotEqual(t, *queryJson, *workoutJson)
+	err = json.Unmarshal(query.Lifts, &qWorkoutMap)
+	require.NoError(t, err)
 
-	// new Duration
+	userIdFromBytes, err := uuid.FromBytes(query.UserID)
+	require.NoError(t, err)
+	require.Equal(t, query.Duration, workout.Duration)
+	require.Equal(t, query.ID, workout.ID)
+	require.Equal(t, query.Lifts, workout.Lifts)
+	require.Equal(t, userIdFromBytes, userId)
+
+	for k, lifts := range workoutMap {
+		for i, lift := range lifts {
+			require.Equal(t, lift.ExerciseName, qWorkoutMap[k][i].ExerciseName)
+			require.Equal(t, lift.ID, qWorkoutMap[k][i].ID)
+			require.Equal(t, lift.Reps, qWorkoutMap[k][i].Reps)
+			require.Equal(t, lift.WeightLifted, qWorkoutMap[k][i].WeightLifted)
+			require.Equal(t, lift.SetType, qWorkoutMap[k][i].SetType)
+			require.Equal(t, lift.WorkoutID, qWorkoutMap[k][i].WorkoutID)
+		}
+	}
+}
+
+func TestUpdateWorkout(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+
+	workout := GenRandWorkout(t, userId.String())
+	newWorkout := GenRandWorkout(t, userId.String())
+	newDuration := "01:00:0s"
+
+	_, err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
+		Duration: newDuration,
+		Lifts: newWorkout.Lifts,
+		ID: workout.ID,
+		UserID: userId.String(),
+	})
+	require.NoError(t, err)
+
+	query, err := testQueries.GetWorkout(context.Background(), GetWorkoutParams{
+		ID: workout.ID,
+		UserID: userId.String(),
+	})
+	require.NoError(t, err)
 	require.Equal(t, query.Duration, newDuration)
-	require.NotEqual(t, query.Duration, workout.Duration)
+	require.Equal(t, query.ID, workout.ID)
+	require.Equal(t, query.Lifts, newWorkout.Lifts)
 }
 
 func TestDeleteWorkout(t *testing.T) {
@@ -114,78 +97,72 @@ func TestDeleteWorkout(t *testing.T) {
 	workout := GenRandWorkout(t, userId.String())
 
 	_, err = testQueries.DeleteWorkout(context.Background(), DeleteWorkoutParams{
-		ID:     workout.ID,
+		ID: workout.ID,
 		UserID: userId.String(),
 	})
 	require.NoError(t, err)
 
 	query, err := testQueries.GetWorkout(context.Background(), GetWorkoutParams{
-		ID:     workout.ID,
+		ID: workout.ID,
 		UserID: userId.String(),
 	})
 	require.Error(t, err)
 	require.Zero(t, query.ID)
-	require.Empty(t, query.UserID)
-	require.Empty(t, query.Lifts)
 }
 
-func insertIntoWorkoutMap(exerciseName string, mp *WorkoutJSON) *WorkoutJSON {
-	liftSetRange := int(util.RandomInt(1, 3))
+// using Lift struct but not actually creating an entry into Lift table
+// that is what the lift table is for
+func BuildLiftsMap(t *testing.T, args BuildLiftMapParams) {
+	sets := make([]Lift, util.RandomInt(1,3))
 
-	lift := &LiftJSON{
-		ExerciseName: exerciseName,
-		Reps:         int32(util.RandomInt(5, 20)),
-		SetType:      "Working Set",
-		WeightLifted: float64(util.RandomInt(100, 250)),
+	for i := range sets {
+		sets[i] = Lift{
+			ExerciseName: args.ExerciseName,
+			WeightLifted: float64(util.RandomInt(100,200)),
+			Reps: int32(util.RandomInt(6,12)),
+			SetType: "Working",
+		}
 	}
 
-	for i := 0; i < liftSetRange; i++ {
-		mp.Lifts[exerciseName] = append(mp.Lifts[exerciseName], *lift)
-	}
-
-	return mp
+	args.WorkoutMap[args.ExerciseName] = sets
 }
 
 func GenRandWorkout(t *testing.T, userId string) Workout {
-	n := 5
-	buildWorkout := &WorkoutJSON{make(map[string][]LiftJSON)}
-
-	workout := &Workout{}
-
+	n := 3
+	liftsMap := make(map[string][]Lift)
 	exercises := make([]Exercise, n)
-
-	for i := 0; i < n; i++ {
-		exercises[i] = GenRandExercise(t, userId)
-		insertIntoWorkoutMap(exercises[i].Name, buildWorkout)
-	}
-
-	rawJson, err := json.Marshal(*buildWorkout)
-	require.NoError(t, err)
-
+	
 	record, err := testQueries.CreateWorkout(context.Background(), CreateWorkoutParams{
-		Lifts:    rawJson,
-		UserID:   userId,
-		Duration: "01:05:02s",
+		UserID: userId,
 	})
-
+	require.NoError(t, err)
 	workoutId, err := record.LastInsertId()
 	require.NoError(t, err)
 
-	query, err := testQueries.GetWorkout(context.Background(), GetWorkoutParams{
-		ID:     int32(workoutId),
+	for i := range exercises {
+		exercises[i] = GenRandExercise(t, userId)
+		BuildLiftsMap(t, BuildLiftMapParams{
+			ExerciseName: exercises[i].Name,
+			UserID: userId,
+			WorkoutID: int32(workoutId),
+			WorkoutMap: liftsMap,
+		})
+	}
+
+	rawJson, err := json.Marshal(liftsMap)
+	require.NoError(t, err)
+	_, err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
+		Lifts: rawJson,
+		ID: int32(workoutId),
 		UserID: userId,
 	})
-
-	require.NoError(t, err)
-	require.NotZero(t, query.ID)
-	require.Equal(t, query.ID, int32(workoutId))
-
-	queryJsonLifts := &WorkoutJSON{}
-	err = json.Unmarshal(query.Lifts, queryJsonLifts)
 	require.NoError(t, err)
 
-	require.Equal(t, *queryJsonLifts, *buildWorkout)
+	query, err := testQueries.GetWorkout(context.Background(), GetWorkoutParams{
+		ID: int32(workoutId),
+		UserID: userId,
+	})
+	require.NoError(t, err)
 
-	workout = &query
-	return *workout
+	return query
 }
