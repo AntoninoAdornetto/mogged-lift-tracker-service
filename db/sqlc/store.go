@@ -75,6 +75,7 @@ func (store *Store) WorkoutTx(ctx context.Context, args WorkoutTxParams) (Workou
 
 		for _, lifts := range liftsMap {
 			for _, lift := range lifts {
+				// @todo - get rid of this. Create a bulk insert query.
 				_, err := q.CreateLift(ctx, CreateLiftParams{
 					ExerciseName: lift.ExerciseName,
 					WeightLifted: lift.WeightLifted,
