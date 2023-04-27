@@ -40,8 +40,8 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 }
 
 type WorkoutTxParams struct {
-	UserID string
-	LiftsMap json.RawMessage 
+	UserID   string
+	LiftsMap json.RawMessage
 	Duration string
 }
 
@@ -57,7 +57,7 @@ func (store *Store) WorkoutTx(ctx context.Context, args WorkoutTxParams) (Workou
 
 		record, err := q.CreateWorkout(ctx, CreateWorkoutParams{
 			Duration: args.Duration,
-			UserID: args.UserID,
+			UserID:   args.UserID,
 		})
 		if err != nil {
 			return err
@@ -68,32 +68,31 @@ func (store *Store) WorkoutTx(ctx context.Context, args WorkoutTxParams) (Workou
 			return err
 		}
 
-		liftsMap := make(map[string][]Lift) 
+		liftsMap := make(map[string][]Lift)
 		if err = json.Unmarshal(args.LiftsMap, &liftsMap); err != nil {
-			return err 
+			return err
 		}
 
 		for _, lifts := range liftsMap {
 			for _, lift := range lifts {
-				// @todo - get rid of this. Create a bulk insert query.
 				_, err := q.CreateLift(ctx, CreateLiftParams{
 					ExerciseName: lift.ExerciseName,
 					WeightLifted: lift.WeightLifted,
-					Reps: lift.Reps,
-					SetType: lift.SetType,
-					UserID: userId.String(),
-					WorkoutID: int32(workoutId), 
+					Reps:         lift.Reps,
+					SetType:      lift.SetType,
+					UserID:       userId.String(),
+					WorkoutID:    int32(workoutId),
 				})
 
 				if err != nil {
-					return err 
+					return err
 				}
 			}
 		}
 
 		_, err = q.UpdateWorkout(ctx, UpdateWorkoutParams{
-			Lifts: args.LiftsMap,
-			ID: int32(workoutId),
+			Lifts:  args.LiftsMap,
+			ID:     int32(workoutId),
 			UserID: args.UserID,
 		})
 		if err != nil {
@@ -101,7 +100,7 @@ func (store *Store) WorkoutTx(ctx context.Context, args WorkoutTxParams) (Workou
 		}
 
 		query, err := q.GetWorkout(ctx, GetWorkoutParams{
-			ID: int32(workoutId),
+			ID:     int32(workoutId),
 			UserID: args.UserID,
 		})
 		if err != nil {
