@@ -12,9 +12,9 @@ import (
 
 type BuildLiftMapParams struct {
 	ExerciseName string
-	UserID string
-	WorkoutID int32
-	WorkoutMap map[string][]Lift
+	UserID       string
+	WorkoutID    int32
+	WorkoutMap   map[string][]Lift
 }
 
 func TestCreateWorkout(t *testing.T) {
@@ -36,7 +36,7 @@ func TestGetWorkout(t *testing.T) {
 
 	qWorkoutMap := make(map[string][]Lift)
 	query, err := testQueries.GetWorkout(context.Background(), GetWorkoutParams{
-		ID: workout.ID,
+		ID:     workout.ID,
 		UserID: userId.String(),
 	})
 	require.NoError(t, err)
@@ -74,14 +74,14 @@ func TestUpdateWorkout(t *testing.T) {
 
 	_, err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
 		Duration: newDuration,
-		Lifts: newWorkout.Lifts,
-		ID: workout.ID,
-		UserID: userId.String(),
+		Lifts:    newWorkout.Lifts,
+		ID:       workout.ID,
+		UserID:   userId.String(),
 	})
 	require.NoError(t, err)
 
 	query, err := testQueries.GetWorkout(context.Background(), GetWorkoutParams{
-		ID: workout.ID,
+		ID:     workout.ID,
 		UserID: userId.String(),
 	})
 	require.NoError(t, err)
@@ -97,13 +97,13 @@ func TestDeleteWorkout(t *testing.T) {
 	workout := GenRandWorkout(t, userId.String())
 
 	_, err = testQueries.DeleteWorkout(context.Background(), DeleteWorkoutParams{
-		ID: workout.ID,
+		ID:     workout.ID,
 		UserID: userId.String(),
 	})
 	require.NoError(t, err)
 
 	query, err := testQueries.GetWorkout(context.Background(), GetWorkoutParams{
-		ID: workout.ID,
+		ID:     workout.ID,
 		UserID: userId.String(),
 	})
 	require.Error(t, err)
@@ -113,14 +113,14 @@ func TestDeleteWorkout(t *testing.T) {
 // using Lift struct but not actually creating an entry into Lift table
 // that is what the lift table is for
 func BuildLiftsMap(t *testing.T, args BuildLiftMapParams) {
-	sets := make([]Lift, util.RandomInt(1,3))
+	sets := make([]Lift, util.RandomInt(1, 3))
 
 	for i := range sets {
 		sets[i] = Lift{
 			ExerciseName: args.ExerciseName,
-			WeightLifted: float64(util.RandomInt(100,200)),
-			Reps: int32(util.RandomInt(6,12)),
-			SetType: "Working",
+			WeightLifted: float64(util.RandomInt(100, 200)),
+			Reps:         int32(util.RandomInt(6, 12)),
+			SetType:      "Working",
 		}
 	}
 
@@ -131,7 +131,7 @@ func GenRandWorkout(t *testing.T, userId string) Workout {
 	n := 3
 	liftsMap := make(map[string][]Lift)
 	exercises := make([]Exercise, n)
-	
+
 	record, err := testQueries.CreateWorkout(context.Background(), CreateWorkoutParams{
 		UserID: userId,
 	})
@@ -143,23 +143,23 @@ func GenRandWorkout(t *testing.T, userId string) Workout {
 		exercises[i] = GenRandExercise(t, userId)
 		BuildLiftsMap(t, BuildLiftMapParams{
 			ExerciseName: exercises[i].Name,
-			UserID: userId,
-			WorkoutID: int32(workoutId),
-			WorkoutMap: liftsMap,
+			UserID:       userId,
+			WorkoutID:    int32(workoutId),
+			WorkoutMap:   liftsMap,
 		})
 	}
 
 	rawJson, err := json.Marshal(liftsMap)
 	require.NoError(t, err)
 	_, err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
-		Lifts: rawJson,
-		ID: int32(workoutId),
+		Lifts:  rawJson,
+		ID:     int32(workoutId),
 		UserID: userId,
 	})
 	require.NoError(t, err)
 
 	query, err := testQueries.GetWorkout(context.Background(), GetWorkoutParams{
-		ID: int32(workoutId),
+		ID:     int32(workoutId),
 		UserID: userId,
 	})
 	require.NoError(t, err)
