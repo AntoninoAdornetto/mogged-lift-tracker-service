@@ -31,6 +31,7 @@ type Lift struct {
 	ExerciseName string  `json:"exercise_name"`
 	WeightLifted float64 `json:"weight_lifted"`
 	Reps         int32   `json:"reps"`
+	SetType      string  `json:"set_type"`
 	UserID       []byte  `json:"user_id"`
 	WorkoutID    int32   `json:"workout_id"`
 }

@@ -3,9 +3,11 @@ INSERT INTO lift (
 	exercise_name,
 	weight_lifted,
 	reps,
+	set_type,
 	user_id,
 	workout_id
 ) VALUES (
+	?,
 	?,
 	?,
 	?,
