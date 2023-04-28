@@ -43,16 +43,11 @@ type NewUserTxResults struct {
 	FirstName    string
 	LastName     string
 	EmailAddress string
-	ID           string
+	ID           uuid.UUID
 }
 
 func (store *Store) NewUserTx(ctx context.Context, args CreateUserParams) (NewUserTxResults, error) {
-	user := &NewUserTxResults{
-		FirstName:    args.FirstName,
-		LastName:     args.LastName,
-		EmailAddress: args.EmailAddress,
-		ID:           "",
-	}
+	user := &NewUserTxResults{}
 
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
@@ -83,7 +78,7 @@ func (store *Store) NewUserTx(ctx context.Context, args CreateUserParams) (NewUs
 		user.FirstName = query.FirstName
 		user.LastName = query.LastName
 		user.EmailAddress = query.EmailAddress
-		user.ID = userId.String()
+		user.ID = userId
 		return nil
 	})
 
