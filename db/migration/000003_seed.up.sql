@@ -1,4 +1,4 @@
-INSERT INTO category (name) VALUES ('Barbell'), ('Dumbbell'), ('Machine'), ('Bodyweight'), ('Cardio');
+INSERT INTO category (name) VALUES ('Barbell'), ('Dumbbell'), ('Machine'), ('Bodyweight'), ('Cardio'), ('Cables');
 INSERT INTO muscle_group (name) VALUES ('Arms'), ('Back'), ('Chest'), ('Legs'), ('Shoulders');
 
 -- @todo add more
