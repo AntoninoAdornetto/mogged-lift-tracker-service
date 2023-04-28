@@ -79,8 +79,8 @@ CREATE INDEX `lift_user_index_0` ON `lift` (`user_id`);
 
 ALTER TABLE `profile` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
 
-ALTER TABLE `exercise` ADD FOREIGN KEY (`muscle_group`) REFERENCES `muscle_group` (`name`);
-ALTER TABLE `exercise` ADD FOREIGN KEY (`category`) REFERENCES `category` (`name`);
+ALTER TABLE `exercise` ADD FOREIGN KEY (`muscle_group`) REFERENCES `muscle_group` (`name`) ON DELETE CASCADE;
+ALTER TABLE `exercise` ADD FOREIGN KEY (`category`) REFERENCES `category` (`name`) ON DELETE CASCADE;
 ALTER TABLE `exercise` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
 
 ALTER TABLE `workout` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
