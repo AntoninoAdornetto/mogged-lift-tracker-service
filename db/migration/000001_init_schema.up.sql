@@ -31,14 +31,15 @@ CREATE TABLE `category` (
 -- we can store as a string and later parse it as a duration using go's parseDuration method
 CREATE TABLE `exercise` (
 	`id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	`name` VARCHAR(50) UNIQUE NOT NULL,
+	`name` VARCHAR(50) NOT NULL,
 	`muscle_group` VARCHAR(20) NOT NULL,
 	`category` VARCHAR(20) NOT NULL,
 	`isStock` BOOL NOT NULL DEFAULT false,
 	`most_weight_lifted` REAL NOT NULL DEFAULT 0,
 	`most_reps_lifted` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
 	`rest_timer` VARCHAR(15) NOT NULL DEFAULT '00:00:00s', 
-	`user_id` BINARY(16) NOT NULL
+	`user_id` BINARY(16) NOT NULL,
+	UNIQUE KEY `unique_exercise_per_user_id` (`name`, `user_id`)
 );
 
 -- using TIME for duration results in a typing error with sqlc when using a default value of '00:00:00'
@@ -85,7 +86,7 @@ ALTER TABLE `exercise` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON D
 
 ALTER TABLE `workout` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
 
-ALTER TABLE `lift` ADD FOREIGN KEY (`exercise_name`) REFERENCES `exercise` (`name`);
+ALTER TABLE `lift` ADD FOREIGN KEY (`exercise_name`) REFERENCES `exercise` (`name`) ON DELETE CASCADE;
 ALTER TABLE `lift` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
 ALTER TABLE `lift` ADD FOREIGN KEY (`workout_id`) REFERENCES `workout` (`id`) ON DELETE CASCADE;
 -- @TODO: determine if index on lift.workout_id can be beneficial
