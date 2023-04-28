@@ -14,6 +14,30 @@ func TestCreateExercise(t *testing.T) {
 	GenRandExercise(t, user.ID)
 }
 
+func TestGetExerciseByName(t *testing.T) {
+	user := GenRandUser(t)
+	userId, err := uuid.Parse(user.ID)
+	require.NoError(t, err)
+	exercise := GenRandExercise(t, user.ID)
+
+	query, err := testQueries.GetExerciseByName(context.Background(), GetExerciseByNameParams{
+		Name:   exercise.Name,
+		UserID: userId.String(),
+	})
+	require.NoError(t, err)
+	queryUserId, err := uuid.FromBytes(query.UserID)
+	require.NoError(t, err)
+	require.Equal(t, query.ID, exercise.ID)
+	require.Equal(t, queryUserId, userId)
+	require.Equal(t, query.Name, exercise.Name)
+	require.Equal(t, query.Isstock, exercise.Isstock)
+	require.Equal(t, query.Category, exercise.Category)
+	require.Equal(t, query.RestTimer, exercise.RestTimer)
+	require.Equal(t, query.MuscleGroup, exercise.MuscleGroup)
+	require.Equal(t, query.MostRepsLifted, exercise.MostRepsLifted)
+	require.Equal(t, query.MostWeightLifted, exercise.MostWeightLifted)
+}
+
 func TestListExercises(t *testing.T) {
 	n := 5
 	user := GenRandUser(t)
