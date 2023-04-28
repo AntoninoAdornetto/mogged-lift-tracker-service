@@ -84,6 +84,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getExerciseStmt, err = db.PrepareContext(ctx, getExercise); err != nil {
 		return nil, fmt.Errorf("error preparing query GetExercise: %w", err)
 	}
+	if q.getExerciseByNameStmt, err = db.PrepareContext(ctx, getExerciseByName); err != nil {
+		return nil, fmt.Errorf("error preparing query GetExerciseByName: %w", err)
+	}
 	if q.getLiftStmt, err = db.PrepareContext(ctx, getLift); err != nil {
 		return nil, fmt.Errorf("error preparing query GetLift: %w", err)
 	}
@@ -262,6 +265,11 @@ func (q *Queries) Close() error {
 	if q.getExerciseStmt != nil {
 		if cerr := q.getExerciseStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getExerciseStmt: %w", cerr)
+		}
+	}
+	if q.getExerciseByNameStmt != nil {
+		if cerr := q.getExerciseByNameStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getExerciseByNameStmt: %w", cerr)
 		}
 	}
 	if q.getLiftStmt != nil {
@@ -448,6 +456,7 @@ type Queries struct {
 	deleteWorkoutStmt        *sql.Stmt
 	getCategoryStmt          *sql.Stmt
 	getExerciseStmt          *sql.Stmt
+	getExerciseByNameStmt    *sql.Stmt
 	getLiftStmt              *sql.Stmt
 	getMuscleGroupStmt       *sql.Stmt
 	getProfileStmt           *sql.Stmt
@@ -499,6 +508,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		deleteWorkoutStmt:        q.deleteWorkoutStmt,
 		getCategoryStmt:          q.getCategoryStmt,
 		getExerciseStmt:          q.getExerciseStmt,
+		getExerciseByNameStmt:    q.getExerciseByNameStmt,
 		getLiftStmt:              q.getLiftStmt,
 		getMuscleGroupStmt:       q.getMuscleGroupStmt,
 		getProfileStmt:           q.getProfileStmt,

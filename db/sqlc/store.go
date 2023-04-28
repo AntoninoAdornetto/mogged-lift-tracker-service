@@ -39,6 +39,52 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 	return tx.Commit()
 }
 
+type NewUserTxResults struct {
+	FirstName    string
+	LastName     string
+	EmailAddress string
+	ID           uuid.UUID
+}
+
+func (store *Store) NewUserTx(ctx context.Context, args CreateUserParams) (NewUserTxResults, error) {
+	user := &NewUserTxResults{}
+
+	err := store.execTx(ctx, func(q *Queries) error {
+		var err error
+
+		_, err = store.CreateUser(ctx, CreateUserParams{
+			LastName:     args.LastName,
+			Password:     args.Password,
+			FirstName:    args.FirstName,
+			EmailAddress: args.EmailAddress,
+		})
+		if err != nil {
+			return err
+		}
+
+		query, err := store.GetUser(ctx, args.EmailAddress)
+		if err != nil {
+			return err
+		}
+
+		userId, err := uuid.Parse(query.ID)
+
+		statement := "INSERT INTO exercise (name, muscle_group, category, isStock, user_id) SELECT name, muscle_group, category, true, UUID_TO_BIN(?) FROM stock_exercise"
+		_, err = store.db.ExecContext(ctx, statement, userId)
+		if err != nil {
+			return err
+		}
+
+		user.FirstName = query.FirstName
+		user.LastName = query.LastName
+		user.EmailAddress = query.EmailAddress
+		user.ID = userId
+		return nil
+	})
+
+	return *user, err
+}
+
 type WorkoutTxParams struct {
 	UserID   string
 	LiftsMap json.RawMessage
