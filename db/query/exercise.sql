@@ -15,7 +15,7 @@ INSERT INTO exercise (
 SELECT * FROM exercise
 WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id')) LIMIT 1;
 
--- name: GetExerciseFromName :one
+-- name: GetExerciseByName :one
 SELECT * FROM exercise
 WHERE name = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
