@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// asserts both create and get one queries
 func TestCreateExercise(t *testing.T) {
 	user := GenRandUser(t)
 	GenRandExercise(t, user.ID)
@@ -72,7 +71,10 @@ func TestUpdateExerciseName(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	query, err := testQueries.GetExercise(context.Background(), exercise.ID)
+	query, err := testQueries.GetExercise(context.Background(), GetExerciseParams{
+		ID:     exercise.ID,
+		UserID: userId.String(),
+	})
 	require.NoError(t, err)
 	require.NotZero(t, query.ID)
 	require.Equal(t, query.ID, exercise.ID)
@@ -95,7 +97,10 @@ func TestUpdateMuscleGroup(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	query, err := testQueries.GetExercise(context.Background(), exercise.ID)
+	query, err := testQueries.GetExercise(context.Background(), GetExerciseParams{
+		ID:     exercise.ID,
+		UserID: userId.String(),
+	})
 	require.NoError(t, err)
 	require.NotZero(t, query.ID)
 	require.Equal(t, query.ID, exercise.ID)
@@ -118,7 +123,10 @@ func TestUpdateCategory(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	query, err := testQueries.GetExercise(context.Background(), exercise.ID)
+	query, err := testQueries.GetExercise(context.Background(), GetExerciseParams{
+		ID:     exercise.ID,
+		UserID: userId.String(),
+	})
 	require.NoError(t, err)
 	require.NotZero(t, query.ID)
 	require.Equal(t, query.ID, exercise.ID)
@@ -141,7 +149,10 @@ func TestUpdateMostWeightLifted(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	query, err := testQueries.GetExercise(context.Background(), exercise.ID)
+	query, err := testQueries.GetExercise(context.Background(), GetExerciseParams{
+		ID:     exercise.ID,
+		UserID: userId.String(),
+	})
 	require.NoError(t, err)
 	require.NotZero(t, query.ID)
 	require.Equal(t, query.ID, exercise.ID)
@@ -164,7 +175,10 @@ func TestUpdateMostRepsLifted(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	query, err := testQueries.GetExercise(context.Background(), exercise.ID)
+	query, err := testQueries.GetExercise(context.Background(), GetExerciseParams{
+		ID:     exercise.ID,
+		UserID: userId.String(),
+	})
 	require.NoError(t, err)
 	require.NotZero(t, query.ID)
 	require.Equal(t, query.ID, exercise.ID)
@@ -187,7 +201,10 @@ func TestUpdateRestTimer(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	query, err := testQueries.GetExercise(context.Background(), exercise.ID)
+	query, err := testQueries.GetExercise(context.Background(), GetExerciseParams{
+		ID:     exercise.ID,
+		UserID: userId.String(),
+	})
 	require.NoError(t, err)
 	require.NotZero(t, query.ID)
 	require.Equal(t, query.ID, exercise.ID)
@@ -209,7 +226,10 @@ func TestDeleteExercise(t *testing.T) {
 
 	require.NoError(t, err)
 
-	query, err := testQueries.GetExercise(context.Background(), exercise.ID)
+	query, err := testQueries.GetExercise(context.Background(), GetExerciseParams{
+		ID:     exercise.ID,
+		UserID: userId.String(),
+	})
 	require.Error(t, err)
 	require.Empty(t, query)
 }
@@ -236,7 +256,10 @@ func GenRandExercise(t *testing.T, userID string) Exercise {
 	exerciseId, err := record.LastInsertId()
 	require.NoError(t, err)
 
-	query, err := testQueries.GetExercise(context.Background(), int32(exerciseId))
+	query, err := testQueries.GetExercise(context.Background(), GetExerciseParams{
+		ID:     int32(exerciseId),
+		UserID: userId.String(),
+	})
 	require.NoError(t, err)
 	require.NotEmpty(t, query.ID)
 
