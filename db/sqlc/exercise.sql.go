@@ -56,11 +56,43 @@ func (q *Queries) DeleteExercise(ctx context.Context, arg DeleteExerciseParams) 
 
 const getExercise = `-- name: GetExercise :one
 SELECT id, name, muscle_group, category, isstock, most_weight_lifted, most_reps_lifted, rest_timer, user_id FROM exercise
-WHERE id = ? LIMIT 1
+WHERE id = ? AND user_id = UUID_TO_BIN(?) LIMIT 1
 `
 
-func (q *Queries) GetExercise(ctx context.Context, id int32) (Exercise, error) {
-	row := q.queryRow(ctx, q.getExerciseStmt, getExercise, id)
+type GetExerciseParams struct {
+	ID     int32  `json:"id"`
+	UserID string `json:"user_id"`
+}
+
+func (q *Queries) GetExercise(ctx context.Context, arg GetExerciseParams) (Exercise, error) {
+	row := q.queryRow(ctx, q.getExerciseStmt, getExercise, arg.ID, arg.UserID)
+	var i Exercise
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.MuscleGroup,
+		&i.Category,
+		&i.Isstock,
+		&i.MostWeightLifted,
+		&i.MostRepsLifted,
+		&i.RestTimer,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const getExerciseFromName = `-- name: GetExerciseFromName :one
+SELECT id, name, muscle_group, category, isstock, most_weight_lifted, most_reps_lifted, rest_timer, user_id FROM exercise
+WHERE name = ? AND user_id = UUID_TO_BIN(?)
+`
+
+type GetExerciseFromNameParams struct {
+	Name   string `json:"name"`
+	UserID string `json:"user_id"`
+}
+
+func (q *Queries) GetExerciseFromName(ctx context.Context, arg GetExerciseFromNameParams) (Exercise, error) {
+	row := q.queryRow(ctx, q.getExerciseFromNameStmt, getExerciseFromName, arg.Name, arg.UserID)
 	var i Exercise
 	err := row.Scan(
 		&i.ID,
