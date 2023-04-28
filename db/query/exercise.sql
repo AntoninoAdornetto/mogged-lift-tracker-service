@@ -13,7 +13,11 @@ INSERT INTO exercise (
 
 -- name: GetExercise :one
 SELECT * FROM exercise
-WHERE id = ? LIMIT 1;
+WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id')) LIMIT 1;
+
+-- name: GetExerciseFromName :one
+SELECT * FROM exercise
+WHERE name = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
 -- name: ListExercises :many
 SELECT * FROM exercise
