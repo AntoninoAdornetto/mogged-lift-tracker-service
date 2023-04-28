@@ -81,18 +81,18 @@ func (q *Queries) GetExercise(ctx context.Context, arg GetExerciseParams) (Exerc
 	return i, err
 }
 
-const getExerciseFromName = `-- name: GetExerciseFromName :one
+const getExerciseByName = `-- name: GetExerciseByName :one
 SELECT id, name, muscle_group, category, isstock, most_weight_lifted, most_reps_lifted, rest_timer, user_id FROM exercise
 WHERE name = ? AND user_id = UUID_TO_BIN(?)
 `
 
-type GetExerciseFromNameParams struct {
+type GetExerciseByNameParams struct {
 	Name   string `json:"name"`
 	UserID string `json:"user_id"`
 }
 
-func (q *Queries) GetExerciseFromName(ctx context.Context, arg GetExerciseFromNameParams) (Exercise, error) {
-	row := q.queryRow(ctx, q.getExerciseFromNameStmt, getExerciseFromName, arg.Name, arg.UserID)
+func (q *Queries) GetExerciseByName(ctx context.Context, arg GetExerciseByNameParams) (Exercise, error) {
+	row := q.queryRow(ctx, q.getExerciseByNameStmt, getExerciseByName, arg.Name, arg.UserID)
 	var i Exercise
 	err := row.Scan(
 		&i.ID,
