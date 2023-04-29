@@ -25,4 +25,7 @@ ctest:
 coveragereport:
 	go test -coverprofile=coverage/coverage.out ./... && go tool cover -html=coverage/coverage.out -o=coverage/coverage.html
 
-.PHONY: dbcontainer createdb dropdb mysqlshell migrateup migratedown sqlc ctest
+start-server:
+	go run main.go
+
+.PHONY: dbcontainer createdb dropdb mysqlshell migrateup migratedown sqlc ctest start-server
