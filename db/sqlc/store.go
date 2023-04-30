@@ -52,7 +52,7 @@ func (store *Store) NewUserTx(ctx context.Context, args CreateUserParams) (NewUs
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		_, err = store.CreateUser(ctx, CreateUserParams{
+		err = store.CreateUser(ctx, CreateUserParams{
 			LastName:     args.LastName,
 			Password:     args.Password,
 			FirstName:    args.FirstName,
