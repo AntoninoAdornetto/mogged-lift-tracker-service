@@ -92,6 +92,34 @@ func (q *Queries) GetUser(ctx context.Context, emailAddress string) (GetUserRow,
 	return i, err
 }
 
+const getUserById = `-- name: GetUserById :one
+SELECT BIN_TO_UUID(id) as id, first_name, last_name, email_address, password_changed_at, password
+FROM user WHERE id = UUID_TO_BIN(?) LIMIT 1
+`
+
+type GetUserByIdRow struct {
+	ID                string    `json:"id"`
+	FirstName         string    `json:"first_name"`
+	LastName          string    `json:"last_name"`
+	EmailAddress      string    `json:"email_address"`
+	PasswordChangedAt time.Time `json:"password_changed_at"`
+	Password          string    `json:"password"`
+}
+
+func (q *Queries) GetUserById(ctx context.Context, userID string) (GetUserByIdRow, error) {
+	row := q.queryRow(ctx, q.getUserByIdStmt, getUserById, userID)
+	var i GetUserByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.EmailAddress,
+		&i.PasswordChangedAt,
+		&i.Password,
+	)
+	return i, err
+}
+
 const updateUser = `-- name: UpdateUser :exec
 UPDATE user SET
 first_name = IFNULL(?, first_name),
