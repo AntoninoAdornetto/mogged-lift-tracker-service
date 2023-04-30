@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
@@ -64,12 +65,12 @@ func (q *Queries) DeleteUser(ctx context.Context, uuidTOBIN string) error {
 	return err
 }
 
-const getUser = `-- name: GetUser :one
+const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT BIN_TO_UUID(id) as id, first_name, last_name, email_address, password_changed_at, password
 FROM user WHERE email_address = ? LIMIT 1
 `
 
-type GetUserRow struct {
+type GetUserByEmailRow struct {
 	ID                string    `json:"id"`
 	FirstName         string    `json:"first_name"`
 	LastName          string    `json:"last_name"`
@@ -78,9 +79,9 @@ type GetUserRow struct {
 	Password          string    `json:"password"`
 }
 
-func (q *Queries) GetUser(ctx context.Context, emailAddress string) (GetUserRow, error) {
-	row := q.queryRow(ctx, q.getUserStmt, getUser, emailAddress)
-	var i GetUserRow
+func (q *Queries) GetUserByEmail(ctx context.Context, emailAddress string) (GetUserByEmailRow, error) {
+	row := q.queryRow(ctx, q.getUserByEmailStmt, getUserByEmail, emailAddress)
+	var i GetUserByEmailRow
 	err := row.Scan(
 		&i.ID,
 		&i.FirstName,
@@ -122,17 +123,17 @@ func (q *Queries) GetUserById(ctx context.Context, userID string) (GetUserByIdRo
 
 const updateUser = `-- name: UpdateUser :exec
 UPDATE user SET
-first_name = IFNULL(?, first_name),
-last_name = IFNULL(?, last_name),
-email_address = IFNULL(?, email_address)
+	first_name = COALESCE(?, first_name),
+	last_name = COALESCE(?, last_name),
+	email_address = COALESCE(?, email_address)
 WHERE id = UUID_TO_BIN(?)
 `
 
 type UpdateUserParams struct {
-	FirstName    interface{} `json:"first_name"`
-	LastName     interface{} `json:"last_name"`
-	EmailAddress interface{} `json:"email_address"`
-	UserID       string      `json:"user_id"`
+	FirstName    sql.NullString `json:"first_name"`
+	LastName     sql.NullString `json:"last_name"`
+	EmailAddress sql.NullString `json:"email_address"`
+	UserID       string         `json:"user_id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {

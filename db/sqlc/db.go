@@ -105,8 +105,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getTemplateStmt, err = db.PrepareContext(ctx, getTemplate); err != nil {
 		return nil, fmt.Errorf("error preparing query GetTemplate: %w", err)
 	}
-	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
-		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
+	if q.getUserByEmailStmt, err = db.PrepareContext(ctx, getUserByEmail); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserByEmail: %w", err)
 	}
 	if q.getUserByIdStmt, err = db.PrepareContext(ctx, getUserById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserById: %w", err)
@@ -308,9 +308,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getTemplateStmt: %w", cerr)
 		}
 	}
-	if q.getUserStmt != nil {
-		if cerr := q.getUserStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getUserStmt: %w", cerr)
+	if q.getUserByEmailStmt != nil {
+		if cerr := q.getUserByEmailStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserByEmailStmt: %w", cerr)
 		}
 	}
 	if q.getUserByIdStmt != nil {
@@ -479,7 +479,7 @@ type Queries struct {
 	getProfileStmt           *sql.Stmt
 	getStockExerciseStmt     *sql.Stmt
 	getTemplateStmt          *sql.Stmt
-	getUserStmt              *sql.Stmt
+	getUserByEmailStmt       *sql.Stmt
 	getUserByIdStmt          *sql.Stmt
 	getWorkoutStmt           *sql.Stmt
 	listCategoriesStmt       *sql.Stmt
@@ -533,7 +533,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getProfileStmt:           q.getProfileStmt,
 		getStockExerciseStmt:     q.getStockExerciseStmt,
 		getTemplateStmt:          q.getTemplateStmt,
-		getUserStmt:              q.getUserStmt,
+		getUserByEmailStmt:       q.getUserByEmailStmt,
 		getUserByIdStmt:          q.getUserByIdStmt,
 		getWorkoutStmt:           q.getWorkoutStmt,
 		listCategoriesStmt:       q.listCategoriesStmt,
