@@ -13,6 +13,19 @@ func TestCreateUser(t *testing.T) {
 	GenRandUser(t)
 }
 
+func TestGetUserById(t *testing.T) {
+	user := GenRandUser(t)
+
+	query, err := testQueries.GetUserById(context.Background(), user.ID)
+	require.NoError(t, err)
+	require.Equal(t, user.ID, query.ID)
+	require.Equal(t, user.EmailAddress, query.EmailAddress)
+	require.Equal(t, user.Password, query.Password)
+	require.Equal(t, user.FirstName, query.FirstName)
+	require.Equal(t, user.LastName, query.LastName)
+	require.Equal(t, user.PasswordChangedAt, query.PasswordChangedAt)
+}
+
 func TestGetUser(t *testing.T) {
 	user := GenRandUser(t)
 	query, err := testQueries.GetUser(context.Background(), user.EmailAddress)
