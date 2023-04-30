@@ -16,6 +16,10 @@ func TestCreateUser(t *testing.T) {
 func TestGetUserById(t *testing.T) {
 	user := GenRandUser(t)
 
+	empty, err := testQueries.GetUserById(context.Background(), "")
+	require.Error(t, err)
+	require.Empty(t, empty)
+
 	query, err := testQueries.GetUserById(context.Background(), user.ID)
 	require.NoError(t, err)
 	require.Equal(t, user.ID, query.ID)
