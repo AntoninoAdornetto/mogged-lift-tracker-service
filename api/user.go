@@ -146,3 +146,33 @@ func (server *Server) updateUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, nil)
 }
+
+type deleteUserRequest struct {
+	ID string `uri:"id" binding:"required"`
+}
+
+func (server *Server) deleteUser(ctx *gin.Context) {
+	req := &deleteUserRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	_, err := server.store.GetUserById(ctx, req.ID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = server.store.DeleteUser(ctx, req.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+}
