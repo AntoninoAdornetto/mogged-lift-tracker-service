@@ -60,8 +60,8 @@ DELETE FROM user
 WHERE id = UUID_TO_BIN(?)
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, uuidTOBIN string) error {
-	_, err := q.exec(ctx, q.deleteUserStmt, deleteUser, uuidTOBIN)
+func (q *Queries) DeleteUser(ctx context.Context, userID string) error {
+	_, err := q.exec(ctx, q.deleteUserStmt, deleteUser, userID)
 	return err
 }
 
