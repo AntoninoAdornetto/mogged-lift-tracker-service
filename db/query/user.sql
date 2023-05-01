@@ -31,4 +31,4 @@ WHERE id = UUID_TO_BIN(sqlc.arg('user_id'));
 
 -- name: DeleteUser :exec
 DELETE FROM user
-WHERE id = UUID_TO_BIN(?);
+WHERE id = UUID_TO_BIN(sqlc.arg('user_id'));
