@@ -2,11 +2,17 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"time"
 
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	USERID_NOT_FOUND    = "user with specified ID '%s' does not exist"
+	USEREMAIL_NOT_FOUND = "user with specified eMail '%s' does not exist"
 )
 
 type userResponse struct {
@@ -46,6 +52,10 @@ func (server *Server) createUser(ctx *gin.Context) {
 
 	user, err := server.store.GetUserByEmail(ctx, req.EmailAddress)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(USEREMAIL_NOT_FOUND, req.EmailAddress)))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -72,6 +82,10 @@ func (server *Server) getUserByEmail(ctx *gin.Context) {
 
 	user, err := server.store.GetUserByEmail(ctx, req.EmailAddress)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(USEREMAIL_NOT_FOUND, req.EmailAddress)))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -102,7 +116,7 @@ func (server *Server) updateUser(ctx *gin.Context) {
 	_, err := server.store.GetUserById(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(USERID_NOT_FOUND, req.ID)))
 			return
 		}
 
@@ -161,7 +175,7 @@ func (server *Server) deleteUser(ctx *gin.Context) {
 	_, err := server.store.GetUserById(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(USERID_NOT_FOUND, req.ID)))
 			return
 		}
 
@@ -175,4 +189,5 @@ func (server *Server) deleteUser(ctx *gin.Context) {
 		return
 	}
 
+	ctx.JSON(http.StatusNoContent, nil)
 }
