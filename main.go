@@ -6,22 +6,24 @@ import (
 
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/api"
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
+	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/util"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-const (
-	dbDriver      = "mysql"
-	dbSource      = "root:secret@tcp(localhost:3307)/ismogged?parseTime=true"
-	serverAddress = "0.0.0.0:8080"
-)
-
 func main() {
-	conn, err := sql.Open(dbDriver, dbSource)
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal("Failed to load config file", err)
+	}
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to the database", err)
 	}
 
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
-	server.Start(serverAddress)
+	err = server.Start(config.ServerAddress)
+	if err != nil {
+		log.Fatal("Failed to start server", err)
+	}
 }
