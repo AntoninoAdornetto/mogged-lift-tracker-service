@@ -19,6 +19,9 @@ migratedown:
 sqlc:
 	docker run --rm -v $(shell pwd):/src -w /src kjconroy/sqlc generate
 
+mock:
+	mockgen -package mockdb -destination db/mock/store.go github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc Store
+
 ctest:
 	go clean -testcache && go test -v -cover ./...
 
