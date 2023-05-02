@@ -9,19 +9,25 @@ import (
 	"github.com/google/uuid"
 )
 
-type Store struct {
+type Store interface {
+	Querier
+	NewUserTx(ctx context.Context, args CreateUserParams) (NewUserTxResults, error)
+	WorkoutTx(ctx context.Context, args WorkoutTxParams) (Workout, error)
+}
+
+type SQLStore struct {
 	*Queries
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		db:      db,
 		Queries: New(db),
 	}
 }
 
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -46,7 +52,7 @@ type NewUserTxResults struct {
 	ID           uuid.UUID
 }
 
-func (store *Store) NewUserTx(ctx context.Context, args CreateUserParams) (NewUserTxResults, error) {
+func (store *SQLStore) NewUserTx(ctx context.Context, args CreateUserParams) (NewUserTxResults, error) {
 	user := &NewUserTxResults{}
 
 	err := store.execTx(ctx, func(q *Queries) error {
@@ -91,7 +97,7 @@ type WorkoutTxParams struct {
 	Duration string
 }
 
-func (store *Store) WorkoutTx(ctx context.Context, args WorkoutTxParams) (Workout, error) {
+func (store *SQLStore) WorkoutTx(ctx context.Context, args WorkoutTxParams) (Workout, error) {
 	wo := &Workout{}
 
 	err := store.execTx(ctx, func(q *Queries) error {
