@@ -32,7 +32,7 @@ type createUserRequest struct {
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
-	req := &createUserRequest{}
+	req := createUserRequest{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -75,7 +75,7 @@ type getUserByEmailRequest struct {
 }
 
 func (server *Server) getUserByEmail(ctx *gin.Context) {
-	req := &getUserByEmailRequest{}
+	req := getUserByEmailRequest{}
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -108,7 +108,7 @@ type updateUserRequest struct {
 }
 
 func (server *Server) updateUser(ctx *gin.Context) {
-	req := &updateUserRequest{}
+	req := updateUserRequest{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -169,8 +169,8 @@ type updatePasswordRequest struct {
 }
 
 func (server *Server) changePassword(ctx *gin.Context) {
-	req := &updatePasswordRequest{}
-	if err := ctx.ShouldBindJSON(req); err != nil {
+	req := updatePasswordRequest{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
@@ -209,7 +209,7 @@ type deleteUserRequest struct {
 }
 
 func (server *Server) deleteUser(ctx *gin.Context) {
-	req := &deleteUserRequest{}
+	req := deleteUserRequest{}
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
