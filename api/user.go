@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -15,7 +16,7 @@ const (
 	USEREMAIL_NOT_FOUND = "user with specified eMail '%s' does not exist"
 )
 
-type userResponse struct {
+type UserResponse struct {
 	FirstName         string    `json:"firstName"`
 	LastName          string    `json:"lastName"`
 	EmailAddress      string    `json:"emailAddress"`
@@ -31,7 +32,7 @@ type createUserRequest struct {
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
-	req := &createUserRequest{}
+	req := createUserRequest{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -60,7 +61,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, userResponse{
+	ctx.JSON(http.StatusOK, UserResponse{
 		ID:                user.ID,
 		FirstName:         user.FirstName,
 		LastName:          user.LastName,
@@ -69,12 +70,12 @@ func (server *Server) createUser(ctx *gin.Context) {
 	})
 }
 
-type getUserRequest struct {
+type getUserByEmailRequest struct {
 	EmailAddress string `uri:"email" binding:"required,email"`
 }
 
 func (server *Server) getUserByEmail(ctx *gin.Context) {
-	req := &getUserRequest{}
+	req := getUserByEmailRequest{}
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -90,7 +91,7 @@ func (server *Server) getUserByEmail(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, userResponse{
+	ctx.JSON(http.StatusOK, UserResponse{
 		ID:                user.ID,
 		FirstName:         user.FirstName,
 		LastName:          user.LastName,
@@ -107,7 +108,7 @@ type updateUserRequest struct {
 }
 
 func (server *Server) updateUser(ctx *gin.Context) {
-	req := &updateUserRequest{}
+	req := updateUserRequest{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -158,7 +159,49 @@ func (server *Server) updateUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, nil)
+	ctx.JSON(http.StatusNoContent, nil)
+}
+
+type updatePasswordRequest struct {
+	ID              string `json:"id" binding:"required"`
+	CurrentPassword string `json:"currentPassword" binding:"required,gt=8"`
+	NewPassword     string `json:"newPassword" binding:"required,gt=8"`
+}
+
+func (server *Server) changePassword(ctx *gin.Context) {
+	req := updatePasswordRequest{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	user, err := server.store.GetUserById(ctx, req.ID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(USERID_NOT_FOUND, req.ID)))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	if user.Password != req.CurrentPassword {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("your current password is incorrect")))
+		return
+	}
+
+	args := db.ChangePasswordParams{
+		Password: req.NewPassword,
+		UserID:   req.ID,
+	}
+
+	err = server.store.ChangePassword(ctx, args)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, nil)
 }
 
 type deleteUserRequest struct {
@@ -166,7 +209,7 @@ type deleteUserRequest struct {
 }
 
 func (server *Server) deleteUser(ctx *gin.Context) {
-	req := &deleteUserRequest{}
+	req := deleteUserRequest{}
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
