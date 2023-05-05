@@ -69,12 +69,12 @@ func (server *Server) createUser(ctx *gin.Context) {
 	})
 }
 
-type getUserRequest struct {
+type getUserByEmailRequest struct {
 	EmailAddress string `uri:"email" binding:"required,email"`
 }
 
 func (server *Server) getUserByEmail(ctx *gin.Context) {
-	req := &getUserRequest{}
+	req := &getUserByEmailRequest{}
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
