@@ -161,10 +161,6 @@ func (server *Server) updateUser(ctx *gin.Context) {
 
 	user, err := server.store.GetUserById(ctx, req.ID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(USERID_NOT_FOUND, req.ID)))
-			return
-		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
