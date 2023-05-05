@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -67,6 +68,38 @@ func TestCreateUser(t *testing.T) {
 				validateUserResponse(t, recorder.Body, newUserTxRes)
 			},
 		},
+		{
+			Name: "Bad Request",
+			Body: gin.H{},
+			buildStubs: func(store *mockdb.MockStore) {
+				args := db.CreateUserParams{}
+				store.EXPECT().NewUserTx(gomock.Any(), gomock.Eq(args)).Times(0).Return(db.NewUserTxResults{}, sql.ErrTxDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			Name: "Internal Error",
+			Body: gin.H{
+				"firstName":    user.FirstName,
+				"lastName":     user.LastName,
+				"emailAddress": "notFound@gmail.com",
+				"password":     user.Password,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				args := db.CreateUserParams{
+					FirstName:    user.FirstName,
+					LastName:     user.LastName,
+					EmailAddress: "notFound@gmail.com",
+					Password:     user.Password,
+				}
+				store.EXPECT().NewUserTx(gomock.Any(), gomock.Eq(args)).Times(1).Return(db.NewUserTxResults{}, sql.ErrTxDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
 	}
 
 	for i := range testCases {
@@ -93,6 +126,22 @@ func TestCreateUser(t *testing.T) {
 		})
 	}
 }
+
+// func TestGetUserByEmail(t *testing.T) {
+// 	userID := uuid.New()
+// 	user := GenRandUser(userID)
+
+// 	testCases := []struct{
+// 		Name       string
+// 		Body       gin.H
+// 		buildStubs func(store *mockdb.MockStore)
+// 		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
+// 	}{
+// 		{
+// 			Name: "",
+// 		}
+// 	}
+// }
 
 func GenRandUser(userID uuid.UUID) db.User {
 	return db.User{
