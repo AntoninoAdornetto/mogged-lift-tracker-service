@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -15,7 +16,7 @@ const (
 	USEREMAIL_NOT_FOUND = "user with specified eMail '%s' does not exist"
 )
 
-type userResponse struct {
+type UserResponse struct {
 	FirstName         string    `json:"firstName"`
 	LastName          string    `json:"lastName"`
 	EmailAddress      string    `json:"emailAddress"`
@@ -60,7 +61,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, userResponse{
+	ctx.JSON(http.StatusOK, UserResponse{
 		ID:                user.ID,
 		FirstName:         user.FirstName,
 		LastName:          user.LastName,
@@ -90,7 +91,7 @@ func (server *Server) getUserByEmail(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, userResponse{
+	ctx.JSON(http.StatusOK, UserResponse{
 		ID:                user.ID,
 		FirstName:         user.FirstName,
 		LastName:          user.LastName,
