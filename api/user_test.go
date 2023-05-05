@@ -176,6 +176,16 @@ func TestGetUserByEmail(t *testing.T) {
 			},
 		},
 		{
+			Name:         "Not Found",
+			EmailAddress: "thurnis@gmail.com",
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserByEmail(gomock.Any(), gomock.Eq("thurnis@gmail.com")).Times(1).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
 			Name:         "Internal Error",
 			EmailAddress: user.EmailAddress,
 			buildStubs: func(store *mockdb.MockStore) {
