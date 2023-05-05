@@ -169,7 +169,13 @@ func (server *Server) updateUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	ctx.JSON(http.StatusOK, UserResponse{
+		ID:                user.ID,
+		FirstName:         user.FirstName,
+		LastName:          user.LastName,
+		EmailAddress:      user.EmailAddress,
+		PasswordChangedAt: user.PasswordChangedAt,
+	})
 }
 
 type updatePasswordRequest struct {
