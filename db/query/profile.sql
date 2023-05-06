@@ -19,7 +19,7 @@ UPDATE profile SET
 	body_weight = COALESCE(sqlc.narg('body_weight'), body_weight),
 	body_fat = COALESCE(sqlc.narg('body_fat'), body_fat),
 	timezone_offset = COALESCE((sqlc.narg('timezone_offset'), timezone_offset)
-WHERE user_id = COALESCE(sqlc.arg('user_id'));
+WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
 -- name: DeleteProfile :execresult
 DELETE FROM profile
