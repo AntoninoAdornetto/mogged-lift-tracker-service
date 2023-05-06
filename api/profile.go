@@ -86,6 +86,7 @@ func (server *Server) getProfile(ctx *gin.Context) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(PROFILE_NOT_FOUND, req.UserID)))
+			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -106,7 +107,7 @@ type updateProfileRequest struct {
 	BodyWeight        float64 `json:"bodyWeight"`
 	BodyFat           float64 `json:"bodyFat"`
 	TimeZoneOffset    int32   `json:"timeZoneOffset"`
-	UserID            string  `json:"userID" binding:"required,gt=-721,lt=821"`
+	UserID            string  `json:"userID" binding:"required"`
 }
 
 func (server *Server) updateProfile(ctx *gin.Context) {
@@ -169,4 +170,34 @@ func (server *Server) updateProfile(ctx *gin.Context) {
 		BodyFat:           profile.BodyFat,
 		TimeZoneOffset:    profile.TimezoneOffset,
 	})
+}
+
+type deleteProfileRequest struct {
+	UserID string `uri:"user_id" binding:"required"`
+}
+
+func (server *Server) deleteProfile(ctx *gin.Context) {
+	req := deleteProfileRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	_, err := server.store.GetProfile(ctx, req.UserID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(PROFILE_NOT_FOUND, req.UserID)))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = server.store.DeleteProfile(ctx, req.UserID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, nil)
 }
