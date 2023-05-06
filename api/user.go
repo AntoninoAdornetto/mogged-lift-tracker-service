@@ -159,17 +159,29 @@ func (server *Server) updateUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusNoContent, nil)
+	user, err := server.store.GetUserById(ctx, req.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, UserResponse{
+		ID:                user.ID,
+		FirstName:         user.FirstName,
+		LastName:          user.LastName,
+		EmailAddress:      user.EmailAddress,
+		PasswordChangedAt: user.PasswordChangedAt,
+	})
 }
 
-type updatePasswordRequest struct {
+type changePasswordRequest struct {
 	ID              string `json:"id" binding:"required"`
 	CurrentPassword string `json:"currentPassword" binding:"required,gt=8"`
 	NewPassword     string `json:"newPassword" binding:"required,gt=8"`
 }
 
 func (server *Server) changePassword(ctx *gin.Context) {
-	req := updatePasswordRequest{}
+	req := changePasswordRequest{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -66,7 +66,7 @@ func TestCreateUser(t *testing.T) {
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
-				validateUserResponse(t, recorder.Body, newUserTxRes)
+				validateNewUserResponse(t, recorder.Body, newUserTxRes)
 			},
 		},
 		{
@@ -96,6 +96,50 @@ func TestCreateUser(t *testing.T) {
 					Password:     user.Password,
 				}
 				store.EXPECT().NewUserTx(gomock.Any(), gomock.Eq(args)).Times(1).Return(db.NewUserTxResults{}, sql.ErrTxDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name: "Not Found",
+			Body: gin.H{
+				"firstName":    user.FirstName,
+				"lastName":     user.LastName,
+				"emailAddress": user.EmailAddress,
+				"password":     user.Password,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				args := db.CreateUserParams{
+					FirstName:    user.FirstName,
+					LastName:     user.LastName,
+					EmailAddress: user.EmailAddress,
+					Password:     user.Password,
+				}
+				store.EXPECT().NewUserTx(gomock.Any(), gomock.Eq(args)).Times(1).Return(newUserTxRes, nil)
+				store.EXPECT().GetUserByEmail(gomock.Any(), user.EmailAddress).Times(1).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			Name: "Internal Error -> GetUser After TX",
+			Body: gin.H{
+				"firstName":    user.FirstName,
+				"lastName":     user.LastName,
+				"emailAddress": user.EmailAddress,
+				"password":     user.Password,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				args := db.CreateUserParams{
+					FirstName:    user.FirstName,
+					LastName:     user.LastName,
+					EmailAddress: user.EmailAddress,
+					Password:     user.Password,
+				}
+				store.EXPECT().NewUserTx(gomock.Any(), gomock.Eq(args)).Times(1).Return(newUserTxRes, nil)
+				store.EXPECT().GetUserByEmail(gomock.Any(), user.EmailAddress).Times(1).Return(db.GetUserByEmailRow{}, sql.ErrConnDone)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
@@ -141,11 +185,12 @@ func TestGetUserByEmail(t *testing.T) {
 		Password:          user.Password,
 	}
 
-	newUserTxRes := db.NewUserTxResults{
-		FirstName:    user.FirstName,
-		LastName:     user.LastName,
-		EmailAddress: user.EmailAddress,
-		ID:           userID,
+	response := UserResponse{
+		FirstName:         getUserByEmailRes.FirstName,
+		LastName:          getUserByEmailRes.LastName,
+		EmailAddress:      getUserByEmailRes.EmailAddress,
+		PasswordChangedAt: getUserByEmailRes.PasswordChangedAt,
+		ID:                userID.String(),
 	}
 
 	testCases := []struct {
@@ -162,7 +207,7 @@ func TestGetUserByEmail(t *testing.T) {
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
-				validateUserResponse(t, recorder.Body, newUserTxRes)
+				validateGetUserByEmailResponse(t, recorder.Body, response)
 			},
 		},
 		{
@@ -173,6 +218,16 @@ func TestGetUserByEmail(t *testing.T) {
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			Name:         "Not Found",
+			EmailAddress: "thurnis@gmail.com",
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserByEmail(gomock.Any(), gomock.Eq("thurnis@gmail.com")).Times(1).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
 			},
 		},
 		{
@@ -209,6 +264,398 @@ func TestGetUserByEmail(t *testing.T) {
 	}
 }
 
+func TestUpdateUser(t *testing.T) {
+	userID := uuid.New()
+	user := GenRandUser(userID)
+
+	preGetUserByID := db.GetUserByIdRow{
+		FirstName:         user.FirstName,
+		EmailAddress:      user.EmailAddress,
+		ID:                userID.String(),
+		LastName:          user.LastName,
+		Password:          user.Password,
+		PasswordChangedAt: user.PasswordChangedAt,
+	}
+
+	newUserData := db.UpdateUserParams{
+		FirstName: sql.NullString{
+			Valid:  true,
+			String: util.RandomStr(5),
+		},
+		LastName: sql.NullString{
+			Valid:  true,
+			String: util.RandomStr(6),
+		},
+		EmailAddress: sql.NullString{
+			Valid:  true,
+			String: util.RandomStr(7) + "@gmail.com",
+		},
+		UserID: userID.String(),
+	}
+
+	postGetUserByID := db.GetUserByIdRow{
+		FirstName:         newUserData.FirstName.String,
+		LastName:          newUserData.LastName.String,
+		EmailAddress:      newUserData.EmailAddress.String,
+		ID:                userID.String(),
+		PasswordChangedAt: time.Now(),
+		Password:          user.Password,
+	}
+
+	response := UserResponse{
+		FirstName:         postGetUserByID.FirstName,
+		LastName:          postGetUserByID.LastName,
+		EmailAddress:      postGetUserByID.EmailAddress,
+		PasswordChangedAt: postGetUserByID.PasswordChangedAt,
+		ID:                userID.String(),
+	}
+
+	testCases := []struct {
+		Name       string
+		Body       gin.H
+		buildStubs func(store *mockdb.MockStore)
+		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			Name: "OK",
+			Body: gin.H{
+				"firstName":    response.FirstName,
+				"lastName":     response.LastName,
+				"emailAddress": response.EmailAddress,
+				"id":           userID.String(),
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(preGetUserByID, nil)
+				store.EXPECT().UpdateUser(gomock.Any(), gomock.Eq(newUserData)).Times(1).Return(nil)
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(postGetUserByID, nil)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+				validateGetUserByEmailResponse(t, recorder.Body, response)
+			},
+		},
+		{
+			Name: "Bad Request",
+			Body: gin.H{},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Any()).Times(0).Return(db.GetUserByIdRow{}, sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			Name: "Internal Error",
+			Body: gin.H{
+				"firstName":    response.FirstName,
+				"lastName":     response.LastName,
+				"emailAddress": response.EmailAddress,
+				"id":           userID.String(),
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(preGetUserByID, nil)
+				store.EXPECT().UpdateUser(gomock.Any(), gomock.Eq(newUserData)).Times(1).Return(sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name: "Not Found",
+			Body: gin.H{
+				"firstName":    response.FirstName,
+				"lastName":     response.LastName,
+				"emailAddress": response.EmailAddress,
+				"id":           userID.String(),
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.GetUserByIdRow{}, sql.ErrNoRows)
+				store.EXPECT().UpdateUser(gomock.Any(), gomock.Eq(newUserData)).Times(0).Return(sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			Name: "Internal Error -> Get User",
+			Body: gin.H{
+				"firstName":    response.FirstName,
+				"lastName":     response.LastName,
+				"emailAddress": response.EmailAddress,
+				"id":           userID.String(),
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.GetUserByIdRow{}, sql.ErrConnDone)
+				store.EXPECT().UpdateUser(gomock.Any(), gomock.Eq(newUserData)).Times(0).Return(sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name: "Internal Error -> Get User After Updating",
+			Body: gin.H{
+				"firstName":    response.FirstName,
+				"lastName":     response.LastName,
+				"emailAddress": response.EmailAddress,
+				"id":           userID.String(),
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(preGetUserByID, nil)
+				store.EXPECT().UpdateUser(gomock.Any(), gomock.Eq(newUserData)).Times(1).Return(nil)
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.GetUserByIdRow{}, sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			server := NewServer(store)
+			recorder := httptest.NewRecorder()
+
+			data, err := json.Marshal(tc.Body)
+			require.NoError(t, err)
+
+			url := "/updateUser"
+			request, err := http.NewRequest(http.MethodPatch, url, bytes.NewReader(data))
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recorder, request)
+			tc.checkRes(t, recorder)
+		})
+	}
+}
+
+func TestChangePassword(t *testing.T) {
+	userID := uuid.New()
+	user := GenRandUser(userID)
+
+	getUserByIdRes := db.GetUserByIdRow{
+		EmailAddress:      user.EmailAddress,
+		ID:                userID.String(),
+		FirstName:         user.FirstName,
+		LastName:          user.LastName,
+		PasswordChangedAt: user.PasswordChangedAt,
+		Password:          user.Password,
+	}
+
+	testCases := []struct {
+		Name       string
+		Body       gin.H
+		buildStubs func(store *mockdb.MockStore)
+		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			Name: "Bad Request",
+			Body: gin.H{},
+			buildStubs: func(store *mockdb.MockStore) {
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			Name: "Not Found -> Get User",
+			Body: gin.H{
+				"id":              userID.String(),
+				"currentPassword": user.Password,
+				"newPassword":     "shannonsbosoms@69",
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.GetUserByIdRow{}, sql.ErrNoRows)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			Name: "Internal Error -> Get User",
+			Body: gin.H{
+				"id":              userID.String(),
+				"currentPassword": user.Password,
+				"newPassword":     "shannonsbosoms@69",
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.GetUserByIdRow{}, sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name: "Unauthorized -> incorrect current password",
+			Body: gin.H{
+				"id":              userID.String(),
+				"currentPassword": util.RandomStr(9),
+				"newPassword":     "shannonsbosoms@69",
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(getUserByIdRes, nil)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+		{
+			Name: "Internal Error -> change pasword",
+			Body: gin.H{
+				"id":              userID.String(),
+				"currentPassword": user.Password,
+				"newPassword":     "shannonsbosoms@69",
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				args := db.ChangePasswordParams{
+					UserID:   userID.String(),
+					Password: "shannonsbosoms@69",
+				}
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(getUserByIdRes, nil)
+				store.EXPECT().ChangePassword(gomock.Any(), gomock.Eq(args)).Times(1).Return(sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name: "OK -> No Content",
+			Body: gin.H{
+				"id":              userID.String(),
+				"currentPassword": user.Password,
+				"newPassword":     "shannonsbosoms@69",
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				args := db.ChangePasswordParams{
+					UserID:   userID.String(),
+					Password: "shannonsbosoms@69",
+				}
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(getUserByIdRes, nil)
+				store.EXPECT().ChangePassword(gomock.Any(), gomock.Eq(args)).Times(1).Return(nil)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNoContent, recorder.Code)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			server := NewServer(store)
+			recorder := httptest.NewRecorder()
+
+			data, err := json.Marshal(tc.Body)
+			require.NoError(t, err)
+
+			url := "/changePassword"
+			request, err := http.NewRequest(http.MethodPatch, url, bytes.NewReader(data))
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recorder, request)
+			tc.checkRes(t, recorder)
+		})
+	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	userID := uuid.New()
+	user := GenRandUser(userID)
+
+	getUserByIdRes := db.GetUserByIdRow{
+		FirstName:         user.FirstName,
+		ID:                userID.String(),
+		LastName:          user.LastName,
+		EmailAddress:      user.EmailAddress,
+		Password:          user.Password,
+		PasswordChangedAt: user.PasswordChangedAt,
+	}
+
+	testCases := []struct {
+		Name       string
+		UserID     string
+		buildStubs func(store *mockdb.MockStore)
+		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			Name:   "Not found -> Get User",
+			UserID: userID.String(),
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.GetUserByIdRow{}, sql.ErrNoRows)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			Name:   "Internal Error -> Get User",
+			UserID: userID.String(),
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.GetUserByIdRow{}, sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name:   "Internal Error -> Delete User",
+			UserID: userID.String(),
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(getUserByIdRes, nil)
+				store.EXPECT().DeleteUser(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name:   "OK -> No Content",
+			UserID: userID.String(),
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(getUserByIdRes, nil)
+				store.EXPECT().DeleteUser(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(nil)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNoContent, recorder.Code)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			server := NewServer(store)
+			recorder := httptest.NewRecorder()
+
+			url := fmt.Sprintf("/deleteUser/%s", tc.UserID)
+			request, err := http.NewRequest(http.MethodDelete, url, nil)
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recorder, request)
+			tc.checkRes(t, recorder)
+		})
+	}
+}
+
 func GenRandUser(userID uuid.UUID) db.User {
 	return db.User{
 		ID:                []byte(userID.String()),
@@ -220,12 +667,26 @@ func GenRandUser(userID uuid.UUID) db.User {
 	}
 }
 
-func validateUserResponse(t *testing.T, body *bytes.Buffer, res db.NewUserTxResults) {
-	data, err := ioutil.ReadAll(body)
+func validateNewUserResponse(t *testing.T, body *bytes.Buffer, res db.NewUserTxResults) {
+	data, err := io.ReadAll(body)
 	require.NoError(t, err)
 
-	var acc db.NewUserTxResults
-	err = json.Unmarshal(data, &acc)
+	var user db.NewUserTxResults
+	err = json.Unmarshal(data, &user)
 	require.NoError(t, err)
-	require.Equal(t, acc, res)
+	require.Equal(t, user, res)
+}
+
+func validateGetUserByEmailResponse(t *testing.T, body *bytes.Buffer, res UserResponse) {
+	data, err := io.ReadAll(body)
+	require.NoError(t, err)
+
+	var user UserResponse
+	err = json.Unmarshal(data, &user)
+	require.NoError(t, err)
+	require.WithinDuration(t, user.PasswordChangedAt, res.PasswordChangedAt, time.Minute)
+	require.Equal(t, user.ID, res.ID)
+	require.Equal(t, user.FirstName, res.FirstName)
+	require.Equal(t, user.LastName, res.LastName)
+	require.Equal(t, user.EmailAddress, res.EmailAddress)
 }
