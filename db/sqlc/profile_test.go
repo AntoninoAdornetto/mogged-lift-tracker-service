@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/util"
@@ -20,8 +21,11 @@ func TestUpdateCountry(t *testing.T) {
 
 	newCountry := util.RandomStr(3)
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
-		Country: newCountry,
-		UserID:  userId.String(),
+		Country: sql.NullString{
+			Valid:  true,
+			String: newCountry,
+		},
+		UserID: userId.String(),
 	})
 	require.NoError(t, err)
 
@@ -37,8 +41,11 @@ func TestUpdateBodyFat(t *testing.T) {
 
 	newBodyFat := float64(util.RandomInt(50, 100))
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
-		BodyFat: newBodyFat,
-		UserID:  userId.String(),
+		BodyFat: sql.NullFloat64{
+			Valid:   true,
+			Float64: newBodyFat,
+		},
+		UserID: userId.String(),
 	})
 	require.NoError(t, err)
 
@@ -54,8 +61,11 @@ func TestUpdateBodyWeight(t *testing.T) {
 
 	newBodyWeight := float64(util.RandomInt(300, 500))
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
-		BodyWeight: newBodyWeight,
-		UserID:     userId.String(),
+		BodyWeight: sql.NullFloat64{
+			Valid:   true,
+			Float64: newBodyWeight,
+		},
+		UserID: userId.String(),
 	})
 	require.NoError(t, err)
 
@@ -71,8 +81,11 @@ func TestUpdateTimezone(t *testing.T) {
 
 	newTimezoneOffset := int32(util.RandomInt(1, 5))
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
-		TimezoneOffset: newTimezoneOffset,
-		UserID:         userId.String(),
+		TimezoneOffset: sql.NullInt32{
+			Valid: true,
+			Int32: newTimezoneOffset,
+		},
+		UserID: userId.String(),
 	})
 	require.NoError(t, err)
 
@@ -88,8 +101,11 @@ func TestUpdateMeasurementSystem(t *testing.T) {
 
 	newMeasurementSystem := util.RandomStr(10)
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
-		MeasurementSystem: newMeasurementSystem,
-		UserID:            userId.String(),
+		MeasurementSystem: sql.NullString{
+			Valid:  true,
+			String: newMeasurementSystem,
+		},
+		UserID: userId.String(),
 	})
 	require.NoError(t, err)
 
