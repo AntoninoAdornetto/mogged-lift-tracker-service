@@ -15,7 +15,7 @@ type Querier interface {
 	CreateExercise(ctx context.Context, arg CreateExerciseParams) (sql.Result, error)
 	CreateLift(ctx context.Context, arg CreateLiftParams) (sql.Result, error)
 	CreateMuscleGroup(ctx context.Context, name string) (sql.Result, error)
-	CreateProfile(ctx context.Context, arg CreateProfileParams) (sql.Result, error)
+	CreateProfile(ctx context.Context, arg CreateProfileParams) (int64, error)
 	CreateStockExercise(ctx context.Context, arg CreateStockExerciseParams) (sql.Result, error)
 	CreateTemplate(ctx context.Context, arg CreateTemplateParams) (sql.Result, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) error
