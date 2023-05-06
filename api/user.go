@@ -125,35 +125,23 @@ func (server *Server) updateUser(ctx *gin.Context) {
 		return
 	}
 
-	var firstName, lastName, emailAddress sql.NullString
-
-	if req.FirstName != "" {
-		firstName.String = req.FirstName
-		firstName.Valid = true
-	} else {
-		firstName.Valid = false
+	args := db.UpdateUserParams{
+		FirstName: sql.NullString{
+			Valid:  req.FirstName != "",
+			String: req.FirstName,
+		},
+		LastName: sql.NullString{
+			Valid:  req.LastName != "",
+			String: req.LastName,
+		},
+		EmailAddress: sql.NullString{
+			Valid:  req.EmailAddress != "",
+			String: req.EmailAddress,
+		},
+		UserID: req.ID,
 	}
 
-	if req.LastName != "" {
-		lastName.String = req.LastName
-		lastName.Valid = true
-	} else {
-		lastName.Valid = false
-	}
-
-	if req.EmailAddress != "" {
-		emailAddress.String = req.EmailAddress
-		emailAddress.Valid = true
-	} else {
-		emailAddress.Valid = false
-	}
-
-	err = server.store.UpdateUser(ctx, db.UpdateUserParams{
-		FirstName:    firstName,
-		LastName:     lastName,
-		EmailAddress: emailAddress,
-		UserID:       req.ID,
-	})
+	err = server.store.UpdateUser(ctx, args)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
