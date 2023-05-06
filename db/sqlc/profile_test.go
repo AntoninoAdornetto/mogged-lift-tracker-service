@@ -134,7 +134,7 @@ func TestDeleteProfile(t *testing.T) {
 	require.NoError(t, err)
 	GenRandProfile(t, userId)
 
-	_, err = testQueries.DeleteProfile(context.Background(), userId.String())
+	err = testQueries.DeleteProfile(context.Background(), userId.String())
 	require.NoError(t, err)
 
 	query, err := testQueries.GetProfile(context.Background(), userId.String())
