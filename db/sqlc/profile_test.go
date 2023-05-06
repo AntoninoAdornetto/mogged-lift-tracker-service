@@ -75,11 +75,24 @@ func TestUpdateBodyWeight(t *testing.T) {
 	require.Equal(t, query.BodyWeight, newBodyWeight)
 }
 
-func TestUpdateTimezone(t *testing.T) {
+func TestUpdateTimezoneOffset(t *testing.T) {
 	userId := getNewUserId(t)
 	profile := GenRandProfile(t, userId)
 
-	newTimezoneOffset := int32(util.RandomInt(1, 5))
+	// invalid range. There are constraints on the column
+	invalidTimezoneOffset := []int32{-900, 1000}
+
+	for _, tOffset := range invalidTimezoneOffset {
+		_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
+			TimezoneOffset: sql.NullInt32{
+				Valid: true,
+				Int32: tOffset,
+			},
+		})
+		require.Error(t, err)
+	}
+
+	newTimezoneOffset := int32(util.RandomInt(-700, 800))
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
 		TimezoneOffset: sql.NullInt32{
 			Valid: true,
