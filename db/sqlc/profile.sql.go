@@ -10,13 +10,13 @@ import (
 	"database/sql"
 )
 
-const createProfile = `-- name: CreateProfile :execresult
+const createProfile = `-- name: CreateProfile :execlastid
 INSERT INTO profile (
 	country,
 	measurement_system,
 	body_weight,
 	body_fat,
-	timezone,
+	timezone_offset,
 	user_id
 ) VALUES (?, ?, ?, ?, ?, UUID_TO_BIN(?))
 `
@@ -26,32 +26,37 @@ type CreateProfileParams struct {
 	MeasurementSystem string  `json:"measurement_system"`
 	BodyWeight        float64 `json:"body_weight"`
 	BodyFat           float64 `json:"body_fat"`
-	Timezone          string  `json:"timezone"`
+	TimezoneOffset    int32   `json:"timezone_offset"`
 	UserID            string  `json:"user_id"`
 }
 
-func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (sql.Result, error) {
-	return q.exec(ctx, q.createProfileStmt, createProfile,
+func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (int64, error) {
+	result, err := q.exec(ctx, q.createProfileStmt, createProfile,
 		arg.Country,
 		arg.MeasurementSystem,
 		arg.BodyWeight,
 		arg.BodyFat,
-		arg.Timezone,
+		arg.TimezoneOffset,
 		arg.UserID,
 	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
-const deleteProfile = `-- name: DeleteProfile :execresult
+const deleteProfile = `-- name: DeleteProfile :exec
 DELETE FROM profile
 WHERE user_id = UUID_TO_BIN(?)
 `
 
-func (q *Queries) DeleteProfile(ctx context.Context, userID string) (sql.Result, error) {
-	return q.exec(ctx, q.deleteProfileStmt, deleteProfile, userID)
+func (q *Queries) DeleteProfile(ctx context.Context, userID string) error {
+	_, err := q.exec(ctx, q.deleteProfileStmt, deleteProfile, userID)
+	return err
 }
 
 const getProfile = `-- name: GetProfile :one
-SELECT id, country, measurement_system, body_weight, body_fat, timezone, user_id FROM profile
+SELECT id, country, measurement_system, body_weight, body_fat, timezone_offset, user_id FROM profile
 WHERE user_id = UUID_TO_BIN(?) LIMIT 1
 `
 
@@ -64,7 +69,7 @@ func (q *Queries) GetProfile(ctx context.Context, userID string) (Profile, error
 		&i.MeasurementSystem,
 		&i.BodyWeight,
 		&i.BodyFat,
-		&i.Timezone,
+		&i.TimezoneOffset,
 		&i.UserID,
 	)
 	return i, err
@@ -72,21 +77,21 @@ func (q *Queries) GetProfile(ctx context.Context, userID string) (Profile, error
 
 const updateProfile = `-- name: UpdateProfile :execresult
 UPDATE profile SET
-country = IFNULL(?, country),
-measurement_system = IFNULL(?, measurement_system),
-body_weight = IFNULL(?, body_weight),
-body_fat = IFNULL(?, body_fat),
-timezone = IFNULL(?, timezone)
+	country = COALESCE(?, country),
+	measurement_system = COALESCE(?, measurement_system),
+	body_weight = COALESCE(?, body_weight),
+	body_fat = COALESCE(?, body_fat),
+	timezone_offset = COALESCE(?, timezone_offset)
 WHERE user_id = UUID_TO_BIN(?)
 `
 
 type UpdateProfileParams struct {
-	Country           interface{} `json:"country"`
-	MeasurementSystem interface{} `json:"measurement_system"`
-	BodyWeight        interface{} `json:"body_weight"`
-	BodyFat           interface{} `json:"body_fat"`
-	Timezone          interface{} `json:"timezone"`
-	UserID            string      `json:"user_id"`
+	Country           sql.NullString  `json:"country"`
+	MeasurementSystem sql.NullString  `json:"measurement_system"`
+	BodyWeight        sql.NullFloat64 `json:"body_weight"`
+	BodyFat           sql.NullFloat64 `json:"body_fat"`
+	TimezoneOffset    sql.NullInt32   `json:"timezone_offset"`
+	UserID            string          `json:"user_id"`
 }
 
 func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (sql.Result, error) {
@@ -95,7 +100,7 @@ func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (s
 		arg.MeasurementSystem,
 		arg.BodyWeight,
 		arg.BodyFat,
-		arg.Timezone,
+		arg.TimezoneOffset,
 		arg.UserID,
 	)
 }

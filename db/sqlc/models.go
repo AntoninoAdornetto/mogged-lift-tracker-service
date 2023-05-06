@@ -47,7 +47,7 @@ type Profile struct {
 	MeasurementSystem string  `json:"measurement_system"`
 	BodyWeight        float64 `json:"body_weight"`
 	BodyFat           float64 `json:"body_fat"`
-	Timezone          string  `json:"timezone"`
+	TimezoneOffset    int32   `json:"timezone_offset"`
 	UserID            []byte  `json:"user_id"`
 }
 

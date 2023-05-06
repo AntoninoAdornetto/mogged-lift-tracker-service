@@ -13,7 +13,7 @@ CREATE TABLE `profile` (
 	`measurement_system` VARCHAR(20) NOT NULL,
 	`body_weight` REAL NOT NULL DEFAULT 0,
 	`body_fat` REAL NOT NULL DEFAULT 0,
-	`timezone` VARCHAR(50) NOT NULL,
+	`timezone_offset` SMALLINT NOT NULL DEFAULT 0 CONSTRAINT offset_range CHECK (timezone_offset >= -720 AND timezone_offset <= 840),
 	`user_id` BINARY(16) NOT NULL
 );
 

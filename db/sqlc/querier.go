@@ -15,7 +15,7 @@ type Querier interface {
 	CreateExercise(ctx context.Context, arg CreateExerciseParams) (sql.Result, error)
 	CreateLift(ctx context.Context, arg CreateLiftParams) (sql.Result, error)
 	CreateMuscleGroup(ctx context.Context, name string) (sql.Result, error)
-	CreateProfile(ctx context.Context, arg CreateProfileParams) (sql.Result, error)
+	CreateProfile(ctx context.Context, arg CreateProfileParams) (int64, error)
 	CreateStockExercise(ctx context.Context, arg CreateStockExerciseParams) (sql.Result, error)
 	CreateTemplate(ctx context.Context, arg CreateTemplateParams) (sql.Result, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) error
@@ -24,7 +24,7 @@ type Querier interface {
 	DeleteExercise(ctx context.Context, arg DeleteExerciseParams) (sql.Result, error)
 	DeleteLift(ctx context.Context, arg DeleteLiftParams) (sql.Result, error)
 	DeleteMuscleGroup(ctx context.Context, id int32) (sql.Result, error)
-	DeleteProfile(ctx context.Context, userID string) (sql.Result, error)
+	DeleteProfile(ctx context.Context, userID string) error
 	DeleteStockExercise(ctx context.Context, id int32) (sql.Result, error)
 	DeleteTemplate(ctx context.Context, arg DeleteTemplateParams) (sql.Result, error)
 	DeleteUser(ctx context.Context, userID string) error
