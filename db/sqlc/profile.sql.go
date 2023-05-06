@@ -76,21 +76,21 @@ func (q *Queries) GetProfile(ctx context.Context, userID string) (Profile, error
 
 const updateProfile = `-- name: UpdateProfile :execresult
 UPDATE profile SET
-country = IFNULL(?, country),
-measurement_system = IFNULL(?, measurement_system),
-body_weight = IFNULL(?, body_weight),
-body_fat = IFNULL(?, body_fat),
-timezone_offset = IFNULL(?, timezone_offset)
+	country = COALESCE(?, country),
+	measurement_system = COALESCE(?, measurement_system),
+	body_weight = COALESCE(?, body_weight),
+	body_fat = COALESCE(?, body_fat),
+	timezone_offset = COALESCE(?, timezone_offset)
 WHERE user_id = UUID_TO_BIN(?)
 `
 
 type UpdateProfileParams struct {
-	Country           interface{} `json:"country"`
-	MeasurementSystem interface{} `json:"measurement_system"`
-	BodyWeight        interface{} `json:"body_weight"`
-	BodyFat           interface{} `json:"body_fat"`
-	TimezoneOffset    interface{} `json:"timezone_offset"`
-	UserID            string      `json:"user_id"`
+	Country           sql.NullString  `json:"country"`
+	MeasurementSystem sql.NullString  `json:"measurement_system"`
+	BodyWeight        sql.NullFloat64 `json:"body_weight"`
+	BodyFat           sql.NullFloat64 `json:"body_fat"`
+	TimezoneOffset    sql.NullInt32   `json:"timezone_offset"`
+	UserID            string          `json:"user_id"`
 }
 
 func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (sql.Result, error) {
