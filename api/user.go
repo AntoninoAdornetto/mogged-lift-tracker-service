@@ -174,14 +174,14 @@ func (server *Server) updateUser(ctx *gin.Context) {
 	})
 }
 
-type updatePasswordRequest struct {
+type changePasswordRequest struct {
 	ID              string `json:"id" binding:"required"`
 	CurrentPassword string `json:"currentPassword" binding:"required,gt=8"`
 	NewPassword     string `json:"newPassword" binding:"required,gt=8"`
 }
 
 func (server *Server) changePassword(ctx *gin.Context) {
-	req := updatePasswordRequest{}
+	req := changePasswordRequest{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
