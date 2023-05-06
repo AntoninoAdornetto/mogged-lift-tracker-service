@@ -69,17 +69,17 @@ func TestUpdateTimezone(t *testing.T) {
 	userId := getNewUserId(t)
 	profile := GenRandProfile(t, userId)
 
-	newTimezone := util.RandomStr(10)
+	newTimezoneOffset := int32(util.RandomInt(1, 5))
 	_, err := testQueries.UpdateProfile(context.Background(), UpdateProfileParams{
-		Timezone: newTimezone,
-		UserID:   userId.String(),
+		TimezoneOffset: newTimezoneOffset,
+		UserID:         userId.String(),
 	})
 	require.NoError(t, err)
 
 	query, err := testQueries.GetProfile(context.Background(), userId.String())
 	require.NoError(t, err)
-	require.NotEqual(t, newTimezone, profile.Timezone)
-	require.Equal(t, query.Timezone, newTimezone)
+	require.NotEqual(t, newTimezoneOffset, profile.TimezoneOffset)
+	require.Equal(t, query.TimezoneOffset, newTimezoneOffset)
 }
 
 func TestUpdateMeasurementSystem(t *testing.T) {
@@ -126,7 +126,7 @@ func GenRandProfile(t *testing.T, userId uuid.UUID) Profile {
 		Country:           util.RandomStr(3),
 		BodyFat:           float64(util.RandomInt(8, 20)),
 		BodyWeight:        float64(util.RandomInt(150, 220)),
-		Timezone:          util.RandomStr(10),
+		TimezoneOffset:    0,
 		MeasurementSystem: "Imperial",
 		UserID:            userId.String(),
 	}
@@ -142,7 +142,7 @@ func GenRandProfile(t *testing.T, userId uuid.UUID) Profile {
 	require.Equal(t, p.Country, query.Country)
 	require.Equal(t, p.BodyFat, query.BodyFat)
 	require.Equal(t, p.BodyWeight, query.BodyWeight)
-	require.Equal(t, p.Timezone, query.Timezone)
+	require.Equal(t, p.TimezoneOffset, query.TimezoneOffset)
 	require.Equal(t, p.MeasurementSystem, query.MeasurementSystem)
 	require.Equal(t, userId, userIDFromBytes)
 	return query

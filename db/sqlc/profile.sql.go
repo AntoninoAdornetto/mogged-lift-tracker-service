@@ -16,7 +16,7 @@ INSERT INTO profile (
 	measurement_system,
 	body_weight,
 	body_fat,
-	timezone,
+	timezone_offset,
 	user_id
 ) VALUES (?, ?, ?, ?, ?, UUID_TO_BIN(?))
 `
@@ -26,7 +26,7 @@ type CreateProfileParams struct {
 	MeasurementSystem string  `json:"measurement_system"`
 	BodyWeight        float64 `json:"body_weight"`
 	BodyFat           float64 `json:"body_fat"`
-	Timezone          string  `json:"timezone"`
+	TimezoneOffset    int32   `json:"timezone_offset"`
 	UserID            string  `json:"user_id"`
 }
 
@@ -36,7 +36,7 @@ func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (s
 		arg.MeasurementSystem,
 		arg.BodyWeight,
 		arg.BodyFat,
-		arg.Timezone,
+		arg.TimezoneOffset,
 		arg.UserID,
 	)
 }
@@ -51,7 +51,7 @@ func (q *Queries) DeleteProfile(ctx context.Context, userID string) (sql.Result,
 }
 
 const getProfile = `-- name: GetProfile :one
-SELECT id, country, measurement_system, body_weight, body_fat, timezone, user_id FROM profile
+SELECT id, country, measurement_system, body_weight, body_fat, timezone_offset, user_id FROM profile
 WHERE user_id = UUID_TO_BIN(?) LIMIT 1
 `
 
@@ -64,7 +64,7 @@ func (q *Queries) GetProfile(ctx context.Context, userID string) (Profile, error
 		&i.MeasurementSystem,
 		&i.BodyWeight,
 		&i.BodyFat,
-		&i.Timezone,
+		&i.TimezoneOffset,
 		&i.UserID,
 	)
 	return i, err
@@ -76,7 +76,7 @@ country = IFNULL(?, country),
 measurement_system = IFNULL(?, measurement_system),
 body_weight = IFNULL(?, body_weight),
 body_fat = IFNULL(?, body_fat),
-timezone = IFNULL(?, timezone)
+timezone_offset = IFNULL(?, timezone_offset)
 WHERE user_id = UUID_TO_BIN(?)
 `
 
@@ -85,7 +85,7 @@ type UpdateProfileParams struct {
 	MeasurementSystem interface{} `json:"measurement_system"`
 	BodyWeight        interface{} `json:"body_weight"`
 	BodyFat           interface{} `json:"body_fat"`
-	Timezone          interface{} `json:"timezone"`
+	TimezoneOffset    interface{} `json:"timezone_offset"`
 	UserID            string      `json:"user_id"`
 }
 
@@ -95,7 +95,7 @@ func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (s
 		arg.MeasurementSystem,
 		arg.BodyWeight,
 		arg.BodyFat,
-		arg.Timezone,
+		arg.TimezoneOffset,
 		arg.UserID,
 	)
 }
