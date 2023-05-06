@@ -14,12 +14,12 @@ WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id')) LIMIT 1;
 
 -- name: UpdateProfile :execresult
 UPDATE profile SET
-country = IFNULL(sqlc.narg('country'), country),
-measurement_system = IFNULL(sqlc.narg('measurement_system'), measurement_system),
-body_weight = IFNULL(sqlc.narg('body_weight'), body_weight),
-body_fat = IFNULL(sqlc.narg('body_fat'), body_fat),
-timezone_offset = IFNULL(sqlc.narg('timezone_offset'), timezone_offset)
-WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'));
+	country = COALESCE(sqlc.narg('country'), country),
+	measurement_system = COALESCE(sqlc.narg('measurement_system'), measurement_system),
+	body_weight = COALESCE(sqlc.narg('body_weight'), body_weight),
+	body_fat = COALESCE(sqlc.narg('body_fat'), body_fat),
+	timezone_offset = COALESCE((sqlc.narg('timezone_offset'), timezone_offset)
+WHERE user_id = COALESCE(sqlc.arg('user_id'));
 
 -- name: DeleteProfile :execresult
 DELETE FROM profile
