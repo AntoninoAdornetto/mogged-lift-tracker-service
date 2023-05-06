@@ -45,13 +45,14 @@ func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (i
 	return result.LastInsertId()
 }
 
-const deleteProfile = `-- name: DeleteProfile :execresult
+const deleteProfile = `-- name: DeleteProfile :exec
 DELETE FROM profile
 WHERE user_id = UUID_TO_BIN(?)
 `
 
-func (q *Queries) DeleteProfile(ctx context.Context, userID string) (sql.Result, error) {
-	return q.exec(ctx, q.deleteProfileStmt, deleteProfile, userID)
+func (q *Queries) DeleteProfile(ctx context.Context, userID string) error {
+	_, err := q.exec(ctx, q.deleteProfileStmt, deleteProfile, userID)
+	return err
 }
 
 const getProfile = `-- name: GetProfile :one

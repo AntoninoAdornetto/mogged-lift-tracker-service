@@ -24,7 +24,7 @@ type Querier interface {
 	DeleteExercise(ctx context.Context, arg DeleteExerciseParams) (sql.Result, error)
 	DeleteLift(ctx context.Context, arg DeleteLiftParams) (sql.Result, error)
 	DeleteMuscleGroup(ctx context.Context, id int32) (sql.Result, error)
-	DeleteProfile(ctx context.Context, userID string) (sql.Result, error)
+	DeleteProfile(ctx context.Context, userID string) error
 	DeleteStockExercise(ctx context.Context, id int32) (sql.Result, error)
 	DeleteTemplate(ctx context.Context, arg DeleteTemplateParams) (sql.Result, error)
 	DeleteUser(ctx context.Context, userID string) error

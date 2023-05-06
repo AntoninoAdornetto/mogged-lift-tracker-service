@@ -21,6 +21,6 @@ UPDATE profile SET
 	timezone_offset = COALESCE(sqlc.narg('timezone_offset'), timezone_offset)
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
--- name: DeleteProfile :execresult
+-- name: DeleteProfile :exec
 DELETE FROM profile
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'));
