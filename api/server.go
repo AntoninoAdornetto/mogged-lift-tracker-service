@@ -23,6 +23,7 @@ func NewServer(store db.Store) *Server {
 	router.POST("/createProfile", server.createProfile)
 	router.GET("/getProfile/:user_id", server.getProfile)
 	router.PATCH("/updateProfile", server.updateProfile)
+	router.DELETE("/deleteProfile/:user_id", server.deleteProfile)
 
 	server.router = router
 	return server
