@@ -111,10 +111,10 @@ func (mr *MockStoreMockRecorder) CreateMuscleGroup(arg0, arg1 interface{}) *gomo
 }
 
 // CreateProfile mocks base method.
-func (m *MockStore) CreateProfile(arg0 context.Context, arg1 db.CreateProfileParams) (sql.Result, error) {
+func (m *MockStore) CreateProfile(arg0 context.Context, arg1 db.CreateProfileParams) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateProfile", arg0, arg1)
-	ret0, _ := ret[0].(sql.Result)
+	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

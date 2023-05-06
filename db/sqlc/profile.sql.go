@@ -10,7 +10,7 @@ import (
 	"database/sql"
 )
 
-const createProfile = `-- name: CreateProfile :execresult
+const createProfile = `-- name: CreateProfile :execlastid
 INSERT INTO profile (
 	country,
 	measurement_system,
@@ -30,8 +30,8 @@ type CreateProfileParams struct {
 	UserID            string  `json:"user_id"`
 }
 
-func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (sql.Result, error) {
-	return q.exec(ctx, q.createProfileStmt, createProfile,
+func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (int64, error) {
+	result, err := q.exec(ctx, q.createProfileStmt, createProfile,
 		arg.Country,
 		arg.MeasurementSystem,
 		arg.BodyWeight,
@@ -39,6 +39,10 @@ func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (s
 		arg.TimezoneOffset,
 		arg.UserID,
 	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
 const deleteProfile = `-- name: DeleteProfile :execresult

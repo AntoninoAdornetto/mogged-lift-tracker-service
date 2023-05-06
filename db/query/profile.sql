@@ -1,4 +1,4 @@
--- name: CreateProfile :execresult
+-- name: CreateProfile :execlastid
 INSERT INTO profile (
 	country,
 	measurement_system,
