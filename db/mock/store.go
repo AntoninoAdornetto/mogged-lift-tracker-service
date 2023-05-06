@@ -245,12 +245,11 @@ func (mr *MockStoreMockRecorder) DeleteMuscleGroup(arg0, arg1 interface{}) *gomo
 }
 
 // DeleteProfile mocks base method.
-func (m *MockStore) DeleteProfile(arg0 context.Context, arg1 string) (sql.Result, error) {
+func (m *MockStore) DeleteProfile(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteProfile", arg0, arg1)
-	ret0, _ := ret[0].(sql.Result)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DeleteProfile indicates an expected call of DeleteProfile.
