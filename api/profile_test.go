@@ -387,7 +387,83 @@ func TestUpdateProfile(t *testing.T) {
 
 			server.router.ServeHTTP(recorder, request)
 			tc.checkRes(t, recorder)
+		})
+	}
+}
 
+func TestDeleteProfile(t *testing.T) {
+	userID := uuid.New()
+	profile := GenRandProfile(userID)
+
+	testCases := []struct {
+		Name       string
+		UserID     string
+		buildStubs func(store *mockdb.MockStore)
+		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			Name:   "Not Found -> Get Profile",
+			UserID: userID.String(),
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrNoRows)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			Name:   "Internal Error -> Get Profile",
+			UserID: userID.String(),
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name:   "Internal Error -> Delete Profile",
+			UserID: userID.String(),
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
+				store.EXPECT().DeleteProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name:   "OK -> No Content",
+			UserID: userID.String(),
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
+				store.EXPECT().DeleteProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(nil)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNoContent, recorder.Code)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.Name, func(t *testing.T) {
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			server := NewServer(store)
+			recorder := httptest.NewRecorder()
+
+			url := fmt.Sprintf("/deleteProfile/%s", tc.UserID)
+			request, err := http.NewRequest(http.MethodDelete, url, nil)
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recorder, request)
+			tc.checkRes(t, recorder)
 		})
 	}
 }
