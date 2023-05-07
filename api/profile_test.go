@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -175,6 +176,222 @@ func TestCreateProfile(t *testing.T) {
 	}
 }
 
+func TestGetProfile(t *testing.T) {
+	userID := uuid.New()
+	profile := GenRandProfile(userID)
+
+	testCases := []struct {
+		Name       string
+		UserID     string
+		buildStubs func(store *mockdb.MockStore)
+		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			Name:   "Not Found",
+			UserID: userID.String(),
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrNoRows)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			Name:   "Internal Error",
+			UserID: userID.String(),
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name:   "OK",
+			UserID: userID.String(),
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+				validateNewProfileResponse(t, recorder.Body, ProfileResponse{
+					Country:           profile.Country,
+					MeasurementSystem: profile.MeasurementSystem,
+					BodyWeight:        profile.BodyWeight,
+					BodyFat:           profile.BodyFat,
+					TimeZoneOffset:    profile.TimezoneOffset,
+				})
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			server := NewServer(store)
+			recorder := httptest.NewRecorder()
+
+			url := fmt.Sprintf("/getProfile/%s", tc.UserID)
+			request, err := http.NewRequest(http.MethodGet, url, nil)
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recorder, request)
+			tc.checkRes(t, recorder)
+		})
+	}
+}
+
+func TestUpdateProfile(t *testing.T) {
+	userID := uuid.New()
+	profile := GenRandProfile(userID)
+	updateParams, updatedProfile := GenRandUpdateProfile(userID, profile.ID)
+
+	testCases := []struct {
+		Name       string
+		Body       gin.H
+		buildStubs func(store *mockdb.MockStore)
+		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			Name: "Bad Request",
+			Body: gin.H{},
+			buildStubs: func(store *mockdb.MockStore) {
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			Name: "Not Found -> Get Profile",
+			Body: gin.H{
+				"country":           "",
+				"measurementSystem": "",
+				"bodyWeight":        0,
+				"bodyFat":           0,
+				"timeZoneOffset":    -999,
+				"userID":            userID.String(),
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrNoRows)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			Name: "Internal Error -> Get Profile",
+			Body: gin.H{
+				"country":           "",
+				"measurementSystem": "",
+				"bodyWeight":        0,
+				"bodyFat":           0,
+				"timeZoneOffset":    -999,
+				"userID":            userID.String(),
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name: "Internal Error -> Update Profile",
+			Body: gin.H{
+				"country":           updatedProfile.Country,
+				"measurementSystem": updatedProfile.MeasurementSystem,
+				"bodyWeight":        updatedProfile.BodyWeight,
+				"bodyFat":           updatedProfile.BodyFat,
+				"timeZoneOffset":    updatedProfile.TimezoneOffset,
+				"userID":            userID.String(),
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
+				store.EXPECT().UpdateProfile(gomock.Any(), gomock.Eq(updateParams)).Times(1).Return(nil, sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name: "Internal Error -> Get Profile After Update",
+			Body: gin.H{
+				"country":           updatedProfile.Country,
+				"measurementSystem": updatedProfile.MeasurementSystem,
+				"bodyWeight":        updatedProfile.BodyWeight,
+				"bodyFat":           updatedProfile.BodyFat,
+				"timeZoneOffset":    updatedProfile.TimezoneOffset,
+				"userID":            userID.String(),
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
+				store.EXPECT().UpdateProfile(gomock.Any(), gomock.Eq(updateParams)).Times(1).Return(nil, nil)
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrConnDone)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name: "OK",
+			Body: gin.H{
+				"country":           updatedProfile.Country,
+				"measurementSystem": updatedProfile.MeasurementSystem,
+				"bodyWeight":        updatedProfile.BodyWeight,
+				"bodyFat":           updatedProfile.BodyFat,
+				"timeZoneOffset":    updatedProfile.TimezoneOffset,
+				"userID":            userID.String(),
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
+				store.EXPECT().UpdateProfile(gomock.Any(), gomock.Eq(updateParams)).Times(1).Return(nil, nil)
+				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(updatedProfile, nil)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+				validateNewProfileResponse(t, recorder.Body, ProfileResponse{
+					Country:           updatedProfile.Country,
+					MeasurementSystem: updatedProfile.MeasurementSystem,
+					BodyWeight:        updatedProfile.BodyWeight,
+					BodyFat:           updatedProfile.BodyFat,
+					TimeZoneOffset:    updatedProfile.TimezoneOffset,
+				})
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.Name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			data, err := json.Marshal(tc.Body)
+			require.NoError(t, err)
+
+			server := NewServer(store)
+			recorder := httptest.NewRecorder()
+
+			url := "/updateProfile"
+			request, err := http.NewRequest(http.MethodPatch, url, bytes.NewReader(data))
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recorder, request)
+			tc.checkRes(t, recorder)
+
+		})
+	}
+}
+
 func GenRandProfile(userID uuid.UUID) db.Profile {
 	return db.Profile{
 		Country:           strings.ToUpper(util.RandomStr(3)),
@@ -183,8 +400,46 @@ func GenRandProfile(userID uuid.UUID) db.Profile {
 		MeasurementSystem: "Imperial",
 		BodyWeight:        float64(util.RandomInt(150, 220)),
 		BodyFat:           float64(util.RandomInt(15, 20)),
-		TimezoneOffset:    240,
+		TimezoneOffset:    int32(util.RandomInt(100, 800)),
 	}
+}
+
+func GenRandUpdateProfile(userID uuid.UUID, profileID int32) (db.UpdateProfileParams, db.Profile) {
+	params := db.UpdateProfileParams{
+		Country: sql.NullString{
+			String: strings.ToUpper(util.RandomStr(3)),
+			Valid:  true,
+		},
+		MeasurementSystem: sql.NullString{
+			String: util.RandomStr(5),
+			Valid:  true,
+		},
+		BodyWeight: sql.NullFloat64{
+			Float64: 0,
+			Valid:   false,
+		},
+		BodyFat: sql.NullFloat64{
+			Float64: float64(util.RandomInt(10, 20)),
+			Valid:   true,
+		},
+		TimezoneOffset: sql.NullInt32{
+			Int32: int32(util.RandomInt(100, 800)),
+			Valid: true,
+		},
+		UserID: userID.String(),
+	}
+
+	patchedProfile := db.Profile{
+		Country:           params.Country.String,
+		ID:                profileID,
+		MeasurementSystem: params.MeasurementSystem.String,
+		BodyWeight:        params.BodyWeight.Float64,
+		BodyFat:           params.BodyFat.Float64,
+		TimezoneOffset:    params.TimezoneOffset.Int32,
+		UserID:            []byte(userID.String()),
+	}
+
+	return params, patchedProfile
 }
 
 func validateNewProfileResponse(t *testing.T, body *bytes.Buffer, res ProfileResponse) {
