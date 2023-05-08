@@ -14,7 +14,7 @@ const (
 )
 
 type ExerciseResponse struct {
-	ID               int32   `json:"ID"`
+	ID               int32   `json:"id"`
 	Name             string  `json:"exerciseName"`
 	MuscleGroup      string  `json:"muscleGroup"`
 	Category         string  `json:"category"`
@@ -62,6 +62,46 @@ func (server *Server) createExercise(ctx *gin.Context) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(EXERCISE_NOT_FOUND, exerciseID)))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ExerciseResponse{
+		ID:               exercise.ID,
+		Category:         exercise.Category,
+		IsStock:          exercise.Isstock,
+		MostRepsLifted:   exercise.MostRepsLifted,
+		MostWeightLifted: exercise.MostWeightLifted,
+		MuscleGroup:      exercise.MuscleGroup,
+		Name:             exercise.Name,
+		RestTimer:        exercise.RestTimer,
+		UserID:           req.UserID,
+	})
+}
+
+type getExerciseRequest struct {
+	ID     int32  `uri:"id" binding:"required"`
+	UserID string `uri:"user_id" binding:"required"`
+}
+
+func (server *Server) getExercise(ctx *gin.Context) {
+	req := getExerciseRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	args := db.GetExerciseParams{
+		ID:     req.ID,
+		UserID: req.UserID,
+	}
+
+	exercise, err := server.store.GetExercise(ctx, args)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(EXERCISE_NOT_FOUND, req.ID)))
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
