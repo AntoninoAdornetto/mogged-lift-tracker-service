@@ -25,6 +25,9 @@ func NewServer(store db.Store) *Server {
 	router.PATCH("/updateProfile", server.updateProfile)
 	router.DELETE("/deleteProfile/:user_id", server.deleteProfile)
 
+	router.POST("/createExercise", server.createExercise)
+	router.GET("/getExercise/:id/:user_id", server.getExercise)
+
 	server.router = router
 	return server
 }
