@@ -257,3 +257,34 @@ func (server *Server) updateExercise(ctx *gin.Context) {
 		UserID:           req.UserID,
 	})
 }
+
+type deleteExerciseRequest struct {
+	ID     int32  `uri:"id" binding:"required"`
+	UserID string `uri:"user_id" binding:"required"`
+}
+
+func (server *Server) deleteExercise(ctx *gin.Context) {
+	req := deleteExerciseRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	exercise, err := server.store.GetExercise(ctx, db.GetExerciseParams{ID: req.ID, UserID: req.UserID})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(EXERCISE_NOT_FOUND, req.ID)))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = server.store.DeleteExercise(ctx, db.DeleteExerciseParams{ID: exercise.ID, UserID: req.UserID})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, nil)
+}

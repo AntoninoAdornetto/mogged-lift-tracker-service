@@ -40,7 +40,7 @@ func (q *Queries) CreateExercise(ctx context.Context, arg CreateExerciseParams) 
 	)
 }
 
-const deleteExercise = `-- name: DeleteExercise :execresult
+const deleteExercise = `-- name: DeleteExercise :exec
 DELETE FROM exercise
 WHERE id = ? AND user_id = UUID_TO_BIN(?)
 `
@@ -50,8 +50,9 @@ type DeleteExerciseParams struct {
 	UserID string `json:"user_id"`
 }
 
-func (q *Queries) DeleteExercise(ctx context.Context, arg DeleteExerciseParams) (sql.Result, error) {
-	return q.exec(ctx, q.deleteExerciseStmt, deleteExercise, arg.ID, arg.UserID)
+func (q *Queries) DeleteExercise(ctx context.Context, arg DeleteExerciseParams) error {
+	_, err := q.exec(ctx, q.deleteExerciseStmt, deleteExercise, arg.ID, arg.UserID)
+	return err
 }
 
 const getExercise = `-- name: GetExercise :one

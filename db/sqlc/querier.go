@@ -21,7 +21,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) error
 	CreateWorkout(ctx context.Context, arg CreateWorkoutParams) (sql.Result, error)
 	DeleteCategory(ctx context.Context, id int32) (sql.Result, error)
-	DeleteExercise(ctx context.Context, arg DeleteExerciseParams) (sql.Result, error)
+	DeleteExercise(ctx context.Context, arg DeleteExerciseParams) error
 	DeleteLift(ctx context.Context, arg DeleteLiftParams) (sql.Result, error)
 	DeleteMuscleGroup(ctx context.Context, id int32) (sql.Result, error)
 	DeleteProfile(ctx context.Context, userID string) error
