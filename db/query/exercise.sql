@@ -23,7 +23,7 @@ WHERE name = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 SELECT * FROM exercise
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
--- name: UpdateExercise :execresult
+-- name: UpdateExercise :exec
 UPDATE exercise SET
 	name = COALESCE(sqlc.narg('name'), name),
 	muscle_group = COALESCE(sqlc.narg('muscle_group'), muscle_group),

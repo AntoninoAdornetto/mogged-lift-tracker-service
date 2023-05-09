@@ -29,6 +29,7 @@ func NewServer(store db.Store) *Server {
 	router.GET("/getExercise/:id/:user_id", server.getExercise)
 	router.GET("/getExerciseByName/:exercise_name/:user_id", server.getExerciseByName)
 	router.GET("/listExercises/:user_id", server.listExercises)
+	router.PATCH("/updateExercise", server.updateExercise)
 
 	server.router = router
 	return server

@@ -648,12 +648,11 @@ func (mr *MockStoreMockRecorder) UpdateCategory(arg0, arg1 interface{}) *gomock.
 }
 
 // UpdateExercise mocks base method.
-func (m *MockStore) UpdateExercise(arg0 context.Context, arg1 db.UpdateExerciseParams) (sql.Result, error) {
+func (m *MockStore) UpdateExercise(arg0 context.Context, arg1 db.UpdateExerciseParams) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateExercise", arg0, arg1)
-	ret0, _ := ret[0].(sql.Result)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // UpdateExercise indicates an expected call of UpdateExercise.
