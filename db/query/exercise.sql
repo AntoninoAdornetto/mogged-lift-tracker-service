@@ -25,12 +25,12 @@ WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
 -- name: UpdateExercise :execresult
 UPDATE exercise SET
-name = IFNULL(sqlc.arg('name'), name),
-muscle_group = IFNULL(sqlc.arg('muscle_group'), muscle_group),
-category = IFNULL(sqlc.arg('category'), category),
-most_weight_lifted = IFNULL(sqlc.arg('most_weight_lifted'), most_weight_lifted),
-most_reps_lifted = IFNULL(sqlc.arg('most_reps_lifted'), most_reps_lifted),
-rest_timer = IFNULL(sqlc.arg('rest_timer'), rest_timer)
+	name = COALESCE(sqlc.narg('name'), name),
+	muscle_group = COALESCE(sqlc.narg('muscle_group'), muscle_group),
+	category = COALESCE(sqlc.narg('category'), category),
+	most_weight_lifted = COALESCE(sqlc.narg('most_weight_lifted'), most_weight_lifted),
+	most_reps_lifted = COALESCE(sqlc.narg('most_reps_lifted'), most_reps_lifted),
+	rest_timer = COALESCE(sqlc.narg('rest_timer'), rest_timer)
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id')) AND id = sqlc.arg('id');
 
 -- name: DeleteExercise :execresult
