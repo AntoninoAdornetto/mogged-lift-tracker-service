@@ -80,7 +80,7 @@ func (q *Queries) ListWorkouts(ctx context.Context, userID string) ([]Workout, e
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Workout
+	items := []Workout{}
 	for rows.Next() {
 		var i Workout
 		if err := rows.Scan(

@@ -81,7 +81,7 @@ func (q *Queries) ListTemplates(ctx context.Context, createdBy string) ([]Templa
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Template
+	items := []Template{}
 	for rows.Next() {
 		var i Template
 		if err := rows.Scan(

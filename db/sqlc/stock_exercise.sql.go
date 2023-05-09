@@ -68,7 +68,7 @@ func (q *Queries) ListStockExercies(ctx context.Context) ([]StockExercise, error
 		return nil, err
 	}
 	defer rows.Close()
-	var items []StockExercise
+	items := []StockExercise{}
 	for rows.Next() {
 		var i StockExercise
 		if err := rows.Scan(
