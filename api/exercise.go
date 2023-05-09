@@ -161,3 +161,23 @@ func (server *Server) getExerciseByName(ctx *gin.Context) {
 		UserID:           req.UserID,
 	})
 }
+
+type listExercisesRequest struct {
+	UserID string `uri:"user_id" binding:"required"`
+}
+
+func (server *Server) listExercises(ctx *gin.Context) {
+	req := listExercisesRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	exercises, err := server.store.ListExercises(ctx, req.UserID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, exercises)
+}
