@@ -119,7 +119,7 @@ func (q *Queries) ListExercises(ctx context.Context, userID string) ([]Exercise,
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Exercise
+	items := []Exercise{}
 	for rows.Next() {
 		var i Exercise
 		if err := rows.Scan(
@@ -148,24 +148,24 @@ func (q *Queries) ListExercises(ctx context.Context, userID string) ([]Exercise,
 
 const updateExercise = `-- name: UpdateExercise :execresult
 UPDATE exercise SET
-name = IFNULL(?, name),
-muscle_group = IFNULL(?, muscle_group),
-category = IFNULL(?, category),
-most_weight_lifted = IFNULL(?, most_weight_lifted),
-most_reps_lifted = IFNULL(?, most_reps_lifted),
-rest_timer = IFNULL(?, rest_timer)
+	name = COALESCE(?, name),
+	muscle_group = COALESCE(?, muscle_group),
+	category = COALESCE(?, category),
+	most_weight_lifted = COALESCE(?, most_weight_lifted),
+	most_reps_lifted = COALESCE(?, most_reps_lifted),
+	rest_timer = COALESCE(?, rest_timer)
 WHERE user_id = UUID_TO_BIN(?) AND id = ?
 `
 
 type UpdateExerciseParams struct {
-	Name             interface{} `json:"name"`
-	MuscleGroup      interface{} `json:"muscle_group"`
-	Category         interface{} `json:"category"`
-	MostWeightLifted interface{} `json:"most_weight_lifted"`
-	MostRepsLifted   interface{} `json:"most_reps_lifted"`
-	RestTimer        interface{} `json:"rest_timer"`
-	UserID           string      `json:"user_id"`
-	ID               int32       `json:"id"`
+	Name             sql.NullString  `json:"name"`
+	MuscleGroup      sql.NullString  `json:"muscle_group"`
+	Category         sql.NullString  `json:"category"`
+	MostWeightLifted sql.NullFloat64 `json:"most_weight_lifted"`
+	MostRepsLifted   sql.NullInt32   `json:"most_reps_lifted"`
+	RestTimer        sql.NullString  `json:"rest_timer"`
+	UserID           string          `json:"user_id"`
+	ID               int32           `json:"id"`
 }
 
 func (q *Queries) UpdateExercise(ctx context.Context, arg UpdateExerciseParams) (sql.Result, error) {
