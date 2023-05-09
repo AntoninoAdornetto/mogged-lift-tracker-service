@@ -51,7 +51,7 @@ func (q *Queries) ListMuscleGroups(ctx context.Context) ([]MuscleGroup, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []MuscleGroup
+	items := []MuscleGroup{}
 	for rows.Next() {
 		var i MuscleGroup
 		if err := rows.Scan(&i.ID, &i.Name); err != nil {

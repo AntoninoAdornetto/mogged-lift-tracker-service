@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	EXERCISE_NOT_FOUND = "exercise with specified ID '%d' does not exist"
+	EXERCISE_NOT_FOUND      = "exercise with specified ID '%d' does not exist"
+	EXERCISE_NAME_NOT_FOUND = "exercise with specified name '%s' does not exist"
 )
 
 type ExerciseResponse struct {
@@ -119,4 +120,64 @@ func (server *Server) getExercise(ctx *gin.Context) {
 		RestTimer:        exercise.RestTimer,
 		UserID:           req.UserID,
 	})
+}
+
+type getExerciseByNameRequest struct {
+	Name   string `uri:"exercise_name" binding:"required"`
+	UserID string `uri:"user_id" binding:"required"`
+}
+
+func (server *Server) getExerciseByName(ctx *gin.Context) {
+	req := getExerciseByNameRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	args := db.GetExerciseByNameParams{
+		Name:   req.Name,
+		UserID: req.UserID,
+	}
+
+	exercise, err := server.store.GetExerciseByName(ctx, args)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(EXERCISE_NAME_NOT_FOUND, req.Name)))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ExerciseResponse{
+		ID:               exercise.ID,
+		Category:         exercise.Category,
+		IsStock:          exercise.Isstock,
+		MostRepsLifted:   exercise.MostRepsLifted,
+		MostWeightLifted: exercise.MostWeightLifted,
+		MuscleGroup:      exercise.MuscleGroup,
+		Name:             exercise.Name,
+		RestTimer:        exercise.RestTimer,
+		UserID:           req.UserID,
+	})
+}
+
+type listExercisesRequest struct {
+	UserID string `uri:"user_id" binding:"required"`
+}
+
+func (server *Server) listExercises(ctx *gin.Context) {
+	req := listExercisesRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	exercises, err := server.store.ListExercises(ctx, req.UserID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, exercises)
 }

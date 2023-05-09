@@ -103,7 +103,7 @@ func (q *Queries) ListLiftsFromWorkout(ctx context.Context, arg ListLiftsFromWor
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Lift
+	items := []Lift{}
 	for rows.Next() {
 		var i Lift
 		if err := rows.Scan(
@@ -145,7 +145,7 @@ func (q *Queries) ListMaxRepPrs(ctx context.Context, arg ListMaxRepPrsParams) ([
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Lift
+	items := []Lift{}
 	for rows.Next() {
 		var i Lift
 		if err := rows.Scan(
@@ -187,7 +187,7 @@ func (q *Queries) ListMaxWeightPrs(ctx context.Context, arg ListMaxWeightPrsPara
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Lift
+	items := []Lift{}
 	for rows.Next() {
 		var i Lift
 		if err := rows.Scan(
