@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/util"
@@ -86,7 +87,10 @@ func TestUpdateExerciseName(t *testing.T) {
 	require.NoError(t, err)
 
 	exercise := GenRandExercise(t, userId.String())
-	newExerciseName := util.RandomStr(5)
+	newExerciseName := sql.NullString{
+		String: util.RandomStr(5),
+		Valid:  true,
+	}
 
 	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
 		Name:   newExerciseName,
@@ -102,7 +106,7 @@ func TestUpdateExerciseName(t *testing.T) {
 	require.NoError(t, err)
 	require.NotZero(t, query.ID)
 	require.Equal(t, query.ID, exercise.ID)
-	require.Equal(t, query.Name, newExerciseName)
+	require.Equal(t, query.Name, newExerciseName.String)
 	require.NotEqual(t, query.Name, exercise.Name)
 }
 
@@ -112,7 +116,10 @@ func TestUpdateMuscleGroup(t *testing.T) {
 	require.NoError(t, err)
 
 	exercise := GenRandExercise(t, userId.String())
-	newMuscleGroup := GenRandMuscleGroup(t).Name
+	newMuscleGroup := sql.NullString{
+		String: GenRandMuscleGroup(t).Name,
+		Valid:  true,
+	}
 
 	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
 		MuscleGroup: newMuscleGroup,
@@ -128,7 +135,7 @@ func TestUpdateMuscleGroup(t *testing.T) {
 	require.NoError(t, err)
 	require.NotZero(t, query.ID)
 	require.Equal(t, query.ID, exercise.ID)
-	require.Equal(t, query.MuscleGroup, newMuscleGroup)
+	require.Equal(t, query.MuscleGroup, newMuscleGroup.String)
 	require.NotEqual(t, query.MuscleGroup, exercise.MuscleGroup)
 }
 
@@ -138,7 +145,10 @@ func TestUpdateCategory(t *testing.T) {
 	require.NoError(t, err)
 
 	exercise := GenRandExercise(t, userId.String())
-	newCategory := GenRandCategory(t).Name
+	newCategory := sql.NullString{
+		String: GenRandCategory(t).Name,
+		Valid:  true,
+	}
 
 	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
 		Category: newCategory,
@@ -154,7 +164,7 @@ func TestUpdateCategory(t *testing.T) {
 	require.NoError(t, err)
 	require.NotZero(t, query.ID)
 	require.Equal(t, query.ID, exercise.ID)
-	require.Equal(t, query.Category, newCategory)
+	require.Equal(t, query.Category, newCategory.String)
 	require.NotEqual(t, query.Category, exercise.Category)
 }
 
@@ -164,7 +174,10 @@ func TestUpdateMostWeightLifted(t *testing.T) {
 	require.NoError(t, err)
 
 	exercise := GenRandExercise(t, userId.String())
-	newMostWeightLifted := float64(util.RandomInt(150, 500))
+	newMostWeightLifted := sql.NullFloat64{
+		Float64: float64(util.RandomInt(150, 500)),
+		Valid:   true,
+	}
 
 	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
 		MostWeightLifted: newMostWeightLifted,
@@ -180,7 +193,7 @@ func TestUpdateMostWeightLifted(t *testing.T) {
 	require.NoError(t, err)
 	require.NotZero(t, query.ID)
 	require.Equal(t, query.ID, exercise.ID)
-	require.Equal(t, query.MostWeightLifted, newMostWeightLifted)
+	require.Equal(t, query.MostWeightLifted, newMostWeightLifted.Float64)
 	require.NotEqual(t, query.MostWeightLifted, exercise.MostWeightLifted)
 }
 
@@ -190,7 +203,10 @@ func TestUpdateMostRepsLifted(t *testing.T) {
 	require.NoError(t, err)
 
 	exercise := GenRandExercise(t, userId.String())
-	newMostRepsLifted := int32(util.RandomInt(150, 500))
+	newMostRepsLifted := sql.NullInt32{
+		Int32: int32(util.RandomInt(150, 500)),
+		Valid: true,
+	}
 
 	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
 		MostRepsLifted: newMostRepsLifted,
@@ -206,7 +222,7 @@ func TestUpdateMostRepsLifted(t *testing.T) {
 	require.NoError(t, err)
 	require.NotZero(t, query.ID)
 	require.Equal(t, query.ID, exercise.ID)
-	require.Equal(t, query.MostRepsLifted, newMostRepsLifted)
+	require.Equal(t, query.MostRepsLifted, newMostRepsLifted.Int32)
 	require.NotEqual(t, query.MostRepsLifted, exercise.MostRepsLifted)
 }
 
@@ -216,7 +232,10 @@ func TestUpdateRestTimer(t *testing.T) {
 	require.NoError(t, err)
 
 	exercise := GenRandExercise(t, userId.String())
-	newRestTimer := "01:30:00s"
+	newRestTimer := sql.NullString{
+		String: "01:30:00s",
+		Valid:  true,
+	}
 
 	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
 		RestTimer: newRestTimer,
@@ -232,7 +251,7 @@ func TestUpdateRestTimer(t *testing.T) {
 	require.NoError(t, err)
 	require.NotZero(t, query.ID)
 	require.Equal(t, query.ID, exercise.ID)
-	require.Equal(t, query.RestTimer, newRestTimer)
+	require.Equal(t, query.RestTimer, newRestTimer.String)
 	require.NotEqual(t, query.RestTimer, exercise.RestTimer)
 }
 
