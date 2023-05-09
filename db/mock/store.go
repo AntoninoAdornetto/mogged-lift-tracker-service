@@ -200,12 +200,11 @@ func (mr *MockStoreMockRecorder) DeleteCategory(arg0, arg1 interface{}) *gomock.
 }
 
 // DeleteExercise mocks base method.
-func (m *MockStore) DeleteExercise(arg0 context.Context, arg1 db.DeleteExerciseParams) (sql.Result, error) {
+func (m *MockStore) DeleteExercise(arg0 context.Context, arg1 db.DeleteExerciseParams) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteExercise", arg0, arg1)
-	ret0, _ := ret[0].(sql.Result)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DeleteExercise indicates an expected call of DeleteExercise.

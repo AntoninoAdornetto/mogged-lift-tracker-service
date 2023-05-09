@@ -33,6 +33,6 @@ UPDATE exercise SET
 	rest_timer = COALESCE(sqlc.narg('rest_timer'), rest_timer)
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id')) AND id = sqlc.arg('id');
 
--- name: DeleteExercise :execresult
+-- name: DeleteExercise :exec
 DELETE FROM exercise
 WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));

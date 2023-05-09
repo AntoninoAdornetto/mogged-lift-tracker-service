@@ -262,7 +262,7 @@ func TestDeleteExercise(t *testing.T) {
 
 	exercise := GenRandExercise(t, userId.String())
 
-	_, err = testQueries.DeleteExercise(context.Background(), DeleteExerciseParams{
+	err = testQueries.DeleteExercise(context.Background(), DeleteExerciseParams{
 		ID:     exercise.ID,
 		UserID: userId.String(),
 	})
