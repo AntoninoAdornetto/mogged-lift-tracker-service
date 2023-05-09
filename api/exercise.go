@@ -179,5 +179,81 @@ func (server *Server) listExercises(ctx *gin.Context) {
 		return
 	}
 
+	//@TODO: user_id returned as binary
 	ctx.JSON(http.StatusOK, exercises)
+}
+
+type updateExerciseRequest struct {
+	ID          int32  `json:"id" binding:"required"`
+	Name        string `json:"exerciseName"`
+	MuscleGroup string `json:"muscleGroup"`
+	Category    string `json:"category"`
+	RestTimer   string `json:"restTimer"`
+	UserID      string `json:"userID" binding:"required"`
+}
+
+func (server *Server) updateExercise(ctx *gin.Context) {
+	req := updateExerciseRequest{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	getExerciseArgs := db.GetExerciseParams{ID: req.ID, UserID: req.UserID}
+
+	_, err := server.store.GetExercise(ctx, getExerciseArgs)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(EXERCISE_NOT_FOUND, req.ID)))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	//@TODO - reps & weight should be updated through WO/TX
+	args := db.UpdateExerciseParams{
+		Name: sql.NullString{
+			String: req.Name,
+			Valid:  req.Name != "",
+		},
+		MuscleGroup: sql.NullString{
+			String: req.MuscleGroup,
+			Valid:  req.MuscleGroup != "",
+		},
+		Category: sql.NullString{
+			String: req.Category,
+			Valid:  req.Category != "",
+		},
+		RestTimer: sql.NullString{
+			String: req.RestTimer,
+			Valid:  req.RestTimer != "",
+		},
+		ID:     req.ID,
+		UserID: req.UserID,
+	}
+
+	err = server.store.UpdateExercise(ctx, args)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	exercise, err := server.store.GetExercise(ctx, getExerciseArgs)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ExerciseResponse{
+		ID:               exercise.ID,
+		Category:         exercise.Category,
+		IsStock:          exercise.Isstock,
+		MostRepsLifted:   exercise.MostRepsLifted,
+		MostWeightLifted: exercise.MostWeightLifted,
+		MuscleGroup:      exercise.MuscleGroup,
+		Name:             exercise.Name,
+		RestTimer:        exercise.RestTimer,
+		UserID:           req.UserID,
+	})
 }
