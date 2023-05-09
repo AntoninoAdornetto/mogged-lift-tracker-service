@@ -50,7 +50,7 @@ type Querier interface {
 	ListTemplates(ctx context.Context, createdBy string) ([]Template, error)
 	ListWorkouts(ctx context.Context, userID string) ([]Workout, error)
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (sql.Result, error)
-	UpdateExercise(ctx context.Context, arg UpdateExerciseParams) (sql.Result, error)
+	UpdateExercise(ctx context.Context, arg UpdateExerciseParams) error
 	UpdateLift(ctx context.Context, arg UpdateLiftParams) (sql.Result, error)
 	UpdateMuscleGroup(ctx context.Context, arg UpdateMuscleGroupParams) (sql.Result, error)
 	UpdateProfile(ctx context.Context, arg UpdateProfileParams) (sql.Result, error)

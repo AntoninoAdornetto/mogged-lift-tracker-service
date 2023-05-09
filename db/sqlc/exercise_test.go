@@ -92,7 +92,7 @@ func TestUpdateExerciseName(t *testing.T) {
 		Valid:  true,
 	}
 
-	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
+	err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
 		Name:   newExerciseName,
 		UserID: userId.String(),
 		ID:     exercise.ID,
@@ -121,7 +121,7 @@ func TestUpdateMuscleGroup(t *testing.T) {
 		Valid:  true,
 	}
 
-	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
+	err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
 		MuscleGroup: newMuscleGroup,
 		UserID:      userId.String(),
 		ID:          exercise.ID,
@@ -150,7 +150,7 @@ func TestUpdateCategory(t *testing.T) {
 		Valid:  true,
 	}
 
-	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
+	err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
 		Category: newCategory,
 		UserID:   userId.String(),
 		ID:       exercise.ID,
@@ -179,7 +179,7 @@ func TestUpdateMostWeightLifted(t *testing.T) {
 		Valid:   true,
 	}
 
-	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
+	err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
 		MostWeightLifted: newMostWeightLifted,
 		UserID:           userId.String(),
 		ID:               exercise.ID,
@@ -208,7 +208,7 @@ func TestUpdateMostRepsLifted(t *testing.T) {
 		Valid: true,
 	}
 
-	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
+	err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
 		MostRepsLifted: newMostRepsLifted,
 		UserID:         userId.String(),
 		ID:             exercise.ID,
@@ -237,7 +237,7 @@ func TestUpdateRestTimer(t *testing.T) {
 		Valid:  true,
 	}
 
-	_, err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
+	err = testQueries.UpdateExercise(context.Background(), UpdateExerciseParams{
 		RestTimer: newRestTimer,
 		UserID:    userId.String(),
 		ID:        exercise.ID,
