@@ -293,11 +293,9 @@ func GenRandExercise(t *testing.T, userID string) Exercise {
 		UserID:      userId.String(),
 	}
 
-	record, err := testQueries.CreateExercise(context.Background(), args)
+	exerciseId, err := testQueries.CreateExercise(context.Background(), args)
 	require.NoError(t, err)
-
-	exerciseId, err := record.LastInsertId()
-	require.NoError(t, err)
+	require.NotZero(t, exerciseId)
 
 	query, err := testQueries.GetExercise(context.Background(), GetExerciseParams{
 		ID:     int32(exerciseId),

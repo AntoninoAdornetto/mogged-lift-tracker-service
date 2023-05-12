@@ -10,7 +10,7 @@ import (
 	"database/sql"
 )
 
-const createExercise = `-- name: CreateExercise :execresult
+const createExercise = `-- name: CreateExercise :execlastid
 INSERT INTO exercise (
 	name,
 	muscle_group,
@@ -31,13 +31,17 @@ type CreateExerciseParams struct {
 	UserID      string `json:"user_id"`
 }
 
-func (q *Queries) CreateExercise(ctx context.Context, arg CreateExerciseParams) (sql.Result, error) {
-	return q.exec(ctx, q.createExerciseStmt, createExercise,
+func (q *Queries) CreateExercise(ctx context.Context, arg CreateExerciseParams) (int64, error) {
+	result, err := q.exec(ctx, q.createExerciseStmt, createExercise,
 		arg.Name,
 		arg.MuscleGroup,
 		arg.Category,
 		arg.UserID,
 	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
 const deleteExercise = `-- name: DeleteExercise :exec

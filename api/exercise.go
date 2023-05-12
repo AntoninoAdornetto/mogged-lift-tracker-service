@@ -47,13 +47,7 @@ func (server *Server) createExercise(ctx *gin.Context) {
 		UserID:      req.UserID,
 	}
 
-	result, err := server.store.CreateExercise(ctx, args)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
-	exerciseID, err := result.LastInsertId()
+	exerciseID, err := server.store.CreateExercise(ctx, args)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

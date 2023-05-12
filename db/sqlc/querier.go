@@ -12,7 +12,7 @@ import (
 type Querier interface {
 	ChangePassword(ctx context.Context, arg ChangePasswordParams) error
 	CreateCategory(ctx context.Context, name string) (sql.Result, error)
-	CreateExercise(ctx context.Context, arg CreateExerciseParams) (sql.Result, error)
+	CreateExercise(ctx context.Context, arg CreateExerciseParams) (int64, error)
 	CreateLift(ctx context.Context, arg CreateLiftParams) (sql.Result, error)
 	CreateMuscleGroup(ctx context.Context, name string) (sql.Result, error)
 	CreateProfile(ctx context.Context, arg CreateProfileParams) (int64, error)
