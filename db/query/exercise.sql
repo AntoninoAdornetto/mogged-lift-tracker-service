@@ -1,4 +1,4 @@
--- name: CreateExercise :execresult
+-- name: CreateExercise :execlastid
 INSERT INTO exercise (
 	name,
 	muscle_group,
