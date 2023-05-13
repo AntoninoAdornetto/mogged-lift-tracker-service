@@ -8,6 +8,7 @@ import (
 	"time"
 
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
+	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,14 +39,20 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
+	hashedPassword, err := util.HashPassword(req.Password)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
 	args := db.CreateUserParams{
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
 		EmailAddress: req.EmailAddress,
-		Password:     req.Password,
+		Password:     hashedPassword,
 	}
 
-	_, err := server.store.NewUserTx(ctx, args)
+	_, err = server.store.NewUserTx(ctx, args)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
