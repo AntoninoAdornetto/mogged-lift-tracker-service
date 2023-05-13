@@ -130,14 +130,18 @@ func TestDeleteUser(t *testing.T) {
 }
 
 func GenRandUser(t *testing.T) GetUserByEmailRow {
+	password := util.RandomStr(12)
+	hashedPassword, err := util.HashPassword(password)
+	require.NoError(t, err)
+
 	args := CreateUserParams{
 		FirstName:    util.RandomStr(10),
 		LastName:     util.RandomStr(10),
-		Password:     util.RandomStr(20),
+		Password:     hashedPassword,
 		EmailAddress: util.RandomStr(7) + "@gmail.com",
 	}
 
-	err := testQueries.CreateUser(context.Background(), args)
+	err = testQueries.CreateUser(context.Background(), args)
 	require.NoError(t, err)
 
 	user, err := testQueries.GetUserByEmail(context.Background(), args.EmailAddress)
@@ -148,6 +152,8 @@ func GenRandUser(t *testing.T) GetUserByEmailRow {
 	require.Equal(t, args.EmailAddress, user.EmailAddress)
 	require.Equal(t, user.PasswordChangedAt.Year(), 1970) // indicates the password has never been changed
 	require.GreaterOrEqual(t, len(args.Password), 10)
+	require.NotEqual(t, password, user.Password)
+	require.Equal(t, hashedPassword, user.Password)
 	require.NotNil(t, user.ID)
 
 	return user
