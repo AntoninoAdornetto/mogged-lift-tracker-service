@@ -160,7 +160,7 @@ func TestCreateProfile(t *testing.T) {
 			store := mockdb.NewMockStore(ctrl)
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			payload, err := json.Marshal(tc.Body)
@@ -234,7 +234,7 @@ func TestGetProfile(t *testing.T) {
 			store := mockdb.NewMockStore(ctrl)
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/getProfile/%s", tc.UserID)
@@ -378,7 +378,7 @@ func TestUpdateProfile(t *testing.T) {
 			data, err := json.Marshal(tc.Body)
 			require.NoError(t, err)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := "/updateProfile"
@@ -455,7 +455,7 @@ func TestDeleteProfile(t *testing.T) {
 			store := mockdb.NewMockStore(ctrl)
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/deleteProfile/%s", tc.UserID)

@@ -181,7 +181,7 @@ func TestCreateUser(t *testing.T) {
 			store := mockdb.NewMockStore(ctrl)
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			payload, err := json.Marshal(tc.Body)
@@ -276,7 +276,7 @@ func TestGetUserByEmail(t *testing.T) {
 			store := mockdb.NewMockStore(ctrl)
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/getUserByEmail/%s", tc.EmailAddress)
@@ -445,7 +445,7 @@ func TestUpdateUser(t *testing.T) {
 			store := mockdb.NewMockStore(ctrl)
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			data, err := json.Marshal(tc.Body)
@@ -580,7 +580,7 @@ func TestChangePassword(t *testing.T) {
 			store := mockdb.NewMockStore(ctrl)
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			data, err := json.Marshal(tc.Body)
@@ -668,7 +668,7 @@ func TestDeleteUser(t *testing.T) {
 			store := mockdb.NewMockStore(ctrl)
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/deleteUser/%s", tc.UserID)
