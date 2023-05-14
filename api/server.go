@@ -27,8 +27,13 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 		store:      store,
 		tokenMaker: tokenMaker,
 	}
-	router := gin.Default()
 
+	server.setupRouter()
+	return server, nil
+}
+
+func (server *Server) setupRouter() {
+	router := gin.Default()
 	router.POST("auth/login", server.login)
 
 	router.POST("/createUser", server.createUser)
@@ -51,9 +56,7 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 
 	router.POST("/createWorkout", server.createWorkout)
 	router.GET("/getWorkout/:id/:user_id", server.getWorkout)
-
 	server.router = router
-	return server, nil
 }
 
 func (server *Server) Start(address string) error {
