@@ -29,6 +29,8 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 	}
 	router := gin.Default()
 
+	router.POST("auth/login", server.login)
+
 	router.POST("/createUser", server.createUser)
 	router.GET("/getUserByEmail/:email", server.getUserByEmail)
 	router.PATCH("/updateUser", server.updateUser)
