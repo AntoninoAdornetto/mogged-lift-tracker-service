@@ -491,12 +491,16 @@ func TestDeleteProfile(t *testing.T) {
 	testCases := []struct {
 		Name       string
 		UserID     string
+		setupAuth  func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs func(store *mockdb.MockStore)
 		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			Name:   "Not Found -> Get Profile",
 			UserID: userID.String(),
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrNoRows)
 			},
@@ -507,6 +511,9 @@ func TestDeleteProfile(t *testing.T) {
 		{
 			Name:   "Internal Error -> Get Profile",
 			UserID: userID.String(),
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrConnDone)
 			},
@@ -517,6 +524,9 @@ func TestDeleteProfile(t *testing.T) {
 		{
 			Name:   "Internal Error -> Delete Profile",
 			UserID: userID.String(),
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
 				store.EXPECT().DeleteProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(sql.ErrConnDone)
@@ -528,12 +538,24 @@ func TestDeleteProfile(t *testing.T) {
 		{
 			Name:   "OK -> No Content",
 			UserID: userID.String(),
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
 				store.EXPECT().DeleteProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(nil)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNoContent, recorder.Code)
+			},
+		},
+		{
+			Name:       "Unauthorized",
+			UserID:     userID.String(),
+			setupAuth:  func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
+			buildStubs: func(store *mockdb.MockStore) {},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
 			},
 		},
 	}
@@ -555,6 +577,7 @@ func TestDeleteProfile(t *testing.T) {
 			request, err := http.NewRequest(http.MethodDelete, url, nil)
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkRes(t, recorder)
 		})
