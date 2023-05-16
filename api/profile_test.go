@@ -312,12 +312,16 @@ func TestUpdateProfile(t *testing.T) {
 	testCases := []struct {
 		Name       string
 		Body       gin.H
+		setupAuth  func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs func(store *mockdb.MockStore)
 		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			Name: "Bad Request",
 			Body: gin.H{},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -333,6 +337,9 @@ func TestUpdateProfile(t *testing.T) {
 				"bodyFat":           0,
 				"timeZoneOffset":    -999,
 				"userID":            userID.String(),
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrNoRows)
@@ -351,6 +358,9 @@ func TestUpdateProfile(t *testing.T) {
 				"timeZoneOffset":    -999,
 				"userID":            userID.String(),
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrConnDone)
 			},
@@ -367,6 +377,9 @@ func TestUpdateProfile(t *testing.T) {
 				"bodyFat":           updatedProfile.BodyFat,
 				"timeZoneOffset":    updatedProfile.TimezoneOffset,
 				"userID":            userID.String(),
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
@@ -385,6 +398,9 @@ func TestUpdateProfile(t *testing.T) {
 				"bodyFat":           updatedProfile.BodyFat,
 				"timeZoneOffset":    updatedProfile.TimezoneOffset,
 				"userID":            userID.String(),
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
@@ -405,6 +421,9 @@ func TestUpdateProfile(t *testing.T) {
 				"timeZoneOffset":    updatedProfile.TimezoneOffset,
 				"userID":            userID.String(),
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
 				store.EXPECT().UpdateProfile(gomock.Any(), gomock.Eq(updateParams)).Times(1).Return(nil, nil)
@@ -419,6 +438,22 @@ func TestUpdateProfile(t *testing.T) {
 					BodyFat:           updatedProfile.BodyFat,
 					TimeZoneOffset:    updatedProfile.TimezoneOffset,
 				})
+			},
+		},
+		{
+			Name: "Unauthorized",
+			Body: gin.H{
+				"country":           updatedProfile.Country,
+				"measurementSystem": updatedProfile.MeasurementSystem,
+				"bodyWeight":        updatedProfile.BodyWeight,
+				"bodyFat":           updatedProfile.BodyFat,
+				"timeZoneOffset":    updatedProfile.TimezoneOffset,
+				"userID":            userID.String(),
+			},
+			setupAuth:  func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
+			buildStubs: func(store *mockdb.MockStore) {},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
 			},
 		},
 	}
@@ -442,6 +477,7 @@ func TestUpdateProfile(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPatch, url, bytes.NewReader(data))
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkRes(t, recorder)
 		})
