@@ -14,6 +14,7 @@ import (
 
 	mockdb "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/mock"
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
+	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/token"
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/util"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
@@ -221,12 +222,16 @@ func TestGetUserByEmail(t *testing.T) {
 	testCases := []struct {
 		Name         string
 		EmailAddress string
+		setupAuth    func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs   func(store *mockdb.MockStore)
 		checkRes     func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			Name:         "OK",
 			EmailAddress: user.EmailAddress,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserByEmail(gomock.Any(), user.EmailAddress).Times(1).Return(getUserByEmailRes, nil)
 			},
@@ -238,6 +243,9 @@ func TestGetUserByEmail(t *testing.T) {
 		{
 			Name:         "Bad Request",
 			EmailAddress: "test",
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserByEmail(gomock.Any(), "test").Times(0).Return(db.GetUserByEmailRow{}, sql.ErrConnDone)
 			},
@@ -248,6 +256,9 @@ func TestGetUserByEmail(t *testing.T) {
 		{
 			Name:         "Not Found",
 			EmailAddress: "thurnis@gmail.com",
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserByEmail(gomock.Any(), gomock.Eq("thurnis@gmail.com")).Times(1).Return(db.GetUserByEmailRow{}, sql.ErrNoRows)
 			},
@@ -258,11 +269,38 @@ func TestGetUserByEmail(t *testing.T) {
 		{
 			Name:         "Internal Error",
 			EmailAddress: user.EmailAddress,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserByEmail(gomock.Any(), user.EmailAddress).Times(1).Return(db.GetUserByEmailRow{}, sql.ErrConnDone)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name:         "Unauthorized",
+			EmailAddress: user.EmailAddress,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+		{
+			Name:         "Unauthorized -> using different account",
+			EmailAddress: user.EmailAddress,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, uuid.New().String(), time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserByEmail(gomock.Any(), user.EmailAddress).Times(1).Return(getUserByEmailRes, nil)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
 			},
 		},
 	}
@@ -283,6 +321,7 @@ func TestGetUserByEmail(t *testing.T) {
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkRes(t, recorder)
 		})
@@ -338,6 +377,7 @@ func TestUpdateUser(t *testing.T) {
 	testCases := []struct {
 		Name       string
 		Body       gin.H
+		setupAuth  func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs func(store *mockdb.MockStore)
 		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
@@ -348,6 +388,9 @@ func TestUpdateUser(t *testing.T) {
 				"lastName":     response.LastName,
 				"emailAddress": response.EmailAddress,
 				"id":           userID.String(),
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(preGetUserByID, nil)
@@ -362,6 +405,9 @@ func TestUpdateUser(t *testing.T) {
 		{
 			Name: "Bad Request",
 			Body: gin.H{},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserById(gomock.Any(), gomock.Any()).Times(0).Return(db.GetUserByIdRow{}, sql.ErrConnDone)
 			},
@@ -376,6 +422,9 @@ func TestUpdateUser(t *testing.T) {
 				"lastName":     response.LastName,
 				"emailAddress": response.EmailAddress,
 				"id":           userID.String(),
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(preGetUserByID, nil)
@@ -393,6 +442,9 @@ func TestUpdateUser(t *testing.T) {
 				"emailAddress": response.EmailAddress,
 				"id":           userID.String(),
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.GetUserByIdRow{}, sql.ErrNoRows)
 				store.EXPECT().UpdateUser(gomock.Any(), gomock.Eq(newUserData)).Times(0).Return(sql.ErrConnDone)
@@ -408,6 +460,9 @@ func TestUpdateUser(t *testing.T) {
 				"lastName":     response.LastName,
 				"emailAddress": response.EmailAddress,
 				"id":           userID.String(),
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.GetUserByIdRow{}, sql.ErrConnDone)
@@ -425,6 +480,9 @@ func TestUpdateUser(t *testing.T) {
 				"emailAddress": response.EmailAddress,
 				"id":           userID.String(),
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(preGetUserByID, nil)
 				store.EXPECT().UpdateUser(gomock.Any(), gomock.Eq(newUserData)).Times(1).Return(nil)
@@ -432,6 +490,41 @@ func TestUpdateUser(t *testing.T) {
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			Name: "Unauthorized",
+			Body: gin.H{
+				"firstName":    response.FirstName,
+				"lastName":     response.LastName,
+				"emailAddress": response.EmailAddress,
+				"id":           userID.String(),
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				// addAuthorization(t, request, tokenMaker, authorizationBearerType, "", time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+		{
+			Name: "Unauthorized -> using different account",
+			Body: gin.H{
+				"firstName":    response.FirstName,
+				"lastName":     response.LastName,
+				"emailAddress": response.EmailAddress,
+				"id":           userID.String(),
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, uuid.New().String(), time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(preGetUserByID, nil)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
 			},
 		},
 	}
@@ -455,6 +548,7 @@ func TestUpdateUser(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPatch, url, bytes.NewReader(data))
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkRes(t, recorder)
 		})
@@ -473,16 +567,21 @@ func TestChangePassword(t *testing.T) {
 		PasswordChangedAt: user.PasswordChangedAt,
 		Password:          user.Password,
 	}
+	fmt.Println(getUserByIdRes)
 
 	testCases := []struct {
 		Name       string
 		Body       gin.H
+		setupAuth  func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs func(store *mockdb.MockStore)
 		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			Name: "Bad Request",
 			Body: gin.H{},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -495,6 +594,9 @@ func TestChangePassword(t *testing.T) {
 				"id":              userID.String(),
 				"currentPassword": user.Password,
 				"newPassword":     "shannonsbosoms@69",
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.GetUserByIdRow{}, sql.ErrNoRows)
@@ -510,6 +612,9 @@ func TestChangePassword(t *testing.T) {
 				"currentPassword": user.Password,
 				"newPassword":     "shannonsbosoms@69",
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.GetUserByIdRow{}, sql.ErrConnDone)
 			},
@@ -524,6 +629,9 @@ func TestChangePassword(t *testing.T) {
 				"currentPassword": util.RandomStr(9),
 				"newPassword":     "shannonsbosoms@69",
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(getUserByIdRes, nil)
 			},
@@ -537,6 +645,9 @@ func TestChangePassword(t *testing.T) {
 				"id":              userID.String(),
 				"currentPassword": user.Password,
 				"newPassword":     "shannonsbosoms@69",
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.ChangePasswordParams{
@@ -557,6 +668,9 @@ func TestChangePassword(t *testing.T) {
 				"currentPassword": user.Password,
 				"newPassword":     "shannonsbosoms@69",
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.ChangePasswordParams{
 					UserID:   userID.String(),
@@ -567,6 +681,36 @@ func TestChangePassword(t *testing.T) {
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNoContent, recorder.Code)
+			},
+		},
+		{
+			Name: "Unauthorized -> Header not present",
+			Body: gin.H{
+				"id":              userID.String(),
+				"currentPassword": user.Password,
+				"newPassword":     "shannonsbosoms@69",
+			},
+			setupAuth:  func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
+			buildStubs: func(store *mockdb.MockStore) {},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+		{
+			Name: "Unauthorized -> using different account",
+			Body: gin.H{
+				"id":              userID.String(),
+				"currentPassword": user.Password,
+				"newPassword":     "shannonsbosoms@69",
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, uuid.New().String(), time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(getUserByIdRes, nil)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
 			},
 		},
 	}
@@ -590,6 +734,7 @@ func TestChangePassword(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPatch, url, bytes.NewReader(data))
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkRes(t, recorder)
 		})
@@ -612,12 +757,16 @@ func TestDeleteUser(t *testing.T) {
 	testCases := []struct {
 		Name       string
 		UserID     string
+		setupAuth  func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs func(store *mockdb.MockStore)
 		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			Name:   "Not found -> Get User",
 			UserID: userID.String(),
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.GetUserByIdRow{}, sql.ErrNoRows)
 			},
@@ -628,6 +777,9 @@ func TestDeleteUser(t *testing.T) {
 		{
 			Name:   "Internal Error -> Get User",
 			UserID: userID.String(),
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.GetUserByIdRow{}, sql.ErrConnDone)
 			},
@@ -638,6 +790,9 @@ func TestDeleteUser(t *testing.T) {
 		{
 			Name:   "Internal Error -> Delete User",
 			UserID: userID.String(),
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(getUserByIdRes, nil)
 				store.EXPECT().DeleteUser(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(sql.ErrConnDone)
@@ -649,12 +804,37 @@ func TestDeleteUser(t *testing.T) {
 		{
 			Name:   "OK -> No Content",
 			UserID: userID.String(),
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(getUserByIdRes, nil)
 				store.EXPECT().DeleteUser(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(nil)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNoContent, recorder.Code)
+			},
+		},
+		{
+			Name:       "Unauthorized",
+			UserID:     userID.String(),
+			setupAuth:  func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
+			buildStubs: func(store *mockdb.MockStore) {},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+		{
+			Name:   "Unauthorized -> using different account",
+			UserID: userID.String(),
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, uuid.New().String(), time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetUserById(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(getUserByIdRes, nil)
+			},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
 			},
 		},
 	}
@@ -675,6 +855,7 @@ func TestDeleteUser(t *testing.T) {
 			request, err := http.NewRequest(http.MethodDelete, url, nil)
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkRes(t, recorder)
 		})

@@ -8,13 +8,15 @@ import (
 	"time"
 
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
+	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/token"
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/util"
 	"github.com/gin-gonic/gin"
 )
 
 const (
-	USERID_NOT_FOUND    = "user with specified ID '%s' does not exist"
-	USEREMAIL_NOT_FOUND = "user with specified eMail '%s' does not exist"
+	USERID_NOT_FOUND            = "user with specified ID '%s' does not exist"
+	USEREMAIL_NOT_FOUND         = "user with specified eMail '%s' does not exist"
+	LOGGED_IN_USER_DOESNT_MATCH = "authenticated user does not match the requested account"
 )
 
 type UserResponse struct {
@@ -88,6 +90,8 @@ func (server *Server) getUserByEmail(ctx *gin.Context) {
 		return
 	}
 
+	authHeader := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
 	user, err := server.store.GetUserByEmail(ctx, req.EmailAddress)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -95,6 +99,11 @@ func (server *Server) getUserByEmail(ctx *gin.Context) {
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	if user.ID != authHeader.UserID {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New(LOGGED_IN_USER_DOESNT_MATCH)))
 		return
 	}
 
@@ -121,7 +130,9 @@ func (server *Server) updateUser(ctx *gin.Context) {
 		return
 	}
 
-	_, err := server.store.GetUserById(ctx, req.ID)
+	authHeader := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	user, err := server.store.GetUserById(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(USERID_NOT_FOUND, req.ID)))
@@ -129,6 +140,11 @@ func (server *Server) updateUser(ctx *gin.Context) {
 		}
 
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	if user.ID != authHeader.UserID {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New(LOGGED_IN_USER_DOESNT_MATCH)))
 		return
 	}
 
@@ -154,7 +170,7 @@ func (server *Server) updateUser(ctx *gin.Context) {
 		return
 	}
 
-	user, err := server.store.GetUserById(ctx, req.ID)
+	user, err = server.store.GetUserById(ctx, req.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -182,6 +198,8 @@ func (server *Server) changePassword(ctx *gin.Context) {
 		return
 	}
 
+	authHeader := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
 	user, err := server.store.GetUserById(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -189,6 +207,11 @@ func (server *Server) changePassword(ctx *gin.Context) {
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	if user.ID != authHeader.UserID {
+		ctx.JSON(http.StatusUnauthorized, errors.New(LOGGED_IN_USER_DOESNT_MATCH))
 		return
 	}
 
@@ -222,7 +245,9 @@ func (server *Server) deleteUser(ctx *gin.Context) {
 		return
 	}
 
-	_, err := server.store.GetUserById(ctx, req.ID)
+	authHeader := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	user, err := server.store.GetUserById(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(USERID_NOT_FOUND, req.ID)))
@@ -230,6 +255,11 @@ func (server *Server) deleteUser(ctx *gin.Context) {
 		}
 
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	if user.ID != authHeader.UserID {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New(LOGGED_IN_USER_DOESNT_MATCH)))
 		return
 	}
 

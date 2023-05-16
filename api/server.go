@@ -35,27 +35,29 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 func (server *Server) setupRouter() {
 	router := gin.Default()
 	router.POST("auth/login", server.login)
-
 	router.POST("/createUser", server.createUser)
-	router.GET("/getUserByEmail/:email", server.getUserByEmail)
-	router.PATCH("/updateUser", server.updateUser)
-	router.PATCH("/changePassword", server.changePassword)
-	router.DELETE("/deleteUser/:id", server.deleteUser)
 
-	router.POST("/createProfile", server.createProfile)
-	router.GET("/getProfile/:user_id", server.getProfile)
-	router.PATCH("/updateProfile", server.updateProfile)
-	router.DELETE("/deleteProfile/:user_id", server.deleteProfile)
+	protected := router.Group("/").Use(authMiddleware(server.tokenMaker))
 
-	router.POST("/createExercise", server.createExercise)
-	router.GET("/getExercise/:id/:user_id", server.getExercise)
-	router.GET("/getExerciseByName/:exercise_name/:user_id", server.getExerciseByName)
-	router.GET("/listExercises/:user_id", server.listExercises)
-	router.PATCH("/updateExercise", server.updateExercise)
-	router.DELETE("/deleteExercise/:id/:user_id", server.deleteExercise)
+	protected.GET("/getUserByEmail/:email", server.getUserByEmail)
+	protected.PATCH("/updateUser", server.updateUser)
+	protected.PATCH("/changePassword", server.changePassword)
+	protected.DELETE("/deleteUser/:id", server.deleteUser)
 
-	router.POST("/createWorkout", server.createWorkout)
-	router.GET("/getWorkout/:id/:user_id", server.getWorkout)
+	protected.POST("/createProfile", server.createProfile)
+	protected.GET("/getProfile/:user_id", server.getProfile)
+	protected.PATCH("/updateProfile", server.updateProfile)
+	protected.DELETE("/deleteProfile/:user_id", server.deleteProfile)
+
+	protected.POST("/createExercise", server.createExercise)
+	protected.GET("/getExercise/:id/:user_id", server.getExercise)
+	protected.GET("/getExerciseByName/:exercise_name/:user_id", server.getExerciseByName)
+	protected.GET("/listExercises/:user_id", server.listExercises)
+	protected.PATCH("/updateExercise", server.updateExercise)
+	protected.DELETE("/deleteExercise/:id/:user_id", server.deleteExercise)
+
+	protected.POST("/createWorkout", server.createWorkout)
+	protected.GET("/getWorkout/:id/:user_id", server.getWorkout)
 	server.router = router
 }
 
