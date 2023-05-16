@@ -177,9 +177,7 @@ func TestCreateProfile(t *testing.T) {
 				"timeZoneOffset":    profile.TimezoneOffset,
 				"userID":            userID.String(),
 			},
-			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
-			},
+			setupAuth:  func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
 			buildStubs: func(store *mockdb.MockStore) {},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, recorder.Code)
