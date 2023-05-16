@@ -177,7 +177,9 @@ func TestCreateProfile(t *testing.T) {
 				"timeZoneOffset":    profile.TimezoneOffset,
 				"userID":            userID.String(),
 			},
-			setupAuth:  func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, recorder.Code)
@@ -218,12 +220,16 @@ func TestGetProfile(t *testing.T) {
 	testCases := []struct {
 		Name       string
 		UserID     string
+		setupAuth  func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs func(store *mockdb.MockStore)
 		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			Name:   "Not Found",
 			UserID: userID.String(),
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrNoRows)
 			},
@@ -234,6 +240,9 @@ func TestGetProfile(t *testing.T) {
 		{
 			Name:   "Internal Error",
 			UserID: userID.String(),
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrConnDone)
 			},
@@ -244,6 +253,9 @@ func TestGetProfile(t *testing.T) {
 		{
 			Name:   "OK",
 			UserID: userID.String(),
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
 			},
@@ -256,6 +268,15 @@ func TestGetProfile(t *testing.T) {
 					BodyFat:           profile.BodyFat,
 					TimeZoneOffset:    profile.TimezoneOffset,
 				})
+			},
+		},
+		{
+			Name:       "Unauthorized",
+			UserID:     userID.String(),
+			setupAuth:  func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
+			buildStubs: func(store *mockdb.MockStore) {},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
 			},
 		},
 	}
@@ -276,6 +297,7 @@ func TestGetProfile(t *testing.T) {
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkRes(t, recorder)
 		})
