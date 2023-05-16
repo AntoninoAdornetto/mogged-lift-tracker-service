@@ -10,9 +10,11 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	mockdb "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/mock"
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
+	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/token"
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/util"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
@@ -27,12 +29,16 @@ func TestCreateProfile(t *testing.T) {
 	testCases := []struct {
 		Name       string
 		Body       gin.H
+		setupAuth  func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs func(store *mockdb.MockStore)
 		checkRes   func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			Name: "Bad Request",
 			Body: gin.H{},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -48,6 +54,9 @@ func TestCreateProfile(t *testing.T) {
 				"bodyFat":           profile.BodyFat,
 				"timeZoneOffset":    profile.TimezoneOffset,
 				"userID":            userID.String(),
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.CreateProfileParams{
@@ -73,6 +82,9 @@ func TestCreateProfile(t *testing.T) {
 				"bodyFat":           profile.BodyFat,
 				"timeZoneOffset":    profile.TimezoneOffset,
 				"userID":            userID.String(),
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.CreateProfileParams{
@@ -100,6 +112,9 @@ func TestCreateProfile(t *testing.T) {
 				"timeZoneOffset":    profile.TimezoneOffset,
 				"userID":            userID.String(),
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.CreateProfileParams{
 					Country:           profile.Country,
@@ -126,6 +141,9 @@ func TestCreateProfile(t *testing.T) {
 				"timeZoneOffset":    profile.TimezoneOffset,
 				"userID":            userID.String(),
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.CreateProfileParams{
 					Country:           profile.Country,
@@ -149,6 +167,22 @@ func TestCreateProfile(t *testing.T) {
 				})
 			},
 		},
+		{
+			Name: "Unauthorized",
+			Body: gin.H{
+				"country":           profile.Country,
+				"measurementSystem": profile.MeasurementSystem,
+				"bodyWeight":        profile.BodyWeight,
+				"bodyFat":           profile.BodyFat,
+				"timeZoneOffset":    profile.TimezoneOffset,
+				"userID":            userID.String(),
+			},
+			setupAuth:  func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
+			buildStubs: func(store *mockdb.MockStore) {},
+			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
 	}
 
 	for i := range testCases {
@@ -170,6 +204,7 @@ func TestCreateProfile(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(payload))
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkRes(t, recorder)
 		})
