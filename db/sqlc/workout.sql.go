@@ -102,7 +102,7 @@ func (q *Queries) ListWorkouts(ctx context.Context, userID string) ([]Workout, e
 	return items, nil
 }
 
-const updateWorkout = `-- name: UpdateWorkout :execresult
+const updateWorkout = `-- name: UpdateWorkout :exec
 UPDATE workout SET
 	duration = COALESCE(?, duration),
 	lifts = COALESCE(?, lifts)
@@ -116,11 +116,12 @@ type UpdateWorkoutParams struct {
 	UserID   string          `json:"user_id"`
 }
 
-func (q *Queries) UpdateWorkout(ctx context.Context, arg UpdateWorkoutParams) (sql.Result, error) {
-	return q.exec(ctx, q.updateWorkoutStmt, updateWorkout,
+func (q *Queries) UpdateWorkout(ctx context.Context, arg UpdateWorkoutParams) error {
+	_, err := q.exec(ctx, q.updateWorkoutStmt, updateWorkout,
 		arg.Duration,
 		arg.Lifts,
 		arg.ID,
 		arg.UserID,
 	)
+	return err
 }

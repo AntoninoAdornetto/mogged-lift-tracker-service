@@ -17,7 +17,7 @@ WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 SELECT * FROM workout
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
--- name: UpdateWorkout :execresult
+-- name: UpdateWorkout :exec
 UPDATE workout SET
 	duration = COALESCE(sqlc.narg('duration'), duration),
 	lifts = COALESCE(sqlc.narg('lifts'), lifts)

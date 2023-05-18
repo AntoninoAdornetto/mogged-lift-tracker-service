@@ -142,7 +142,7 @@ func (store *SQLStore) WorkoutTx(ctx context.Context, args WorkoutTxParams) (Wor
 			}
 		}
 
-		_, err = q.UpdateWorkout(ctx, UpdateWorkoutParams{
+		err = q.UpdateWorkout(ctx, UpdateWorkoutParams{
 			Lifts:  args.LiftsMap,
 			ID:     int32(workoutId),
 			UserID: args.UserID,
