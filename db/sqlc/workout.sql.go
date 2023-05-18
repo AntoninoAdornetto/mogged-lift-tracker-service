@@ -104,16 +104,16 @@ func (q *Queries) ListWorkouts(ctx context.Context, userID string) ([]Workout, e
 
 const updateWorkout = `-- name: UpdateWorkout :execresult
 UPDATE workout SET
-duration = IFNULL(?, duration),
-lifts = IFNULL(?, lifts)
+	duration = COALESCE(?, duration),
+	lifts = COALESCE(?, lifts)
 WHERE id = ? AND user_id = UUID_TO_BIN(?)
 `
 
 type UpdateWorkoutParams struct {
-	Duration interface{} `json:"duration"`
-	Lifts    interface{} `json:"lifts"`
-	ID       int32       `json:"id"`
-	UserID   string      `json:"user_id"`
+	Duration sql.NullString  `json:"duration"`
+	Lifts    json.RawMessage `json:"lifts"`
+	ID       int32           `json:"id"`
+	UserID   string          `json:"user_id"`
 }
 
 func (q *Queries) UpdateWorkout(ctx context.Context, arg UpdateWorkoutParams) (sql.Result, error) {
