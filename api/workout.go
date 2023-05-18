@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
+	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/token"
 	"github.com/gin-gonic/gin"
 )
 
@@ -74,5 +75,25 @@ func (server *Server) getWorkout(ctx *gin.Context) {
 		Duration: workout.Duration,
 		Lifts:    workout.Lifts,
 		UserID:   req.UserID,
+	})
+}
+
+type listWorkoutsResponse struct {
+	Workouts []db.Workout `json:"workouts"`
+}
+
+func (server *Server) listWorkouts(ctx *gin.Context) {
+	authHeader := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	workouts, err := server.store.ListWorkouts(ctx, authHeader.UserID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	//@TODO: remove binary value for userID and create new struct to match response body of other
+	// JSON responses
+	ctx.JSON(http.StatusOK, listWorkoutsResponse{
+		Workouts: workouts,
 	})
 }

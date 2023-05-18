@@ -58,6 +58,7 @@ func (server *Server) setupRouter() {
 
 	protected.POST("/createWorkout", server.createWorkout)
 	protected.GET("/getWorkout/:id/:user_id", server.getWorkout)
+	protected.GET("/listWorkouts", server.listWorkouts)
 	server.router = router
 }
 
