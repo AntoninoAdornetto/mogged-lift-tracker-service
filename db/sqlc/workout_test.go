@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"testing"
 
@@ -70,7 +71,10 @@ func TestUpdateWorkout(t *testing.T) {
 
 	workout := GenRandWorkout(t, userId.String())
 	newWorkout := GenRandWorkout(t, userId.String())
-	newDuration := "01:00:0s"
+	newDuration := sql.NullString{
+		String: "01:00:0s",
+		Valid:  true,
+	}
 
 	_, err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
 		Duration: newDuration,
@@ -85,9 +89,10 @@ func TestUpdateWorkout(t *testing.T) {
 		UserID: userId.String(),
 	})
 	require.NoError(t, err)
-	require.Equal(t, query.Duration, newDuration)
+	require.Equal(t, query.Duration, newDuration.String)
 	require.Equal(t, query.ID, workout.ID)
 	require.Equal(t, query.Lifts, newWorkout.Lifts)
+	require.NotEqual(t, query.Lifts, workout.Lifts)
 }
 
 func TestDeleteWorkout(t *testing.T) {
