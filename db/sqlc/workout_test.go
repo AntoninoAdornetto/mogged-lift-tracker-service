@@ -76,7 +76,7 @@ func TestUpdateWorkout(t *testing.T) {
 		Valid:  true,
 	}
 
-	_, err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
+	err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
 		Duration: newDuration,
 		Lifts:    newWorkout.Lifts,
 		ID:       workout.ID,
@@ -156,7 +156,7 @@ func GenRandWorkout(t *testing.T, userId string) Workout {
 
 	rawJson, err := json.Marshal(liftsMap)
 	require.NoError(t, err)
-	_, err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
+	err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
 		Lifts:  rawJson,
 		ID:     int32(workoutId),
 		UserID: userId,
