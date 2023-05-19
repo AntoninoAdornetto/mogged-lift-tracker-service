@@ -23,6 +23,6 @@ UPDATE workout SET
 	lifts = COALESCE(sqlc.narg('lifts'), lifts)
 WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
--- name: DeleteWorkout :execresult
+-- name: DeleteWorkout :exec
 DELETE FROM workout 
 WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
