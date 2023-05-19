@@ -3,11 +3,16 @@ package api
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/token"
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	WORKOUT_NOT_FOUND = "workout with specified ID '%d' does not exist"
 )
 
 type WorkoutResponse struct {
@@ -63,7 +68,7 @@ func (server *Server) getWorkout(ctx *gin.Context) {
 	workout, err := server.store.GetWorkout(ctx, db.GetWorkoutParams{ID: req.ID, UserID: req.UserID})
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(WORKOUT_NOT_FOUND, req.ID)))
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -132,7 +137,7 @@ func (server *Server) updateWorkout(ctx *gin.Context) {
 	workout, err := server.store.GetWorkout(ctx, db.GetWorkoutParams{ID: req.ID, UserID: authHeader.UserID})
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(WORKOUT_NOT_FOUND, req.ID)))
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -140,4 +145,36 @@ func (server *Server) updateWorkout(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, workout)
+}
+
+type deleteWorkoutRequest struct {
+	ID int32 `uri:"id"`
+}
+
+func (server *Server) deleteWorkout(ctx *gin.Context) {
+	req := deleteWorkoutRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+
+	_, err := server.store.GetWorkout(ctx, db.GetWorkoutParams{ID: req.ID, UserID: userID})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(WORKOUT_NOT_FOUND, req.ID)))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = server.store.DeleteWorkout(ctx, db.DeleteWorkoutParams{ID: req.ID, UserID: userID})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, nil)
 }
