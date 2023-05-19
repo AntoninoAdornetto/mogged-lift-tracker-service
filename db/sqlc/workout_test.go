@@ -101,7 +101,7 @@ func TestDeleteWorkout(t *testing.T) {
 	require.NoError(t, err)
 	workout := GenRandWorkout(t, userId.String())
 
-	_, err = testQueries.DeleteWorkout(context.Background(), DeleteWorkoutParams{
+	err = testQueries.DeleteWorkout(context.Background(), DeleteWorkoutParams{
 		ID:     workout.ID,
 		UserID: userId.String(),
 	})
