@@ -97,3 +97,47 @@ func (server *Server) listWorkouts(ctx *gin.Context) {
 		Workouts: workouts,
 	})
 }
+
+type updateWorkoutRequest struct {
+	ID       int32           `json:"id"`
+	Duration string          `json:"duration"`
+	Lifts    json.RawMessage `json:"lifts"`
+}
+
+func (server *Server) updateWorkout(ctx *gin.Context) {
+	req := updateWorkoutRequest{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	authHeader := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	args := db.UpdateWorkoutParams{
+		ID:    req.ID,
+		Lifts: req.Lifts,
+		Duration: sql.NullString{
+			String: req.Duration,
+			Valid:  req.Duration != "",
+		},
+		UserID: authHeader.UserID,
+	}
+
+	err := server.store.UpdateWorkout(ctx, args)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	workout, err := server.store.GetWorkout(ctx, db.GetWorkoutParams{ID: req.ID, UserID: authHeader.UserID})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, workout)
+}
