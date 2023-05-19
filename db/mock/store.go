@@ -302,12 +302,11 @@ func (mr *MockStoreMockRecorder) DeleteUser(arg0, arg1 interface{}) *gomock.Call
 }
 
 // DeleteWorkout mocks base method.
-func (m *MockStore) DeleteWorkout(arg0 context.Context, arg1 db.DeleteWorkoutParams) (sql.Result, error) {
+func (m *MockStore) DeleteWorkout(arg0 context.Context, arg1 db.DeleteWorkoutParams) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteWorkout", arg0, arg1)
-	ret0, _ := ret[0].(sql.Result)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DeleteWorkout indicates an expected call of DeleteWorkout.
@@ -750,12 +749,11 @@ func (mr *MockStoreMockRecorder) UpdateUser(arg0, arg1 interface{}) *gomock.Call
 }
 
 // UpdateWorkout mocks base method.
-func (m *MockStore) UpdateWorkout(arg0 context.Context, arg1 db.UpdateWorkoutParams) (sql.Result, error) {
+func (m *MockStore) UpdateWorkout(arg0 context.Context, arg1 db.UpdateWorkoutParams) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateWorkout", arg0, arg1)
-	ret0, _ := ret[0].(sql.Result)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // UpdateWorkout indicates an expected call of UpdateWorkout.

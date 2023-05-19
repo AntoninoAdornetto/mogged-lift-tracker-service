@@ -17,12 +17,12 @@ WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 SELECT * FROM workout
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
--- name: UpdateWorkout :execresult
+-- name: UpdateWorkout :exec
 UPDATE workout SET
-duration = IFNULL(sqlc.arg('duration'), duration),
-lifts = IFNULL(sqlc.arg('lifts'), lifts)
+	duration = COALESCE(sqlc.narg('duration'), duration),
+	lifts = COALESCE(sqlc.narg('lifts'), lifts)
 WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
--- name: DeleteWorkout :execresult
+-- name: DeleteWorkout :exec
 DELETE FROM workout 
 WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));

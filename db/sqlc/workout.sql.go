@@ -33,7 +33,7 @@ func (q *Queries) CreateWorkout(ctx context.Context, arg CreateWorkoutParams) (s
 	return q.exec(ctx, q.createWorkoutStmt, createWorkout, arg.Duration, arg.Lifts, arg.UserID)
 }
 
-const deleteWorkout = `-- name: DeleteWorkout :execresult
+const deleteWorkout = `-- name: DeleteWorkout :exec
 DELETE FROM workout 
 WHERE id = ? AND user_id = UUID_TO_BIN(?)
 `
@@ -43,8 +43,9 @@ type DeleteWorkoutParams struct {
 	UserID string `json:"user_id"`
 }
 
-func (q *Queries) DeleteWorkout(ctx context.Context, arg DeleteWorkoutParams) (sql.Result, error) {
-	return q.exec(ctx, q.deleteWorkoutStmt, deleteWorkout, arg.ID, arg.UserID)
+func (q *Queries) DeleteWorkout(ctx context.Context, arg DeleteWorkoutParams) error {
+	_, err := q.exec(ctx, q.deleteWorkoutStmt, deleteWorkout, arg.ID, arg.UserID)
+	return err
 }
 
 const getWorkout = `-- name: GetWorkout :one
@@ -102,25 +103,26 @@ func (q *Queries) ListWorkouts(ctx context.Context, userID string) ([]Workout, e
 	return items, nil
 }
 
-const updateWorkout = `-- name: UpdateWorkout :execresult
+const updateWorkout = `-- name: UpdateWorkout :exec
 UPDATE workout SET
-duration = IFNULL(?, duration),
-lifts = IFNULL(?, lifts)
+	duration = COALESCE(?, duration),
+	lifts = COALESCE(?, lifts)
 WHERE id = ? AND user_id = UUID_TO_BIN(?)
 `
 
 type UpdateWorkoutParams struct {
-	Duration interface{} `json:"duration"`
-	Lifts    interface{} `json:"lifts"`
-	ID       int32       `json:"id"`
-	UserID   string      `json:"user_id"`
+	Duration sql.NullString  `json:"duration"`
+	Lifts    json.RawMessage `json:"lifts"`
+	ID       int32           `json:"id"`
+	UserID   string          `json:"user_id"`
 }
 
-func (q *Queries) UpdateWorkout(ctx context.Context, arg UpdateWorkoutParams) (sql.Result, error) {
-	return q.exec(ctx, q.updateWorkoutStmt, updateWorkout,
+func (q *Queries) UpdateWorkout(ctx context.Context, arg UpdateWorkoutParams) error {
+	_, err := q.exec(ctx, q.updateWorkoutStmt, updateWorkout,
 		arg.Duration,
 		arg.Lifts,
 		arg.ID,
 		arg.UserID,
 	)
+	return err
 }
