@@ -133,3 +133,51 @@ func (server *Server) listMaxWeightLifts(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, res)
 }
+
+type getMaxLiftsByExerciseRequest struct {
+	ExerciseName string `uri:"exercise_name" binding:"required"`
+}
+
+func (server *Server) getMaxLiftsByExercise(ctx *gin.Context) {
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+
+	req := getMaxLiftsByExerciseRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	exercise, err := server.store.GetExerciseByName(ctx, db.GetExerciseByNameParams{Name: req.ExerciseName, UserID: userID})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(EXERCISE_NAME_NOT_FOUND, req.ExerciseName)))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	lifts, err := server.store.ListMaxWeightByExercise(ctx, db.ListMaxWeightByExerciseParams{
+		ExerciseName: exercise.Name,
+		UserID:       userID,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	res := make([]LiftResponse, len(lifts))
+	for i, v := range lifts {
+		res[i] = LiftResponse{
+			ID:           v.ID,
+			Reps:         v.Reps,
+			WeightLifted: v.WeightLifted,
+			ExerciseName: v.ExerciseName,
+			SetType:      v.SetType,
+			UserID:       userID,
+			WorkoutID:    v.WorkoutID,
+		}
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
