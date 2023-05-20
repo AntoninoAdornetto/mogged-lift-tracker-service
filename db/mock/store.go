@@ -375,6 +375,66 @@ func (mr *MockStoreMockRecorder) GetLift(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLift", reflect.TypeOf((*MockStore)(nil).GetLift), arg0, arg1)
 }
 
+// GetMaxLifts mocks base method.
+func (m *MockStore) GetMaxLifts(arg0 context.Context, arg1 db.GetMaxLiftsParams) ([]db.Lift, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMaxLifts", arg0, arg1)
+	ret0, _ := ret[0].([]db.Lift)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMaxLifts indicates an expected call of GetMaxLifts.
+func (mr *MockStoreMockRecorder) GetMaxLifts(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxLifts", reflect.TypeOf((*MockStore)(nil).GetMaxLifts), arg0, arg1)
+}
+
+// GetMaxLiftsByExercise mocks base method.
+func (m *MockStore) GetMaxLiftsByExercise(arg0 context.Context, arg1 db.GetMaxLiftsByExerciseParams) ([]db.Lift, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMaxLiftsByExercise", arg0, arg1)
+	ret0, _ := ret[0].([]db.Lift)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMaxLiftsByExercise indicates an expected call of GetMaxLiftsByExercise.
+func (mr *MockStoreMockRecorder) GetMaxLiftsByExercise(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxLiftsByExercise", reflect.TypeOf((*MockStore)(nil).GetMaxLiftsByExercise), arg0, arg1)
+}
+
+// GetMaxLiftsByMuscleGroup mocks base method.
+func (m *MockStore) GetMaxLiftsByMuscleGroup(arg0 context.Context, arg1 db.GetMaxLiftsByMuscleGroupParams) ([]db.GetMaxLiftsByMuscleGroupRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMaxLiftsByMuscleGroup", arg0, arg1)
+	ret0, _ := ret[0].([]db.GetMaxLiftsByMuscleGroupRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMaxLiftsByMuscleGroup indicates an expected call of GetMaxLiftsByMuscleGroup.
+func (mr *MockStoreMockRecorder) GetMaxLiftsByMuscleGroup(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxLiftsByMuscleGroup", reflect.TypeOf((*MockStore)(nil).GetMaxLiftsByMuscleGroup), arg0, arg1)
+}
+
+// GetMaxRepLifts mocks base method.
+func (m *MockStore) GetMaxRepLifts(arg0 context.Context, arg1 db.GetMaxRepLiftsParams) ([]db.Lift, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMaxRepLifts", arg0, arg1)
+	ret0, _ := ret[0].([]db.Lift)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMaxRepLifts indicates an expected call of GetMaxRepLifts.
+func (mr *MockStoreMockRecorder) GetMaxRepLifts(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxRepLifts", reflect.TypeOf((*MockStore)(nil).GetMaxRepLifts), arg0, arg1)
+}
+
 // GetMuscleGroup mocks base method.
 func (m *MockStore) GetMuscleGroup(arg0 context.Context, arg1 int32) (db.MuscleGroup, error) {
 	m.ctrl.T.Helper()
@@ -538,66 +598,6 @@ func (m *MockStore) ListLiftsFromWorkout(arg0 context.Context, arg1 db.ListLifts
 func (mr *MockStoreMockRecorder) ListLiftsFromWorkout(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListLiftsFromWorkout", reflect.TypeOf((*MockStore)(nil).ListLiftsFromWorkout), arg0, arg1)
-}
-
-// ListMaxRepPrs mocks base method.
-func (m *MockStore) ListMaxRepPrs(arg0 context.Context, arg1 db.ListMaxRepPrsParams) ([]db.Lift, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListMaxRepPrs", arg0, arg1)
-	ret0, _ := ret[0].([]db.Lift)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListMaxRepPrs indicates an expected call of ListMaxRepPrs.
-func (mr *MockStoreMockRecorder) ListMaxRepPrs(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMaxRepPrs", reflect.TypeOf((*MockStore)(nil).ListMaxRepPrs), arg0, arg1)
-}
-
-// ListMaxWeightByExercise mocks base method.
-func (m *MockStore) ListMaxWeightByExercise(arg0 context.Context, arg1 db.ListMaxWeightByExerciseParams) ([]db.Lift, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListMaxWeightByExercise", arg0, arg1)
-	ret0, _ := ret[0].([]db.Lift)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListMaxWeightByExercise indicates an expected call of ListMaxWeightByExercise.
-func (mr *MockStoreMockRecorder) ListMaxWeightByExercise(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMaxWeightByExercise", reflect.TypeOf((*MockStore)(nil).ListMaxWeightByExercise), arg0, arg1)
-}
-
-// ListMaxWeightByMuscleGroup mocks base method.
-func (m *MockStore) ListMaxWeightByMuscleGroup(arg0 context.Context, arg1 db.ListMaxWeightByMuscleGroupParams) ([]db.ListMaxWeightByMuscleGroupRow, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListMaxWeightByMuscleGroup", arg0, arg1)
-	ret0, _ := ret[0].([]db.ListMaxWeightByMuscleGroupRow)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListMaxWeightByMuscleGroup indicates an expected call of ListMaxWeightByMuscleGroup.
-func (mr *MockStoreMockRecorder) ListMaxWeightByMuscleGroup(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMaxWeightByMuscleGroup", reflect.TypeOf((*MockStore)(nil).ListMaxWeightByMuscleGroup), arg0, arg1)
-}
-
-// ListMaxWeightLifts mocks base method.
-func (m *MockStore) ListMaxWeightLifts(arg0 context.Context, arg1 db.ListMaxWeightLiftsParams) ([]db.Lift, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListMaxWeightLifts", arg0, arg1)
-	ret0, _ := ret[0].([]db.Lift)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListMaxWeightLifts indicates an expected call of ListMaxWeightLifts.
-func (mr *MockStoreMockRecorder) ListMaxWeightLifts(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMaxWeightLifts", reflect.TypeOf((*MockStore)(nil).ListMaxWeightLifts), arg0, arg1)
 }
 
 // ListMuscleGroups mocks base method.

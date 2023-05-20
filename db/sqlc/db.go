@@ -93,6 +93,18 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getLiftStmt, err = db.PrepareContext(ctx, getLift); err != nil {
 		return nil, fmt.Errorf("error preparing query GetLift: %w", err)
 	}
+	if q.getMaxLiftsStmt, err = db.PrepareContext(ctx, getMaxLifts); err != nil {
+		return nil, fmt.Errorf("error preparing query GetMaxLifts: %w", err)
+	}
+	if q.getMaxLiftsByExerciseStmt, err = db.PrepareContext(ctx, getMaxLiftsByExercise); err != nil {
+		return nil, fmt.Errorf("error preparing query GetMaxLiftsByExercise: %w", err)
+	}
+	if q.getMaxLiftsByMuscleGroupStmt, err = db.PrepareContext(ctx, getMaxLiftsByMuscleGroup); err != nil {
+		return nil, fmt.Errorf("error preparing query GetMaxLiftsByMuscleGroup: %w", err)
+	}
+	if q.getMaxRepLiftsStmt, err = db.PrepareContext(ctx, getMaxRepLifts); err != nil {
+		return nil, fmt.Errorf("error preparing query GetMaxRepLifts: %w", err)
+	}
 	if q.getMuscleGroupStmt, err = db.PrepareContext(ctx, getMuscleGroup); err != nil {
 		return nil, fmt.Errorf("error preparing query GetMuscleGroup: %w", err)
 	}
@@ -125,18 +137,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.listLiftsFromWorkoutStmt, err = db.PrepareContext(ctx, listLiftsFromWorkout); err != nil {
 		return nil, fmt.Errorf("error preparing query ListLiftsFromWorkout: %w", err)
-	}
-	if q.listMaxRepPrsStmt, err = db.PrepareContext(ctx, listMaxRepPrs); err != nil {
-		return nil, fmt.Errorf("error preparing query ListMaxRepPrs: %w", err)
-	}
-	if q.listMaxWeightByExerciseStmt, err = db.PrepareContext(ctx, listMaxWeightByExercise); err != nil {
-		return nil, fmt.Errorf("error preparing query ListMaxWeightByExercise: %w", err)
-	}
-	if q.listMaxWeightByMuscleGroupStmt, err = db.PrepareContext(ctx, listMaxWeightByMuscleGroup); err != nil {
-		return nil, fmt.Errorf("error preparing query ListMaxWeightByMuscleGroup: %w", err)
-	}
-	if q.listMaxWeightLiftsStmt, err = db.PrepareContext(ctx, listMaxWeightLifts); err != nil {
-		return nil, fmt.Errorf("error preparing query ListMaxWeightLifts: %w", err)
 	}
 	if q.listMuscleGroupsStmt, err = db.PrepareContext(ctx, listMuscleGroups); err != nil {
 		return nil, fmt.Errorf("error preparing query ListMuscleGroups: %w", err)
@@ -297,6 +297,26 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getLiftStmt: %w", cerr)
 		}
 	}
+	if q.getMaxLiftsStmt != nil {
+		if cerr := q.getMaxLiftsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getMaxLiftsStmt: %w", cerr)
+		}
+	}
+	if q.getMaxLiftsByExerciseStmt != nil {
+		if cerr := q.getMaxLiftsByExerciseStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getMaxLiftsByExerciseStmt: %w", cerr)
+		}
+	}
+	if q.getMaxLiftsByMuscleGroupStmt != nil {
+		if cerr := q.getMaxLiftsByMuscleGroupStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getMaxLiftsByMuscleGroupStmt: %w", cerr)
+		}
+	}
+	if q.getMaxRepLiftsStmt != nil {
+		if cerr := q.getMaxRepLiftsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getMaxRepLiftsStmt: %w", cerr)
+		}
+	}
 	if q.getMuscleGroupStmt != nil {
 		if cerr := q.getMuscleGroupStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getMuscleGroupStmt: %w", cerr)
@@ -350,26 +370,6 @@ func (q *Queries) Close() error {
 	if q.listLiftsFromWorkoutStmt != nil {
 		if cerr := q.listLiftsFromWorkoutStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listLiftsFromWorkoutStmt: %w", cerr)
-		}
-	}
-	if q.listMaxRepPrsStmt != nil {
-		if cerr := q.listMaxRepPrsStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing listMaxRepPrsStmt: %w", cerr)
-		}
-	}
-	if q.listMaxWeightByExerciseStmt != nil {
-		if cerr := q.listMaxWeightByExerciseStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing listMaxWeightByExerciseStmt: %w", cerr)
-		}
-	}
-	if q.listMaxWeightByMuscleGroupStmt != nil {
-		if cerr := q.listMaxWeightByMuscleGroupStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing listMaxWeightByMuscleGroupStmt: %w", cerr)
-		}
-	}
-	if q.listMaxWeightLiftsStmt != nil {
-		if cerr := q.listMaxWeightLiftsStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing listMaxWeightLiftsStmt: %w", cerr)
 		}
 	}
 	if q.listMuscleGroupsStmt != nil {
@@ -474,115 +474,115 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                             DBTX
-	tx                             *sql.Tx
-	changePasswordStmt             *sql.Stmt
-	createCategoryStmt             *sql.Stmt
-	createExerciseStmt             *sql.Stmt
-	createLiftStmt                 *sql.Stmt
-	createMuscleGroupStmt          *sql.Stmt
-	createProfileStmt              *sql.Stmt
-	createStockExerciseStmt        *sql.Stmt
-	createTemplateStmt             *sql.Stmt
-	createUserStmt                 *sql.Stmt
-	createWorkoutStmt              *sql.Stmt
-	deleteCategoryStmt             *sql.Stmt
-	deleteExerciseStmt             *sql.Stmt
-	deleteLiftStmt                 *sql.Stmt
-	deleteMuscleGroupStmt          *sql.Stmt
-	deleteProfileStmt              *sql.Stmt
-	deleteStockExerciseStmt        *sql.Stmt
-	deleteTemplateStmt             *sql.Stmt
-	deleteUserStmt                 *sql.Stmt
-	deleteWorkoutStmt              *sql.Stmt
-	getCategoryStmt                *sql.Stmt
-	getExerciseStmt                *sql.Stmt
-	getExerciseByNameStmt          *sql.Stmt
-	getLiftStmt                    *sql.Stmt
-	getMuscleGroupStmt             *sql.Stmt
-	getMuscleGroupByNameStmt       *sql.Stmt
-	getProfileStmt                 *sql.Stmt
-	getStockExerciseStmt           *sql.Stmt
-	getTemplateStmt                *sql.Stmt
-	getUserByEmailStmt             *sql.Stmt
-	getUserByIdStmt                *sql.Stmt
-	getWorkoutStmt                 *sql.Stmt
-	listCategoriesStmt             *sql.Stmt
-	listExercisesStmt              *sql.Stmt
-	listLiftsFromWorkoutStmt       *sql.Stmt
-	listMaxRepPrsStmt              *sql.Stmt
-	listMaxWeightByExerciseStmt    *sql.Stmt
-	listMaxWeightByMuscleGroupStmt *sql.Stmt
-	listMaxWeightLiftsStmt         *sql.Stmt
-	listMuscleGroupsStmt           *sql.Stmt
-	listStockExerciesStmt          *sql.Stmt
-	listTemplatesStmt              *sql.Stmt
-	listWorkoutsStmt               *sql.Stmt
-	updateCategoryStmt             *sql.Stmt
-	updateExerciseStmt             *sql.Stmt
-	updateLiftStmt                 *sql.Stmt
-	updateMuscleGroupStmt          *sql.Stmt
-	updateProfileStmt              *sql.Stmt
-	updateStockExerciseStmt        *sql.Stmt
-	updateTemplateStmt             *sql.Stmt
-	updateUserStmt                 *sql.Stmt
-	updateWorkoutStmt              *sql.Stmt
+	db                           DBTX
+	tx                           *sql.Tx
+	changePasswordStmt           *sql.Stmt
+	createCategoryStmt           *sql.Stmt
+	createExerciseStmt           *sql.Stmt
+	createLiftStmt               *sql.Stmt
+	createMuscleGroupStmt        *sql.Stmt
+	createProfileStmt            *sql.Stmt
+	createStockExerciseStmt      *sql.Stmt
+	createTemplateStmt           *sql.Stmt
+	createUserStmt               *sql.Stmt
+	createWorkoutStmt            *sql.Stmt
+	deleteCategoryStmt           *sql.Stmt
+	deleteExerciseStmt           *sql.Stmt
+	deleteLiftStmt               *sql.Stmt
+	deleteMuscleGroupStmt        *sql.Stmt
+	deleteProfileStmt            *sql.Stmt
+	deleteStockExerciseStmt      *sql.Stmt
+	deleteTemplateStmt           *sql.Stmt
+	deleteUserStmt               *sql.Stmt
+	deleteWorkoutStmt            *sql.Stmt
+	getCategoryStmt              *sql.Stmt
+	getExerciseStmt              *sql.Stmt
+	getExerciseByNameStmt        *sql.Stmt
+	getLiftStmt                  *sql.Stmt
+	getMaxLiftsStmt              *sql.Stmt
+	getMaxLiftsByExerciseStmt    *sql.Stmt
+	getMaxLiftsByMuscleGroupStmt *sql.Stmt
+	getMaxRepLiftsStmt           *sql.Stmt
+	getMuscleGroupStmt           *sql.Stmt
+	getMuscleGroupByNameStmt     *sql.Stmt
+	getProfileStmt               *sql.Stmt
+	getStockExerciseStmt         *sql.Stmt
+	getTemplateStmt              *sql.Stmt
+	getUserByEmailStmt           *sql.Stmt
+	getUserByIdStmt              *sql.Stmt
+	getWorkoutStmt               *sql.Stmt
+	listCategoriesStmt           *sql.Stmt
+	listExercisesStmt            *sql.Stmt
+	listLiftsFromWorkoutStmt     *sql.Stmt
+	listMuscleGroupsStmt         *sql.Stmt
+	listStockExerciesStmt        *sql.Stmt
+	listTemplatesStmt            *sql.Stmt
+	listWorkoutsStmt             *sql.Stmt
+	updateCategoryStmt           *sql.Stmt
+	updateExerciseStmt           *sql.Stmt
+	updateLiftStmt               *sql.Stmt
+	updateMuscleGroupStmt        *sql.Stmt
+	updateProfileStmt            *sql.Stmt
+	updateStockExerciseStmt      *sql.Stmt
+	updateTemplateStmt           *sql.Stmt
+	updateUserStmt               *sql.Stmt
+	updateWorkoutStmt            *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                             tx,
-		tx:                             tx,
-		changePasswordStmt:             q.changePasswordStmt,
-		createCategoryStmt:             q.createCategoryStmt,
-		createExerciseStmt:             q.createExerciseStmt,
-		createLiftStmt:                 q.createLiftStmt,
-		createMuscleGroupStmt:          q.createMuscleGroupStmt,
-		createProfileStmt:              q.createProfileStmt,
-		createStockExerciseStmt:        q.createStockExerciseStmt,
-		createTemplateStmt:             q.createTemplateStmt,
-		createUserStmt:                 q.createUserStmt,
-		createWorkoutStmt:              q.createWorkoutStmt,
-		deleteCategoryStmt:             q.deleteCategoryStmt,
-		deleteExerciseStmt:             q.deleteExerciseStmt,
-		deleteLiftStmt:                 q.deleteLiftStmt,
-		deleteMuscleGroupStmt:          q.deleteMuscleGroupStmt,
-		deleteProfileStmt:              q.deleteProfileStmt,
-		deleteStockExerciseStmt:        q.deleteStockExerciseStmt,
-		deleteTemplateStmt:             q.deleteTemplateStmt,
-		deleteUserStmt:                 q.deleteUserStmt,
-		deleteWorkoutStmt:              q.deleteWorkoutStmt,
-		getCategoryStmt:                q.getCategoryStmt,
-		getExerciseStmt:                q.getExerciseStmt,
-		getExerciseByNameStmt:          q.getExerciseByNameStmt,
-		getLiftStmt:                    q.getLiftStmt,
-		getMuscleGroupStmt:             q.getMuscleGroupStmt,
-		getMuscleGroupByNameStmt:       q.getMuscleGroupByNameStmt,
-		getProfileStmt:                 q.getProfileStmt,
-		getStockExerciseStmt:           q.getStockExerciseStmt,
-		getTemplateStmt:                q.getTemplateStmt,
-		getUserByEmailStmt:             q.getUserByEmailStmt,
-		getUserByIdStmt:                q.getUserByIdStmt,
-		getWorkoutStmt:                 q.getWorkoutStmt,
-		listCategoriesStmt:             q.listCategoriesStmt,
-		listExercisesStmt:              q.listExercisesStmt,
-		listLiftsFromWorkoutStmt:       q.listLiftsFromWorkoutStmt,
-		listMaxRepPrsStmt:              q.listMaxRepPrsStmt,
-		listMaxWeightByExerciseStmt:    q.listMaxWeightByExerciseStmt,
-		listMaxWeightByMuscleGroupStmt: q.listMaxWeightByMuscleGroupStmt,
-		listMaxWeightLiftsStmt:         q.listMaxWeightLiftsStmt,
-		listMuscleGroupsStmt:           q.listMuscleGroupsStmt,
-		listStockExerciesStmt:          q.listStockExerciesStmt,
-		listTemplatesStmt:              q.listTemplatesStmt,
-		listWorkoutsStmt:               q.listWorkoutsStmt,
-		updateCategoryStmt:             q.updateCategoryStmt,
-		updateExerciseStmt:             q.updateExerciseStmt,
-		updateLiftStmt:                 q.updateLiftStmt,
-		updateMuscleGroupStmt:          q.updateMuscleGroupStmt,
-		updateProfileStmt:              q.updateProfileStmt,
-		updateStockExerciseStmt:        q.updateStockExerciseStmt,
-		updateTemplateStmt:             q.updateTemplateStmt,
-		updateUserStmt:                 q.updateUserStmt,
-		updateWorkoutStmt:              q.updateWorkoutStmt,
+		db:                           tx,
+		tx:                           tx,
+		changePasswordStmt:           q.changePasswordStmt,
+		createCategoryStmt:           q.createCategoryStmt,
+		createExerciseStmt:           q.createExerciseStmt,
+		createLiftStmt:               q.createLiftStmt,
+		createMuscleGroupStmt:        q.createMuscleGroupStmt,
+		createProfileStmt:            q.createProfileStmt,
+		createStockExerciseStmt:      q.createStockExerciseStmt,
+		createTemplateStmt:           q.createTemplateStmt,
+		createUserStmt:               q.createUserStmt,
+		createWorkoutStmt:            q.createWorkoutStmt,
+		deleteCategoryStmt:           q.deleteCategoryStmt,
+		deleteExerciseStmt:           q.deleteExerciseStmt,
+		deleteLiftStmt:               q.deleteLiftStmt,
+		deleteMuscleGroupStmt:        q.deleteMuscleGroupStmt,
+		deleteProfileStmt:            q.deleteProfileStmt,
+		deleteStockExerciseStmt:      q.deleteStockExerciseStmt,
+		deleteTemplateStmt:           q.deleteTemplateStmt,
+		deleteUserStmt:               q.deleteUserStmt,
+		deleteWorkoutStmt:            q.deleteWorkoutStmt,
+		getCategoryStmt:              q.getCategoryStmt,
+		getExerciseStmt:              q.getExerciseStmt,
+		getExerciseByNameStmt:        q.getExerciseByNameStmt,
+		getLiftStmt:                  q.getLiftStmt,
+		getMaxLiftsStmt:              q.getMaxLiftsStmt,
+		getMaxLiftsByExerciseStmt:    q.getMaxLiftsByExerciseStmt,
+		getMaxLiftsByMuscleGroupStmt: q.getMaxLiftsByMuscleGroupStmt,
+		getMaxRepLiftsStmt:           q.getMaxRepLiftsStmt,
+		getMuscleGroupStmt:           q.getMuscleGroupStmt,
+		getMuscleGroupByNameStmt:     q.getMuscleGroupByNameStmt,
+		getProfileStmt:               q.getProfileStmt,
+		getStockExerciseStmt:         q.getStockExerciseStmt,
+		getTemplateStmt:              q.getTemplateStmt,
+		getUserByEmailStmt:           q.getUserByEmailStmt,
+		getUserByIdStmt:              q.getUserByIdStmt,
+		getWorkoutStmt:               q.getWorkoutStmt,
+		listCategoriesStmt:           q.listCategoriesStmt,
+		listExercisesStmt:            q.listExercisesStmt,
+		listLiftsFromWorkoutStmt:     q.listLiftsFromWorkoutStmt,
+		listMuscleGroupsStmt:         q.listMuscleGroupsStmt,
+		listStockExerciesStmt:        q.listStockExerciesStmt,
+		listTemplatesStmt:            q.listTemplatesStmt,
+		listWorkoutsStmt:             q.listWorkoutsStmt,
+		updateCategoryStmt:           q.updateCategoryStmt,
+		updateExerciseStmt:           q.updateExerciseStmt,
+		updateLiftStmt:               q.updateLiftStmt,
+		updateMuscleGroupStmt:        q.updateMuscleGroupStmt,
+		updateProfileStmt:            q.updateProfileStmt,
+		updateStockExerciseStmt:      q.updateStockExerciseStmt,
+		updateTemplateStmt:           q.updateTemplateStmt,
+		updateUserStmt:               q.updateUserStmt,
+		updateWorkoutStmt:            q.updateWorkoutStmt,
 	}
 }

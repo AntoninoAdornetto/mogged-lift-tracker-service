@@ -87,60 +87,19 @@ func (q *Queries) GetLift(ctx context.Context, arg GetLiftParams) (Lift, error) 
 	return i, err
 }
 
-const listLiftsFromWorkout = `-- name: ListLiftsFromWorkout :many
-SELECT id, exercise_name, weight_lifted, reps, set_type, user_id, workout_id FROM lift
-WHERE workout_id = ? AND user_id = UUID_TO_BIN(?)
-`
-
-type ListLiftsFromWorkoutParams struct {
-	WorkoutID int32  `json:"workout_id"`
-	UserID    string `json:"user_id"`
-}
-
-func (q *Queries) ListLiftsFromWorkout(ctx context.Context, arg ListLiftsFromWorkoutParams) ([]Lift, error) {
-	rows, err := q.query(ctx, q.listLiftsFromWorkoutStmt, listLiftsFromWorkout, arg.WorkoutID, arg.UserID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []Lift{}
-	for rows.Next() {
-		var i Lift
-		if err := rows.Scan(
-			&i.ID,
-			&i.ExerciseName,
-			&i.WeightLifted,
-			&i.Reps,
-			&i.SetType,
-			&i.UserID,
-			&i.WorkoutID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listMaxRepPrs = `-- name: ListMaxRepPrs :many
+const getMaxLifts = `-- name: GetMaxLifts :many
 SELECT id, exercise_name, weight_lifted, reps, set_type, user_id, workout_id FROM lift
 WHERE user_id = UUID_TO_BIN(?)
-ORDER BY reps DESC LIMIT ?
+ORDER BY weight_lifted DESC LIMIT ?
 `
 
-type ListMaxRepPrsParams struct {
+type GetMaxLiftsParams struct {
 	UserID string `json:"user_id"`
 	Limit  int32  `json:"limit"`
 }
 
-func (q *Queries) ListMaxRepPrs(ctx context.Context, arg ListMaxRepPrsParams) ([]Lift, error) {
-	rows, err := q.query(ctx, q.listMaxRepPrsStmt, listMaxRepPrs, arg.UserID, arg.Limit)
+func (q *Queries) GetMaxLifts(ctx context.Context, arg GetMaxLiftsParams) ([]Lift, error) {
+	rows, err := q.query(ctx, q.getMaxLiftsStmt, getMaxLifts, arg.UserID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -170,19 +129,19 @@ func (q *Queries) ListMaxRepPrs(ctx context.Context, arg ListMaxRepPrsParams) ([
 	return items, nil
 }
 
-const listMaxWeightByExercise = `-- name: ListMaxWeightByExercise :many
+const getMaxLiftsByExercise = `-- name: GetMaxLiftsByExercise :many
 SELECT id, exercise_name, weight_lifted, reps, set_type, user_id, workout_id FROM lift
 WHERE exercise_name = ? AND user_id = UUID_TO_BIN(?)
 ORDER BY weight_lifted DESC
 `
 
-type ListMaxWeightByExerciseParams struct {
+type GetMaxLiftsByExerciseParams struct {
 	ExerciseName string `json:"exercise_name"`
 	UserID       string `json:"user_id"`
 }
 
-func (q *Queries) ListMaxWeightByExercise(ctx context.Context, arg ListMaxWeightByExerciseParams) ([]Lift, error) {
-	rows, err := q.query(ctx, q.listMaxWeightByExerciseStmt, listMaxWeightByExercise, arg.ExerciseName, arg.UserID)
+func (q *Queries) GetMaxLiftsByExercise(ctx context.Context, arg GetMaxLiftsByExerciseParams) ([]Lift, error) {
+	rows, err := q.query(ctx, q.getMaxLiftsByExerciseStmt, getMaxLiftsByExercise, arg.ExerciseName, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -212,34 +171,34 @@ func (q *Queries) ListMaxWeightByExercise(ctx context.Context, arg ListMaxWeight
 	return items, nil
 }
 
-const listMaxWeightByMuscleGroup = `-- name: ListMaxWeightByMuscleGroup :many
+const getMaxLiftsByMuscleGroup = `-- name: GetMaxLiftsByMuscleGroup :many
 SELECT muscle_group, exercise_name, weight_lifted, reps FROM lift
 JOIN exercise ON exercise.muscle_group = ? 
 WHERE lift.user_id = UUID_TO_BIN(?)
 ORDER BY weight_lifted DESC
 `
 
-type ListMaxWeightByMuscleGroupParams struct {
+type GetMaxLiftsByMuscleGroupParams struct {
 	MuscleGroup string `json:"muscle_group"`
 	UserID      string `json:"user_id"`
 }
 
-type ListMaxWeightByMuscleGroupRow struct {
+type GetMaxLiftsByMuscleGroupRow struct {
 	MuscleGroup  string  `json:"muscle_group"`
 	ExerciseName string  `json:"exercise_name"`
 	WeightLifted float64 `json:"weight_lifted"`
 	Reps         int32   `json:"reps"`
 }
 
-func (q *Queries) ListMaxWeightByMuscleGroup(ctx context.Context, arg ListMaxWeightByMuscleGroupParams) ([]ListMaxWeightByMuscleGroupRow, error) {
-	rows, err := q.query(ctx, q.listMaxWeightByMuscleGroupStmt, listMaxWeightByMuscleGroup, arg.MuscleGroup, arg.UserID)
+func (q *Queries) GetMaxLiftsByMuscleGroup(ctx context.Context, arg GetMaxLiftsByMuscleGroupParams) ([]GetMaxLiftsByMuscleGroupRow, error) {
+	rows, err := q.query(ctx, q.getMaxLiftsByMuscleGroupStmt, getMaxLiftsByMuscleGroup, arg.MuscleGroup, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []ListMaxWeightByMuscleGroupRow{}
+	items := []GetMaxLiftsByMuscleGroupRow{}
 	for rows.Next() {
-		var i ListMaxWeightByMuscleGroupRow
+		var i GetMaxLiftsByMuscleGroupRow
 		if err := rows.Scan(
 			&i.MuscleGroup,
 			&i.ExerciseName,
@@ -259,19 +218,60 @@ func (q *Queries) ListMaxWeightByMuscleGroup(ctx context.Context, arg ListMaxWei
 	return items, nil
 }
 
-const listMaxWeightLifts = `-- name: ListMaxWeightLifts :many
+const getMaxRepLifts = `-- name: GetMaxRepLifts :many
 SELECT id, exercise_name, weight_lifted, reps, set_type, user_id, workout_id FROM lift
 WHERE user_id = UUID_TO_BIN(?)
-ORDER BY weight_lifted DESC LIMIT ?
+ORDER BY reps DESC LIMIT ?
 `
 
-type ListMaxWeightLiftsParams struct {
+type GetMaxRepLiftsParams struct {
 	UserID string `json:"user_id"`
 	Limit  int32  `json:"limit"`
 }
 
-func (q *Queries) ListMaxWeightLifts(ctx context.Context, arg ListMaxWeightLiftsParams) ([]Lift, error) {
-	rows, err := q.query(ctx, q.listMaxWeightLiftsStmt, listMaxWeightLifts, arg.UserID, arg.Limit)
+func (q *Queries) GetMaxRepLifts(ctx context.Context, arg GetMaxRepLiftsParams) ([]Lift, error) {
+	rows, err := q.query(ctx, q.getMaxRepLiftsStmt, getMaxRepLifts, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Lift{}
+	for rows.Next() {
+		var i Lift
+		if err := rows.Scan(
+			&i.ID,
+			&i.ExerciseName,
+			&i.WeightLifted,
+			&i.Reps,
+			&i.SetType,
+			&i.UserID,
+			&i.WorkoutID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listLiftsFromWorkout = `-- name: ListLiftsFromWorkout :many
+SELECT id, exercise_name, weight_lifted, reps, set_type, user_id, workout_id FROM lift
+WHERE workout_id = ? AND user_id = UUID_TO_BIN(?)
+`
+
+type ListLiftsFromWorkoutParams struct {
+	WorkoutID int32  `json:"workout_id"`
+	UserID    string `json:"user_id"`
+}
+
+func (q *Queries) ListLiftsFromWorkout(ctx context.Context, arg ListLiftsFromWorkoutParams) ([]Lift, error) {
+	rows, err := q.query(ctx, q.listLiftsFromWorkoutStmt, listLiftsFromWorkout, arg.WorkoutID, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
