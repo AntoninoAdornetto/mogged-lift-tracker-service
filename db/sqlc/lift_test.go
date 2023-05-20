@@ -60,7 +60,7 @@ func TestListMaxWeightPrs(t *testing.T) {
 	n := 5
 	workout := GenRandWorkout(t, userId.String())
 
-	query, err := testQueries.ListMaxWeightPrs(context.Background(), ListMaxWeightPrsParams{
+	query, err := testQueries.ListMaxWeightLifts(context.Background(), ListMaxWeightLiftsParams{
 		UserID: userId.String(),
 		Limit:  int32(n),
 	})
@@ -71,7 +71,7 @@ func TestListMaxWeightPrs(t *testing.T) {
 		GenRandLift(t, NewLiftArgs{UserID: userId.String(), WorkoutID: workout.ID})
 	}
 
-	query, err = testQueries.ListMaxWeightPrs(context.Background(), ListMaxWeightPrsParams{
+	query, err = testQueries.ListMaxWeightLifts(context.Background(), ListMaxWeightLiftsParams{
 		UserID: userId.String(),
 		Limit:  int32(n),
 	})
