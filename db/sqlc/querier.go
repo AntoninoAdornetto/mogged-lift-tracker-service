@@ -33,9 +33,8 @@ type Querier interface {
 	GetExercise(ctx context.Context, arg GetExerciseParams) (Exercise, error)
 	GetExerciseByName(ctx context.Context, arg GetExerciseByNameParams) (Exercise, error)
 	GetLift(ctx context.Context, arg GetLiftParams) (Lift, error)
-	// @todo fix this, args are broken when using query and it should allow them to query by muscle group, not exercise name
-	GetMaxLiftsByMuscleGroup(ctx context.Context) ([]GetMaxLiftsByMuscleGroupRow, error)
 	GetMuscleGroup(ctx context.Context, id int32) (MuscleGroup, error)
+	GetMuscleGroupByName(ctx context.Context, name string) (MuscleGroup, error)
 	GetProfile(ctx context.Context, userID string) (Profile, error)
 	GetStockExercise(ctx context.Context, id int32) (StockExercise, error)
 	GetTemplate(ctx context.Context, arg GetTemplateParams) (Template, error)
@@ -47,6 +46,7 @@ type Querier interface {
 	ListLiftsFromWorkout(ctx context.Context, arg ListLiftsFromWorkoutParams) ([]Lift, error)
 	ListMaxRepPrs(ctx context.Context, arg ListMaxRepPrsParams) ([]Lift, error)
 	ListMaxWeightByExercise(ctx context.Context, arg ListMaxWeightByExerciseParams) ([]Lift, error)
+	ListMaxWeightByMuscleGroup(ctx context.Context, arg ListMaxWeightByMuscleGroupParams) ([]ListMaxWeightByMuscleGroupRow, error)
 	ListMaxWeightPrs(ctx context.Context, arg ListMaxWeightPrsParams) ([]Lift, error)
 	ListMuscleGroups(ctx context.Context) ([]MuscleGroup, error)
 	ListStockExercies(ctx context.Context) ([]StockExercise, error)
