@@ -41,6 +41,18 @@ func (q *Queries) GetMuscleGroup(ctx context.Context, id int32) (MuscleGroup, er
 	return i, err
 }
 
+const getMuscleGroupByName = `-- name: GetMuscleGroupByName :one
+SELECT id, name FROM muscle_group
+WHERE name = ?
+`
+
+func (q *Queries) GetMuscleGroupByName(ctx context.Context, name string) (MuscleGroup, error) {
+	row := q.queryRow(ctx, q.getMuscleGroupByNameStmt, getMuscleGroupByName, name)
+	var i MuscleGroup
+	err := row.Scan(&i.ID, &i.Name)
+	return i, err
+}
+
 const listMuscleGroups = `-- name: ListMuscleGroups :many
 SELECT id, name FROM muscle_group
 `
