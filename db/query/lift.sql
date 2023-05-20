@@ -35,7 +35,7 @@ ORDER BY weight_lifted DESC;
 
 -- name: GetMaxLiftsByMuscleGroup :many
 SELECT muscle_group, exercise_name, weight_lifted, reps FROM lift
-JOIN exercise ON exercise.muscle_group = ? 
+JOIN exercise ON exercise.user_id = UUID_TO_BIN(sqlc.arg('user_id')) AND exercise.name = lift.exercise_name AND exercise.muscle_group = ?
 WHERE lift.user_id = UUID_TO_BIN(sqlc.arg('user_id'))
 ORDER BY weight_lifted DESC;
 
