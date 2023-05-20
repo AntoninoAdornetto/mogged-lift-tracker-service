@@ -96,21 +96,20 @@ func (server *Server) listLiftsFromWorkout(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
-// ListMaxWeightPrs
-type listMaxWeightPrsRequest struct {
+type listMaxWeightLiftsRequest struct {
 	Limit int32 `uri:"limit" binding:"required"`
 }
 
-func (server *Server) listMaxWeightPrs(ctx *gin.Context) {
+func (server *Server) listMaxWeightLifts(ctx *gin.Context) {
 	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
 
-	req := listMaxWeightPrsRequest{}
+	req := listMaxWeightLiftsRequest{}
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	lifts, err := server.store.ListMaxWeightPrs(ctx, db.ListMaxWeightPrsParams{
+	lifts, err := server.store.ListMaxWeightLifts(ctx, db.ListMaxWeightLiftsParams{
 		Limit:  req.Limit,
 		UserID: userID,
 	})
