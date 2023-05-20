@@ -12,6 +12,15 @@ func TestCreateMuscleGroup(t *testing.T) {
 	GenRandMuscleGroup(t)
 }
 
+// Real Muscle Group, not rand generated. uses muscle group from seed migration
+func TestGetMuscleGroupByName(t *testing.T) {
+	chest := "Chest"
+	muscleGroup, err := testQueries.GetMuscleGroupByName(context.Background(), chest)
+	require.NoError(t, err)
+	require.NotZero(t, muscleGroup.ID)
+	require.Equal(t, muscleGroup.Name, chest)
+}
+
 func TestListMuscleGroups(t *testing.T) {
 	n := 5
 	muscleGroups := make([]MuscleGroup, n)
