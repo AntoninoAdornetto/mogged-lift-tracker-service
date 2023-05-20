@@ -2,6 +2,8 @@ package db
 
 import (
 	"context"
+	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/util"
@@ -115,10 +117,35 @@ func TestListMaxRepPrs(t *testing.T) {
 	}
 }
 
-// @todo
-// func TestGetMaxLiftByExercise(t *testing.T) {
-// 	testQueries.GetMaxLiftByExercise()
-// }
+func TestListMaxWeightByExercise(t *testing.T) {
+	user := GenRandUser(t) // fresh user no lifts tracked as of yet
+	exerciseName := util.RandomStr(10)
+	amountOfLifts := 10
+
+	lifts := GenRandLiftsSameExercise(t, createExerciseLifts{
+		userID:        user.ID,
+		AmountOfLifts: amountOfLifts,
+		exerciseName:  exerciseName,
+	})
+
+	// sorting manually to ensure that the maxLifts query match the sorted lifts array
+	sort.Slice(lifts, func(i, j int) bool {
+		return lifts[i].WeightLifted > lifts[j].WeightLifted
+	})
+
+	maxLifts, err := testQueries.ListMaxWeightByExercise(context.Background(), ListMaxWeightByExerciseParams{
+		ExerciseName: exerciseName,
+		UserID:       user.ID,
+	})
+	require.NoError(t, err)
+	fmt.Println(maxLifts)
+	require.Len(t, maxLifts, amountOfLifts)
+	require.Equal(t, len(maxLifts), len(lifts))
+
+	for i, v := range lifts {
+		require.Equal(t, maxLifts[i].WeightLifted, v.WeightLifted)
+	}
+}
 
 // func TestListMaxWeightPrsByCategory(t *testing.T) {
 // 	testQueries.GetMaxLiftsByMuscleGroup(context.Background())
@@ -235,4 +262,54 @@ func GenRandLift(t *testing.T, args NewLiftArgs) Lift {
 
 	lift = &query
 	return *lift
+}
+
+type createExerciseLifts struct {
+	exerciseName  string
+	userID        string
+	AmountOfLifts int
+}
+
+func GenRandLiftsSameExercise(t *testing.T, args createExerciseLifts) []Lift {
+	muscleGroup := GenRandMuscleGroup(t)
+	category := GenRandCategory(t)
+
+	id, err := testQueries.CreateExercise(context.Background(), CreateExerciseParams{
+		Name:        args.exerciseName,
+		Category:    category.Name,
+		MuscleGroup: muscleGroup.Name,
+		UserID:      args.userID,
+	})
+	require.NoError(t, err)
+
+	res, err := testQueries.CreateWorkout(context.Background(), CreateWorkoutParams{UserID: args.userID})
+	require.NoError(t, err)
+	workoutId, err := res.LastInsertId()
+	require.NoError(t, err)
+	require.NotZero(t, workoutId)
+
+	exercise, err := testQueries.GetExercise(context.Background(), GetExerciseParams{ID: int32(id), UserID: args.userID})
+	require.NoError(t, err)
+	require.NotZero(t, exercise.ID)
+
+	lifts := make([]Lift, args.AmountOfLifts)
+	for i := range lifts {
+		res, err := testQueries.CreateLift(context.Background(), CreateLiftParams{
+			WeightLifted: float64(util.RandomInt(100, 285)),
+			UserID:       args.userID,
+			ExerciseName: exercise.Name,
+			Reps:         int32(util.RandomInt(6, 30)),
+			SetType:      "working",
+			WorkoutID:    int32(workoutId),
+		})
+		require.NoError(t, err)
+		liftId, err := res.LastInsertId()
+		require.NoError(t, err)
+		require.NotZero(t, liftId)
+
+		lift, err := testQueries.GetLift(context.Background(), GetLiftParams{ID: liftId, UserID: args.userID})
+		lifts[i] = lift
+	}
+
+	return lifts
 }
