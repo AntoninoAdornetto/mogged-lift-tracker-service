@@ -61,6 +61,10 @@ func (server *Server) setupRouter() {
 	protected.GET("/listWorkouts", server.listWorkouts)
 	protected.PATCH("/updateWorkout", server.updateWorkout)
 	protected.DELETE("/deleteWorkout/:id", server.deleteWorkout)
+
+	protected.GET("/getLift/:id", server.getLift)
+	protected.GET("/listLiftsFromWorkout/:workout_id", server.listLiftsFromWorkout)
+	protected.GET("/listMaxWeightPrs/:limit", server.listMaxWeightPrs)
 	server.router = router
 }
 
