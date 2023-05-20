@@ -59,7 +59,7 @@ func (server *Server) getLift(ctx *gin.Context) {
 }
 
 type listLiftsFromWorkoutRequest struct {
-	WorkoutID int32 `uri:"workout_id"`
+	WorkoutID int32 `uri:"workout_id" binding:"required"`
 }
 
 func (server *Server) listLiftsFromWorkout(ctx *gin.Context) {
@@ -74,6 +74,45 @@ func (server *Server) listLiftsFromWorkout(ctx *gin.Context) {
 	lifts, err := server.store.ListLiftsFromWorkout(ctx, db.ListLiftsFromWorkoutParams{
 		WorkoutID: req.WorkoutID,
 		UserID:    userID,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	res := make([]LiftResponse, len(lifts))
+	for i, v := range lifts {
+		res[i] = LiftResponse{
+			ID:           v.ID,
+			Reps:         v.Reps,
+			WeightLifted: v.WeightLifted,
+			ExerciseName: v.ExerciseName,
+			SetType:      v.SetType,
+			UserID:       userID,
+			WorkoutID:    v.WorkoutID,
+		}
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
+
+// ListMaxWeightPrs
+type listMaxWeightPrsRequest struct {
+	Limit int32 `uri:"limit" binding:"required"`
+}
+
+func (server *Server) listMaxWeightPrs(ctx *gin.Context) {
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+
+	req := listMaxWeightPrsRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	lifts, err := server.store.ListMaxWeightPrs(ctx, db.ListMaxWeightPrsParams{
+		Limit:  req.Limit,
+		UserID: userID,
 	})
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
