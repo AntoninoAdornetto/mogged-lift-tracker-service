@@ -23,7 +23,7 @@ WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 SELECT * FROM lift
 WHERE workout_id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
--- name: ListMaxWeightPrs :many
+-- name: ListMaxWeightLifts :many
 SELECT * FROM lift
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'))
 ORDER BY weight_lifted DESC LIMIT ?;
