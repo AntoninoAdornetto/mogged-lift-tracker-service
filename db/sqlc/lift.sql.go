@@ -173,7 +173,7 @@ func (q *Queries) GetMaxLiftsByExercise(ctx context.Context, arg GetMaxLiftsByEx
 
 const getMaxLiftsByMuscleGroup = `-- name: GetMaxLiftsByMuscleGroup :many
 SELECT muscle_group, exercise_name, weight_lifted, reps FROM lift
-JOIN exercise ON exercise.muscle_group = ? 
+JOIN exercise ON exercise.user_id = lift.user_id AND exercise.name = lift.exercise_name AND exercise.muscle_group = ?
 WHERE lift.user_id = UUID_TO_BIN(?)
 ORDER BY weight_lifted DESC
 `
