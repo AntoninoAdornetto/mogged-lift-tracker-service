@@ -115,6 +115,15 @@ func TestListMaxRepPrs(t *testing.T) {
 	}
 }
 
+// @todo
+// func TestGetMaxLiftByExercise(t *testing.T) {
+// 	testQueries.GetMaxLiftByExercise()
+// }
+
+// func TestListMaxWeightPrsByCategory(t *testing.T) {
+// 	testQueries.GetMaxLiftsByMuscleGroup(context.Background())
+// }
+
 func TestUpdateLift(t *testing.T) {
 	user := GenRandUser(t)
 	userId, err := uuid.Parse(user.ID)
