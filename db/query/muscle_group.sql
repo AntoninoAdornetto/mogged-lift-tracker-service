@@ -7,6 +7,10 @@ INSERT INTO muscle_group (
 SELECT * FROM muscle_group
 WHERE id = ?;
 
+-- name: GetMuscleGroupByName :one
+SELECT * FROM muscle_group
+WHERE name = ?;
+
 -- name: ListMuscleGroups :many
 SELECT * FROM muscle_group;
 
