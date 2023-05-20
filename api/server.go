@@ -63,6 +63,7 @@ func (server *Server) setupRouter() {
 	protected.DELETE("/deleteWorkout/:id", server.deleteWorkout)
 
 	protected.GET("/getLift/:id", server.getLift)
+	protected.GET("/listLiftsFromWorkout/:workout_id", server.listLiftsFromWorkout)
 	server.router = router
 }
 
