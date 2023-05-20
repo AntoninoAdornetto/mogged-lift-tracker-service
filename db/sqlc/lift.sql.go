@@ -87,6 +87,60 @@ func (q *Queries) GetLift(ctx context.Context, arg GetLiftParams) (Lift, error) 
 	return i, err
 }
 
+const getMaxLiftByExercise = `-- name: GetMaxLiftByExercise :one
+SELECT MAX(weight_lifted) FROM lift
+WHERE exercise_name = ? AND user_id = UUID_TO_BIN(sql.arg('user_id'))
+`
+
+func (q *Queries) GetMaxLiftByExercise(ctx context.Context, exerciseName string) (interface{}, error) {
+	row := q.queryRow(ctx, q.getMaxLiftByExerciseStmt, getMaxLiftByExercise, exerciseName)
+	var max interface{}
+	err := row.Scan(&max)
+	return max, err
+}
+
+const getMaxLiftsByMuscleGroup = `-- name: GetMaxLiftsByMuscleGroup :many
+SELECT muscle_group, exercise_name, weight_lifted, reps FROM lift
+JOIN exercise ON lift.exercise_name = exercise.name
+WHERE lift.user_id = UUID_TO_BIN(sql.arg('user_id'))
+ORDER BY weight_lifted DESC
+`
+
+type GetMaxLiftsByMuscleGroupRow struct {
+	MuscleGroup  string  `json:"muscle_group"`
+	ExerciseName string  `json:"exercise_name"`
+	WeightLifted float64 `json:"weight_lifted"`
+	Reps         int32   `json:"reps"`
+}
+
+func (q *Queries) GetMaxLiftsByMuscleGroup(ctx context.Context) ([]GetMaxLiftsByMuscleGroupRow, error) {
+	rows, err := q.query(ctx, q.getMaxLiftsByMuscleGroupStmt, getMaxLiftsByMuscleGroup)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetMaxLiftsByMuscleGroupRow{}
+	for rows.Next() {
+		var i GetMaxLiftsByMuscleGroupRow
+		if err := rows.Scan(
+			&i.MuscleGroup,
+			&i.ExerciseName,
+			&i.WeightLifted,
+			&i.Reps,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listLiftsFromWorkout = `-- name: ListLiftsFromWorkout :many
 SELECT id, exercise_name, weight_lifted, reps, set_type, user_id, workout_id FROM lift
 WHERE workout_id = ? AND user_id = UUID_TO_BIN(?)

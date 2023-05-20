@@ -33,6 +33,8 @@ type Querier interface {
 	GetExercise(ctx context.Context, arg GetExerciseParams) (Exercise, error)
 	GetExerciseByName(ctx context.Context, arg GetExerciseByNameParams) (Exercise, error)
 	GetLift(ctx context.Context, arg GetLiftParams) (Lift, error)
+	GetMaxLiftByExercise(ctx context.Context, exerciseName string) (interface{}, error)
+	GetMaxLiftsByMuscleGroup(ctx context.Context) ([]GetMaxLiftsByMuscleGroupRow, error)
 	GetMuscleGroup(ctx context.Context, id int32) (MuscleGroup, error)
 	GetProfile(ctx context.Context, userID string) (Profile, error)
 	GetStockExercise(ctx context.Context, id int32) (StockExercise, error)
