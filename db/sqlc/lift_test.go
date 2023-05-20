@@ -147,13 +147,31 @@ func TestListMaxWeightByExercise(t *testing.T) {
 	}
 }
 
-// func TestListMaxWeightByMuscleGroup(t *testing.T) {
-// 	user := GenRandUser(t)
-// 	testQueries.ListMaxWeightByMuscleGroup(context.Background(), ListMaxWeightByMuscleGroupParams{
-// 		MuscleGroup: "",
-// 		UserID:      user.ID,
-// 	})
-// }
+func TestListMaxWeightByMuscleGroup(t *testing.T) {
+	user := GenRandUser(t)
+	amountOfLifts := 3
+	muscleGroup := "Chest"
+	exercises := []string{"Barbell Bench Press", "Incline Barbell Bench Press"}
+
+	for _, v := range exercises {
+		for i := 0; i < amountOfLifts; i++ {
+			GenRandLiftsByMuscleGroup(t, genRandLiftByMuscleGroup{ExerciseName: v, MuscleGroup: muscleGroup, UserID: user.ID})
+		}
+	}
+
+	maxLifts, err := testQueries.ListMaxWeightByMuscleGroup(context.Background(), ListMaxWeightByMuscleGroupParams{
+		MuscleGroup: muscleGroup,
+		UserID:      user.ID,
+	})
+	require.NoError(t, err)
+
+	n := len(maxLifts) - 1
+	for n > 0 {
+		require.LessOrEqual(t, maxLifts[n].WeightLifted, maxLifts[n-1].WeightLifted)
+		n--
+	}
+	require.Zero(t, n)
+}
 
 func TestUpdateLift(t *testing.T) {
 	user := GenRandUser(t)
@@ -268,15 +286,46 @@ func GenRandLift(t *testing.T, args NewLiftArgs) Lift {
 	return *lift
 }
 
-type genRandLiftsByMuscleGroup struct {
+type genRandLiftByMuscleGroup struct {
 	ExerciseName string
 	MuscleGroup  string
 	UserID       string
 }
 
 // use real muscle groups & exercises that are part of seed migration
-// func GenRandLiftsByMuscleGroup(t *testing.T, args genRandLiftsByMuscleGroup) {
-// }
+func GenRandLiftsByMuscleGroup(t *testing.T, args genRandLiftByMuscleGroup) {
+	muscleGroup, err := testQueries.GetMuscleGroupByName(context.Background(), args.MuscleGroup)
+	require.NoError(t, err)
+	require.NotZero(t, muscleGroup.ID)
+
+	_, err = testQueries.GetExerciseByName(context.Background(), GetExerciseByNameParams{Name: args.ExerciseName, UserID: args.UserID})
+	if err != nil {
+		testQueries.CreateExercise(context.Background(), CreateExerciseParams{
+			Name:        args.ExerciseName,
+			MuscleGroup: muscleGroup.Name,
+			Category:    "Barbell",
+			UserID:      args.UserID,
+		})
+	}
+	exercise, err := testQueries.GetExerciseByName(context.Background(), GetExerciseByNameParams{Name: args.ExerciseName, UserID: args.UserID})
+	require.NotZero(t, exercise.ID)
+
+	workout, err := testQueries.CreateWorkout(context.Background(), CreateWorkoutParams{UserID: args.UserID})
+	require.NoError(t, err)
+	workoutId, err := workout.LastInsertId()
+	require.NoError(t, err)
+	require.NotZero(t, workoutId)
+
+	_, err = testQueries.CreateLift(context.Background(), CreateLiftParams{
+		ExerciseName: exercise.Name,
+		UserID:       args.UserID,
+		Reps:         int32(util.RandomInt(6, 20)),
+		WeightLifted: float64(util.RandomInt(100, 285)),
+		SetType:      "working",
+		WorkoutID:    int32(workoutId),
+	})
+	require.NoError(t, err)
+}
 
 type createExerciseLifts struct {
 	exerciseName  string
