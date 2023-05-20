@@ -28,6 +28,16 @@ SELECT * FROM lift
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'))
 ORDER BY weight_lifted DESC LIMIT ?;
 
+-- name: GetMaxLiftByExercise :one
+SELECT MAX(weight_lifted) FROM lift
+WHERE exercise_name = ? AND user_id = UUID_TO_BIN(sql.arg('user_id'));
+
+-- name: GetMaxLiftsByMuscleGroup :many
+SELECT muscle_group, exercise_name, weight_lifted, reps FROM lift
+JOIN exercise ON lift.exercise_name = exercise.name
+WHERE lift.user_id = UUID_TO_BIN(sql.arg('user_id'))
+ORDER BY weight_lifted DESC;
+
 -- name: ListMaxRepPrs :many
 SELECT * FROM lift
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'))
