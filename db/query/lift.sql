@@ -28,10 +28,10 @@ SELECT * FROM lift
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'))
 ORDER BY weight_lifted DESC LIMIT ?;
 
--- @todo fix this, args are broken when using query for user_id
--- name: GetMaxLiftByExercise :one
-SELECT MAX(weight_lifted) FROM lift
-WHERE exercise_name = ? AND user_id = UUID_TO_BIN(sql.arg('user_id'));
+-- name: ListMaxWeightByExercise :many
+SELECT * FROM lift
+WHERE exercise_name = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'))
+ORDER BY weight_lifted DESC;
 
 -- @todo fix this, args are broken when using query and it should allow them to query by muscle group, not exercise name
 -- name: GetMaxLiftsByMuscleGroup :many
