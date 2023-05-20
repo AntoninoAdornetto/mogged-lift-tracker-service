@@ -135,8 +135,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.listMaxWeightByMuscleGroupStmt, err = db.PrepareContext(ctx, listMaxWeightByMuscleGroup); err != nil {
 		return nil, fmt.Errorf("error preparing query ListMaxWeightByMuscleGroup: %w", err)
 	}
-	if q.listMaxWeightPrsStmt, err = db.PrepareContext(ctx, listMaxWeightPrs); err != nil {
-		return nil, fmt.Errorf("error preparing query ListMaxWeightPrs: %w", err)
+	if q.listMaxWeightLiftsStmt, err = db.PrepareContext(ctx, listMaxWeightLifts); err != nil {
+		return nil, fmt.Errorf("error preparing query ListMaxWeightLifts: %w", err)
 	}
 	if q.listMuscleGroupsStmt, err = db.PrepareContext(ctx, listMuscleGroups); err != nil {
 		return nil, fmt.Errorf("error preparing query ListMuscleGroups: %w", err)
@@ -367,9 +367,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listMaxWeightByMuscleGroupStmt: %w", cerr)
 		}
 	}
-	if q.listMaxWeightPrsStmt != nil {
-		if cerr := q.listMaxWeightPrsStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing listMaxWeightPrsStmt: %w", cerr)
+	if q.listMaxWeightLiftsStmt != nil {
+		if cerr := q.listMaxWeightLiftsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listMaxWeightLiftsStmt: %w", cerr)
 		}
 	}
 	if q.listMuscleGroupsStmt != nil {
@@ -513,7 +513,7 @@ type Queries struct {
 	listMaxRepPrsStmt              *sql.Stmt
 	listMaxWeightByExerciseStmt    *sql.Stmt
 	listMaxWeightByMuscleGroupStmt *sql.Stmt
-	listMaxWeightPrsStmt           *sql.Stmt
+	listMaxWeightLiftsStmt         *sql.Stmt
 	listMuscleGroupsStmt           *sql.Stmt
 	listStockExerciesStmt          *sql.Stmt
 	listTemplatesStmt              *sql.Stmt
@@ -570,7 +570,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		listMaxRepPrsStmt:              q.listMaxRepPrsStmt,
 		listMaxWeightByExerciseStmt:    q.listMaxWeightByExerciseStmt,
 		listMaxWeightByMuscleGroupStmt: q.listMaxWeightByMuscleGroupStmt,
-		listMaxWeightPrsStmt:           q.listMaxWeightPrsStmt,
+		listMaxWeightLiftsStmt:         q.listMaxWeightLiftsStmt,
 		listMuscleGroupsStmt:           q.listMuscleGroupsStmt,
 		listStockExerciesStmt:          q.listStockExerciesStmt,
 		listTemplatesStmt:              q.listTemplatesStmt,

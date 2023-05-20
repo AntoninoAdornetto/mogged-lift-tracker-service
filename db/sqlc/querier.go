@@ -47,7 +47,7 @@ type Querier interface {
 	ListMaxRepPrs(ctx context.Context, arg ListMaxRepPrsParams) ([]Lift, error)
 	ListMaxWeightByExercise(ctx context.Context, arg ListMaxWeightByExerciseParams) ([]Lift, error)
 	ListMaxWeightByMuscleGroup(ctx context.Context, arg ListMaxWeightByMuscleGroupParams) ([]ListMaxWeightByMuscleGroupRow, error)
-	ListMaxWeightPrs(ctx context.Context, arg ListMaxWeightPrsParams) ([]Lift, error)
+	ListMaxWeightLifts(ctx context.Context, arg ListMaxWeightLiftsParams) ([]Lift, error)
 	ListMuscleGroups(ctx context.Context) ([]MuscleGroup, error)
 	ListStockExercies(ctx context.Context) ([]StockExercise, error)
 	ListTemplates(ctx context.Context, createdBy string) ([]Template, error)

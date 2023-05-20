@@ -259,19 +259,19 @@ func (q *Queries) ListMaxWeightByMuscleGroup(ctx context.Context, arg ListMaxWei
 	return items, nil
 }
 
-const listMaxWeightPrs = `-- name: ListMaxWeightPrs :many
+const listMaxWeightLifts = `-- name: ListMaxWeightLifts :many
 SELECT id, exercise_name, weight_lifted, reps, set_type, user_id, workout_id FROM lift
 WHERE user_id = UUID_TO_BIN(?)
 ORDER BY weight_lifted DESC LIMIT ?
 `
 
-type ListMaxWeightPrsParams struct {
+type ListMaxWeightLiftsParams struct {
 	UserID string `json:"user_id"`
 	Limit  int32  `json:"limit"`
 }
 
-func (q *Queries) ListMaxWeightPrs(ctx context.Context, arg ListMaxWeightPrsParams) ([]Lift, error) {
-	rows, err := q.query(ctx, q.listMaxWeightPrsStmt, listMaxWeightPrs, arg.UserID, arg.Limit)
+func (q *Queries) ListMaxWeightLifts(ctx context.Context, arg ListMaxWeightLiftsParams) ([]Lift, error) {
+	rows, err := q.query(ctx, q.listMaxWeightLiftsStmt, listMaxWeightLifts, arg.UserID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
