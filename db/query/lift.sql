@@ -23,24 +23,23 @@ WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 SELECT * FROM lift
 WHERE workout_id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
--- name: ListMaxWeightPrs :many
+-- name: GetMaxLifts :many
 SELECT * FROM lift
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'))
 ORDER BY weight_lifted DESC LIMIT ?;
 
--- @todo fix this, args are broken when using query for user_id
--- name: GetMaxLiftByExercise :one
-SELECT MAX(weight_lifted) FROM lift
-WHERE exercise_name = ? AND user_id = UUID_TO_BIN(sql.arg('user_id'));
-
--- @todo fix this, args are broken when using query and it should allow them to query by muscle group, not exercise name
--- name: GetMaxLiftsByMuscleGroup :many
-SELECT muscle_group, exercise_name, weight_lifted, reps FROM lift
-JOIN exercise ON lift.exercise_name = exercise.name
-WHERE lift.user_id = UUID_TO_BIN(sql.arg('user_id'))
+-- name: GetMaxLiftsByExercise :many
+SELECT * FROM lift
+WHERE exercise_name = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'))
 ORDER BY weight_lifted DESC;
 
--- name: ListMaxRepPrs :many
+-- name: GetMaxLiftsByMuscleGroup :many
+SELECT muscle_group, exercise_name, weight_lifted, reps FROM lift
+JOIN exercise ON exercise.user_id = UUID_TO_BIN(sqlc.arg('user_id')) AND exercise.name = lift.exercise_name AND exercise.muscle_group = ?
+WHERE lift.user_id = UUID_TO_BIN(sqlc.arg('user_id'))
+ORDER BY weight_lifted DESC;
+
+-- name: GetMaxRepLifts :many
 SELECT * FROM lift
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'))
 ORDER BY reps DESC LIMIT ?;
