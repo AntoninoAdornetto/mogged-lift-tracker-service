@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	LIFT_NOT_FOUND = "lift with specified ID '%d' does not exist"
+	LIFT_NOT_FOUND         = "lift with specified ID '%d' does not exist"
+	MUSCLE_GROUP_NOT_FOUND = "exercise with specified name '%s' does not exist"
 )
 
 type LiftResponse struct {
@@ -176,6 +177,55 @@ func (server *Server) getMaxLiftsByExercise(ctx *gin.Context) {
 			SetType:      v.SetType,
 			UserID:       userID,
 			WorkoutID:    v.WorkoutID,
+		}
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
+
+type getMaxLiftsByMuscleGroupRequest struct {
+	MuscleGroup string `uri:"muscle_group" binding:"required"`
+}
+
+type getMaxLiftsByMuscleGroupResponse struct {
+	MuscleGroup  string  `json:"muscleGroup"`
+	ExerciseName string  `json:"exerciseName"`
+	WeightLifted float64 `json:"weightLifted"`
+	Reps         int32   `json:"reps"`
+}
+
+func (server *Server) getMaxLiftsByMuscleGroup(ctx *gin.Context) {
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+
+	req := getMaxLiftsByMuscleGroupRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	muscleGroup, err := server.store.GetMuscleGroupByName(ctx, req.MuscleGroup)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(MUSCLE_GROUP_NOT_FOUND, req.MuscleGroup)))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	lifts, err := server.store.GetMaxLiftsByMuscleGroup(ctx, db.GetMaxLiftsByMuscleGroupParams{MuscleGroup: muscleGroup.Name, UserID: userID})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	res := make([]getMaxLiftsByMuscleGroupResponse, len(lifts))
+	for i, v := range lifts {
+		res[i] = getMaxLiftsByMuscleGroupResponse{
+			MuscleGroup:  v.MuscleGroup,
+			Reps:         v.Reps,
+			ExerciseName: v.ExerciseName,
+			WeightLifted: v.WeightLifted,
 		}
 	}
 
