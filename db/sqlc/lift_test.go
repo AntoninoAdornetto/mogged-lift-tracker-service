@@ -147,8 +147,12 @@ func TestListMaxWeightByExercise(t *testing.T) {
 	}
 }
 
-// func TestListMaxWeightPrsByCategory(t *testing.T) {
-// 	testQueries.GetMaxLiftsByMuscleGroup(context.Background())
+// func TestListMaxWeightByMuscleGroup(t *testing.T) {
+// 	user := GenRandUser(t)
+// 	testQueries.ListMaxWeightByMuscleGroup(context.Background(), ListMaxWeightByMuscleGroupParams{
+// 		MuscleGroup: "",
+// 		UserID:      user.ID,
+// 	})
 // }
 
 func TestUpdateLift(t *testing.T) {
@@ -263,6 +267,16 @@ func GenRandLift(t *testing.T, args NewLiftArgs) Lift {
 	lift = &query
 	return *lift
 }
+
+type genRandLiftsByMuscleGroup struct {
+	ExerciseName string
+	MuscleGroup  string
+	UserID       string
+}
+
+// use real muscle groups & exercises that are part of seed migration
+// func GenRandLiftsByMuscleGroup(t *testing.T, args genRandLiftsByMuscleGroup) {
+// }
 
 type createExerciseLifts struct {
 	exerciseName  string
