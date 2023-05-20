@@ -87,18 +87,6 @@ func (q *Queries) GetLift(ctx context.Context, arg GetLiftParams) (Lift, error) 
 	return i, err
 }
 
-const getMaxLiftByExercise = `-- name: GetMaxLiftByExercise :one
-SELECT MAX(weight_lifted) FROM lift
-WHERE exercise_name = ? AND user_id = UUID_TO_BIN(sql.arg('user_id'))
-`
-
-func (q *Queries) GetMaxLiftByExercise(ctx context.Context, exerciseName string) (interface{}, error) {
-	row := q.queryRow(ctx, q.getMaxLiftByExerciseStmt, getMaxLiftByExercise, exerciseName)
-	var max interface{}
-	err := row.Scan(&max)
-	return max, err
-}
-
 const getMaxLiftsByMuscleGroup = `-- name: GetMaxLiftsByMuscleGroup :many
 SELECT muscle_group, exercise_name, weight_lifted, reps FROM lift
 JOIN exercise ON lift.exercise_name = exercise.name
@@ -113,6 +101,7 @@ type GetMaxLiftsByMuscleGroupRow struct {
 	Reps         int32   `json:"reps"`
 }
 
+// @todo fix this, args are broken when using query and it should allow them to query by muscle group, not exercise name
 func (q *Queries) GetMaxLiftsByMuscleGroup(ctx context.Context) ([]GetMaxLiftsByMuscleGroupRow, error) {
 	rows, err := q.query(ctx, q.getMaxLiftsByMuscleGroupStmt, getMaxLiftsByMuscleGroup)
 	if err != nil {
@@ -195,6 +184,48 @@ type ListMaxRepPrsParams struct {
 
 func (q *Queries) ListMaxRepPrs(ctx context.Context, arg ListMaxRepPrsParams) ([]Lift, error) {
 	rows, err := q.query(ctx, q.listMaxRepPrsStmt, listMaxRepPrs, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Lift{}
+	for rows.Next() {
+		var i Lift
+		if err := rows.Scan(
+			&i.ID,
+			&i.ExerciseName,
+			&i.WeightLifted,
+			&i.Reps,
+			&i.SetType,
+			&i.UserID,
+			&i.WorkoutID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMaxWeightByExercise = `-- name: ListMaxWeightByExercise :many
+SELECT id, exercise_name, weight_lifted, reps, set_type, user_id, workout_id FROM lift
+WHERE exercise_name = ? AND user_id = UUID_TO_BIN(?)
+ORDER BY weight_lifted DESC
+`
+
+type ListMaxWeightByExerciseParams struct {
+	ExerciseName string `json:"exercise_name"`
+	UserID       string `json:"user_id"`
+}
+
+func (q *Queries) ListMaxWeightByExercise(ctx context.Context, arg ListMaxWeightByExerciseParams) ([]Lift, error) {
+	rows, err := q.query(ctx, q.listMaxWeightByExerciseStmt, listMaxWeightByExercise, arg.ExerciseName, arg.UserID)
 	if err != nil {
 		return nil, err
 	}

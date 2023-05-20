@@ -93,9 +93,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getLiftStmt, err = db.PrepareContext(ctx, getLift); err != nil {
 		return nil, fmt.Errorf("error preparing query GetLift: %w", err)
 	}
-	if q.getMaxLiftByExerciseStmt, err = db.PrepareContext(ctx, getMaxLiftByExercise); err != nil {
-		return nil, fmt.Errorf("error preparing query GetMaxLiftByExercise: %w", err)
-	}
 	if q.getMaxLiftsByMuscleGroupStmt, err = db.PrepareContext(ctx, getMaxLiftsByMuscleGroup); err != nil {
 		return nil, fmt.Errorf("error preparing query GetMaxLiftsByMuscleGroup: %w", err)
 	}
@@ -131,6 +128,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.listMaxRepPrsStmt, err = db.PrepareContext(ctx, listMaxRepPrs); err != nil {
 		return nil, fmt.Errorf("error preparing query ListMaxRepPrs: %w", err)
+	}
+	if q.listMaxWeightByExerciseStmt, err = db.PrepareContext(ctx, listMaxWeightByExercise); err != nil {
+		return nil, fmt.Errorf("error preparing query ListMaxWeightByExercise: %w", err)
 	}
 	if q.listMaxWeightPrsStmt, err = db.PrepareContext(ctx, listMaxWeightPrs); err != nil {
 		return nil, fmt.Errorf("error preparing query ListMaxWeightPrs: %w", err)
@@ -294,11 +294,6 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getLiftStmt: %w", cerr)
 		}
 	}
-	if q.getMaxLiftByExerciseStmt != nil {
-		if cerr := q.getMaxLiftByExerciseStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getMaxLiftByExerciseStmt: %w", cerr)
-		}
-	}
 	if q.getMaxLiftsByMuscleGroupStmt != nil {
 		if cerr := q.getMaxLiftsByMuscleGroupStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getMaxLiftsByMuscleGroupStmt: %w", cerr)
@@ -357,6 +352,11 @@ func (q *Queries) Close() error {
 	if q.listMaxRepPrsStmt != nil {
 		if cerr := q.listMaxRepPrsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listMaxRepPrsStmt: %w", cerr)
+		}
+	}
+	if q.listMaxWeightByExerciseStmt != nil {
+		if cerr := q.listMaxWeightByExerciseStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listMaxWeightByExerciseStmt: %w", cerr)
 		}
 	}
 	if q.listMaxWeightPrsStmt != nil {
@@ -491,7 +491,6 @@ type Queries struct {
 	getExerciseStmt              *sql.Stmt
 	getExerciseByNameStmt        *sql.Stmt
 	getLiftStmt                  *sql.Stmt
-	getMaxLiftByExerciseStmt     *sql.Stmt
 	getMaxLiftsByMuscleGroupStmt *sql.Stmt
 	getMuscleGroupStmt           *sql.Stmt
 	getProfileStmt               *sql.Stmt
@@ -504,6 +503,7 @@ type Queries struct {
 	listExercisesStmt            *sql.Stmt
 	listLiftsFromWorkoutStmt     *sql.Stmt
 	listMaxRepPrsStmt            *sql.Stmt
+	listMaxWeightByExerciseStmt  *sql.Stmt
 	listMaxWeightPrsStmt         *sql.Stmt
 	listMuscleGroupsStmt         *sql.Stmt
 	listStockExerciesStmt        *sql.Stmt
@@ -547,7 +547,6 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getExerciseStmt:              q.getExerciseStmt,
 		getExerciseByNameStmt:        q.getExerciseByNameStmt,
 		getLiftStmt:                  q.getLiftStmt,
-		getMaxLiftByExerciseStmt:     q.getMaxLiftByExerciseStmt,
 		getMaxLiftsByMuscleGroupStmt: q.getMaxLiftsByMuscleGroupStmt,
 		getMuscleGroupStmt:           q.getMuscleGroupStmt,
 		getProfileStmt:               q.getProfileStmt,
@@ -560,6 +559,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		listExercisesStmt:            q.listExercisesStmt,
 		listLiftsFromWorkoutStmt:     q.listLiftsFromWorkoutStmt,
 		listMaxRepPrsStmt:            q.listMaxRepPrsStmt,
+		listMaxWeightByExerciseStmt:  q.listMaxWeightByExerciseStmt,
 		listMaxWeightPrsStmt:         q.listMaxWeightPrsStmt,
 		listMuscleGroupsStmt:         q.listMuscleGroupsStmt,
 		listStockExerciesStmt:        q.listStockExerciesStmt,
