@@ -76,6 +76,7 @@ CREATE INDEX `exercise_name_index_0` ON `exercise` (`name`);
 CREATE INDEX `category_index_0` ON `exercise` (`category`);
 CREATE INDEX `workout_user_index_0` ON `workout` (`user_id`);
 CREATE INDEX `lift_user_index_0` ON `lift` (`user_id`);
+CREATE INDEX `lift_weight_index_0` ON `lift` (`weight_lifted`);
 
 
 ALTER TABLE `profile` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
