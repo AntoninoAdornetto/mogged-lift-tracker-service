@@ -157,7 +157,7 @@ func (server *Server) getMaxLiftsByExercise(ctx *gin.Context) {
 		return
 	}
 
-	lifts, err := server.store.ListMaxWeightByExercise(ctx, db.ListMaxWeightByExerciseParams{
+	lifts, err := server.store.GetMaxLiftsByExercise(ctx, db.GetMaxLiftsByExerciseParams{
 		ExerciseName: exercise.Name,
 		UserID:       userID,
 	})
