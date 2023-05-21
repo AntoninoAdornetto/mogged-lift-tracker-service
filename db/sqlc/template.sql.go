@@ -14,7 +14,7 @@ import (
 const createTemplate = `-- name: CreateTemplate :execresult
 INSERT INTO template (
 	name,
-	lifts,
+	exercises,
 	created_by
 ) VALUES (
 	?,
@@ -25,12 +25,12 @@ INSERT INTO template (
 
 type CreateTemplateParams struct {
 	Name      string          `json:"name"`
-	Lifts     json.RawMessage `json:"lifts"`
+	Exercises json.RawMessage `json:"exercises"`
 	CreatedBy string          `json:"created_by"`
 }
 
 func (q *Queries) CreateTemplate(ctx context.Context, arg CreateTemplateParams) (sql.Result, error) {
-	return q.exec(ctx, q.createTemplateStmt, createTemplate, arg.Name, arg.Lifts, arg.CreatedBy)
+	return q.exec(ctx, q.createTemplateStmt, createTemplate, arg.Name, arg.Exercises, arg.CreatedBy)
 }
 
 const deleteTemplate = `-- name: DeleteTemplate :execresult
@@ -48,7 +48,7 @@ func (q *Queries) DeleteTemplate(ctx context.Context, arg DeleteTemplateParams) 
 }
 
 const getTemplate = `-- name: GetTemplate :one
-SELECT id, name, lifts, date_last_used, created_by FROM template
+SELECT id, name, exercises, date_last_used, created_by FROM template
 WHERE id = ? AND created_by = UUID_TO_BIN(?)
 `
 
@@ -63,7 +63,7 @@ func (q *Queries) GetTemplate(ctx context.Context, arg GetTemplateParams) (Templ
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.Lifts,
+		&i.Exercises,
 		&i.DateLastUsed,
 		&i.CreatedBy,
 	)
@@ -71,7 +71,7 @@ func (q *Queries) GetTemplate(ctx context.Context, arg GetTemplateParams) (Templ
 }
 
 const listTemplates = `-- name: ListTemplates :many
-SELECT id, name, lifts, date_last_used, created_by FROM template
+SELECT id, name, exercises, date_last_used, created_by FROM template
 WHERE created_by = UUID_TO_BIN(?)
 `
 
@@ -87,7 +87,7 @@ func (q *Queries) ListTemplates(ctx context.Context, createdBy string) ([]Templa
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.Lifts,
+			&i.Exercises,
 			&i.DateLastUsed,
 			&i.CreatedBy,
 		); err != nil {

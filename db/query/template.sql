@@ -1,7 +1,7 @@
 -- name: CreateTemplate :execresult
 INSERT INTO template (
 	name,
-	lifts,
+	exercises,
 	created_by
 ) VALUES (
 	?,

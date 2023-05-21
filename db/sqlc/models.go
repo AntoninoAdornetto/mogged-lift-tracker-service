@@ -61,7 +61,7 @@ type StockExercise struct {
 type Template struct {
 	ID           int32           `json:"id"`
 	Name         string          `json:"name"`
-	Lifts        json.RawMessage `json:"lifts"`
+	Exercises    json.RawMessage `json:"exercises"`
 	DateLastUsed time.Time       `json:"date_last_used"`
 	CreatedBy    []byte          `json:"created_by"`
 }

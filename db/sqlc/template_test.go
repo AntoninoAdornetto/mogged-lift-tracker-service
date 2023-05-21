@@ -39,10 +39,10 @@ func TestListTemplates(t *testing.T) {
 	require.Len(t, query, n)
 	for i, v := range query {
 		require.Equal(t, v.Name, templates[i].Name)
-		require.Equal(t, v.Lifts, templates[i].Lifts)
+		require.Equal(t, v.Exercises, templates[i].Exercises)
 		require.WithinDuration(t, v.DateLastUsed, templates[i].DateLastUsed, time.Second)
 		require.Equal(t, v.ID, templates[i].ID)
-		require.Equal(t, v.Lifts, templates[i].Lifts)
+		require.Equal(t, v.Exercises, templates[i].Exercises)
 	}
 }
 
@@ -55,18 +55,18 @@ func TestUpdateTemplate(t *testing.T) {
 	template := GenRandTemplate(t, userId.String())
 	newTemplateValues := struct {
 		NewTemplateName string
-		NewLifts        json.RawMessage
+		NewExercises    json.RawMessage
 		NewDateLastUsed int64
 	}{
 		NewTemplateName: util.RandomStr(5),
-		NewLifts:        GenRandTemplate(t, userId.String()).Lifts,
+		NewExercises:    GenRandTemplate(t, userId.String()).Exercises,
 	}
 
 	_, err = testQueries.UpdateTemplate(context.Background(), UpdateTemplateParams{
 		Name:      newTemplateValues.NewTemplateName,
 		CreatedBy: userId.String(),
 		ID:        template.ID,
-		Lifts:     newTemplateValues.NewLifts,
+		Lifts:     newTemplateValues.NewExercises,
 		// DateLastUsed: time.UnixMilli(newTemplateValues.NewDateLastUsed),
 	})
 	require.NoError(t, err)
@@ -77,7 +77,7 @@ func TestUpdateTemplate(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, query.ID, template.ID)
-	require.Equal(t, query.Lifts, newTemplateValues.NewLifts)
+	require.Equal(t, query.Exercises, newTemplateValues.NewExercises)
 	require.Equal(t, query.Name, newTemplateValues.NewTemplateName)
 }
 
@@ -108,7 +108,7 @@ func GenRandTemplate(t *testing.T, userId string) Template {
 
 	args := CreateTemplateParams{
 		Name:      util.RandomStr(8),
-		Lifts:     workout.Lifts,
+		Exercises: workout.Lifts,
 		CreatedBy: userId,
 	}
 
@@ -128,7 +128,7 @@ func GenRandTemplate(t *testing.T, userId string) Template {
 	require.Equal(t, query.ID, int32(id))
 	require.Equal(t, createdBy.String(), userId)
 	require.Equal(t, query.Name, args.Name)
-	require.Equal(t, query.Lifts, args.Lifts)
+	require.Equal(t, query.Exercises, args.Exercises)
 
 	template = &query
 	return *template
