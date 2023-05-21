@@ -179,3 +179,35 @@ func (server *Server) updateTemplate(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, templateResponse(template, userID))
 }
+
+type deleteTemplateRequest struct {
+	ID int32 `uri:"id" binding:"required"`
+}
+
+func (server *Server) deleteTemplate(ctx *gin.Context) {
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+
+	req := deleteTemplateRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	query, err := server.store.GetTemplate(ctx, db.GetTemplateParams{ID: req.ID, CreatedBy: userID})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(TEMPLATE_NOT_FOUND, req.ID)))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = server.store.DeleteTemplate(ctx, db.DeleteTemplateParams{ID: query.ID, CreatedBy: userID})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, nil)
+}
