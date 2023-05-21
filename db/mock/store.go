@@ -214,12 +214,11 @@ func (mr *MockStoreMockRecorder) DeleteExercise(arg0, arg1 interface{}) *gomock.
 }
 
 // DeleteLift mocks base method.
-func (m *MockStore) DeleteLift(arg0 context.Context, arg1 db.DeleteLiftParams) (sql.Result, error) {
+func (m *MockStore) DeleteLift(arg0 context.Context, arg1 db.DeleteLiftParams) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteLift", arg0, arg1)
-	ret0, _ := ret[0].(sql.Result)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DeleteLift indicates an expected call of DeleteLift.
@@ -705,12 +704,11 @@ func (mr *MockStoreMockRecorder) UpdateExercise(arg0, arg1 interface{}) *gomock.
 }
 
 // UpdateLift mocks base method.
-func (m *MockStore) UpdateLift(arg0 context.Context, arg1 db.UpdateLiftParams) (sql.Result, error) {
+func (m *MockStore) UpdateLift(arg0 context.Context, arg1 db.UpdateLiftParams) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateLift", arg0, arg1)
-	ret0, _ := ret[0].(sql.Result)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // UpdateLift indicates an expected call of UpdateLift.

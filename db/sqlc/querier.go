@@ -22,7 +22,7 @@ type Querier interface {
 	CreateWorkout(ctx context.Context, arg CreateWorkoutParams) (sql.Result, error)
 	DeleteCategory(ctx context.Context, id int32) (sql.Result, error)
 	DeleteExercise(ctx context.Context, arg DeleteExerciseParams) error
-	DeleteLift(ctx context.Context, arg DeleteLiftParams) (sql.Result, error)
+	DeleteLift(ctx context.Context, arg DeleteLiftParams) error
 	DeleteMuscleGroup(ctx context.Context, id int32) (sql.Result, error)
 	DeleteProfile(ctx context.Context, userID string) error
 	DeleteStockExercise(ctx context.Context, id int32) (sql.Result, error)
@@ -54,7 +54,7 @@ type Querier interface {
 	ListWorkouts(ctx context.Context, userID string) ([]Workout, error)
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (sql.Result, error)
 	UpdateExercise(ctx context.Context, arg UpdateExerciseParams) error
-	UpdateLift(ctx context.Context, arg UpdateLiftParams) (sql.Result, error)
+	UpdateLift(ctx context.Context, arg UpdateLiftParams) error
 	UpdateMuscleGroup(ctx context.Context, arg UpdateMuscleGroupParams) (sql.Result, error)
 	UpdateProfile(ctx context.Context, arg UpdateProfileParams) (sql.Result, error)
 	UpdateStockExercise(ctx context.Context, arg UpdateStockExerciseParams) (sql.Result, error)
