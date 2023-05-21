@@ -52,6 +52,6 @@ UPDATE lift set
 	set_type = COALESCE(sqlc.narg('set_type'), set_type)
 WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
--- name: DeleteLift :execresult
+-- name: DeleteLift :exec
 DELETE FROM lift
 WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
