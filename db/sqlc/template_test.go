@@ -2,7 +2,7 @@ package db
 
 import (
 	"context"
-	"encoding/json"
+	"database/sql"
 	"testing"
 	"time"
 
@@ -14,89 +14,99 @@ import (
 // asserts both create and get one queries
 func TestCreateTemplate(t *testing.T) {
 	user := GenRandUser(t)
-	userId, err := uuid.Parse(user.ID)
-	require.NoError(t, err)
-	GenRandTemplate(t, userId.String())
+	GenRandTemplate(t, user.ID)
 }
 
 func TestListTemplates(t *testing.T) {
 	user := GenRandUser(t)
-	userId, err := uuid.Parse(user.ID)
-	require.NoError(t, err)
 	n := 5
 	templates := make([]Template, n)
 
-	query, err := testQueries.ListTemplates(context.Background(), userId.String())
+	query, err := testQueries.ListTemplates(context.Background(), user.ID)
 	require.NoError(t, err)
 	require.Empty(t, query)
 
 	for i := 0; i < n; i++ {
-		templates[i] = GenRandTemplate(t, userId.String())
+		templates[i] = GenRandTemplate(t, user.ID)
 	}
 
-	query, err = testQueries.ListTemplates(context.Background(), userId.String())
+	query, err = testQueries.ListTemplates(context.Background(), user.ID)
 	require.NoError(t, err)
 	require.Len(t, query, n)
 	for i, v := range query {
 		require.Equal(t, v.Name, templates[i].Name)
-		require.Equal(t, v.Lifts, templates[i].Lifts)
+		require.Equal(t, v.Exercises, templates[i].Exercises)
 		require.WithinDuration(t, v.DateLastUsed, templates[i].DateLastUsed, time.Second)
 		require.Equal(t, v.ID, templates[i].ID)
-		require.Equal(t, v.Lifts, templates[i].Lifts)
+		require.Equal(t, v.Exercises, templates[i].Exercises)
 	}
 }
 
-// @todo - assert for date updates
-func TestUpdateTemplate(t *testing.T) {
+func TestUpdateTemplateName(t *testing.T) {
 	user := GenRandUser(t)
-	userId, err := uuid.Parse(user.ID)
+	template := GenRandTemplate(t, user.ID)
+	newTemplateName := sql.NullString{String: util.RandomStr(5), Valid: true}
+
+	err := testQueries.UpdateTemplate(context.Background(), UpdateTemplateParams{Name: newTemplateName, ID: template.ID, CreatedBy: user.ID})
 	require.NoError(t, err)
 
-	template := GenRandTemplate(t, userId.String())
-	newTemplateValues := struct {
-		NewTemplateName string
-		NewLifts        json.RawMessage
-		NewDateLastUsed int64
-	}{
-		NewTemplateName: util.RandomStr(5),
-		NewLifts:        GenRandTemplate(t, userId.String()).Lifts,
-	}
+	query, err := testQueries.GetTemplate(context.Background(), GetTemplateParams{ID: template.ID, CreatedBy: user.ID})
+	require.NoError(t, err)
+	require.NotZero(t, query.ID)
+	require.Equal(t, query.Name, newTemplateName.String)
+	require.NotEqual(t, query.Name, template.Name)
+}
 
-	_, err = testQueries.UpdateTemplate(context.Background(), UpdateTemplateParams{
-		Name:      newTemplateValues.NewTemplateName,
-		CreatedBy: userId.String(),
-		ID:        template.ID,
-		Lifts:     newTemplateValues.NewLifts,
-		// DateLastUsed: time.UnixMilli(newTemplateValues.NewDateLastUsed),
+func TestUpdateTemplateExercises(t *testing.T) {
+	user := GenRandUser(t)
+	template := GenRandTemplate(t, user.ID)
+	newExercises := GenRandTemplate(t, user.ID).Exercises
+
+	err := testQueries.UpdateTemplate(context.Background(), UpdateTemplateParams{Exercises: newExercises, CreatedBy: user.ID, ID: template.ID})
+	require.NoError(t, err)
+
+	query, err := testQueries.GetTemplate(context.Background(), GetTemplateParams{ID: template.ID, CreatedBy: user.ID})
+	require.NoError(t, err)
+	require.NotZero(t, query.ID)
+	require.Equal(t, query.Exercises, newExercises)
+	require.NotEqual(t, query.Exercises, template.Exercises)
+}
+
+func TestUpdateTemplatesDateLastUsed(t *testing.T) {
+	user := GenRandUser(t)
+	template := GenRandTemplate(t, user.ID)
+	newDateLastUsed := time.Now()
+
+	err := testQueries.UpdateTemplate(context.Background(), UpdateTemplateParams{
+		ID: template.ID,
+		DateLastUsed: sql.NullTime{
+			Time:  newDateLastUsed,
+			Valid: true,
+		},
+		CreatedBy: user.ID,
 	})
 	require.NoError(t, err)
 
-	query, err := testQueries.GetTemplate(context.Background(), GetTemplateParams{
-		ID:        template.ID,
-		CreatedBy: userId.String(),
-	})
+	query, err := testQueries.GetTemplate(context.Background(), GetTemplateParams{ID: template.ID, CreatedBy: user.ID})
 	require.NoError(t, err)
-	require.Equal(t, query.ID, template.ID)
-	require.Equal(t, query.Lifts, newTemplateValues.NewLifts)
-	require.Equal(t, query.Name, newTemplateValues.NewTemplateName)
+	require.NotZero(t, query.ID)
+	require.NotEqual(t, query.DateLastUsed, template.DateLastUsed)
+	require.WithinDuration(t, query.DateLastUsed, newDateLastUsed, time.Hour*24)
 }
 
 func TestDeleteTemplate(t *testing.T) {
 	user := GenRandUser(t)
-	userId, err := uuid.Parse(user.ID)
-	require.NoError(t, err)
+	template := GenRandTemplate(t, user.ID)
 
-	template := GenRandTemplate(t, userId.String())
-
-	_, err = testQueries.DeleteTemplate(context.Background(), DeleteTemplateParams{
+	err := testQueries.DeleteTemplate(context.Background(), DeleteTemplateParams{
 		ID:        template.ID,
-		CreatedBy: userId.String(),
+		CreatedBy: user.ID,
 	})
 	require.NoError(t, err)
 
 	query, err := testQueries.GetTemplate(context.Background(), GetTemplateParams{
 		ID:        template.ID,
-		CreatedBy: userId.String(),
+		CreatedBy: user.ID,
 	})
 	require.Error(t, err)
 	require.Zero(t, query.ID)
@@ -108,7 +118,7 @@ func GenRandTemplate(t *testing.T, userId string) Template {
 
 	args := CreateTemplateParams{
 		Name:      util.RandomStr(8),
-		Lifts:     workout.Lifts,
+		Exercises: workout.Lifts,
 		CreatedBy: userId,
 	}
 
@@ -128,7 +138,7 @@ func GenRandTemplate(t *testing.T, userId string) Template {
 	require.Equal(t, query.ID, int32(id))
 	require.Equal(t, createdBy.String(), userId)
 	require.Equal(t, query.Name, args.Name)
-	require.Equal(t, query.Lifts, args.Lifts)
+	require.Equal(t, query.Exercises, args.Exercises)
 
 	template = &query
 	return *template

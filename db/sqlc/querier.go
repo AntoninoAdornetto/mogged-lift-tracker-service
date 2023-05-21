@@ -26,7 +26,7 @@ type Querier interface {
 	DeleteMuscleGroup(ctx context.Context, id int32) (sql.Result, error)
 	DeleteProfile(ctx context.Context, userID string) error
 	DeleteStockExercise(ctx context.Context, id int32) (sql.Result, error)
-	DeleteTemplate(ctx context.Context, arg DeleteTemplateParams) (sql.Result, error)
+	DeleteTemplate(ctx context.Context, arg DeleteTemplateParams) error
 	DeleteUser(ctx context.Context, userID string) error
 	DeleteWorkout(ctx context.Context, arg DeleteWorkoutParams) error
 	GetCategory(ctx context.Context, id int32) (Category, error)
@@ -58,7 +58,7 @@ type Querier interface {
 	UpdateMuscleGroup(ctx context.Context, arg UpdateMuscleGroupParams) (sql.Result, error)
 	UpdateProfile(ctx context.Context, arg UpdateProfileParams) (sql.Result, error)
 	UpdateStockExercise(ctx context.Context, arg UpdateStockExerciseParams) (sql.Result, error)
-	UpdateTemplate(ctx context.Context, arg UpdateTemplateParams) (int64, error)
+	UpdateTemplate(ctx context.Context, arg UpdateTemplateParams) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) error
 	UpdateWorkout(ctx context.Context, arg UpdateWorkoutParams) error
 }

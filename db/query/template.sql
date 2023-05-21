@@ -1,7 +1,7 @@
 -- name: CreateTemplate :execresult
 INSERT INTO template (
 	name,
-	lifts,
+	exercises,
 	created_by
 ) VALUES (
 	?,
@@ -17,13 +17,13 @@ WHERE id = ? AND created_by = UUID_TO_BIN(sqlc.arg('created_by'));
 SELECT * FROM template
 WHERE created_by = UUID_TO_BIN(sqlc.arg('created_by'));
 
--- name: UpdateTemplate :execlastid
+-- name: UpdateTemplate :exec
 UPDATE template SET
-name = IFNULL(sqlc.arg('name'), name),
-lifts = IFNULL(sqlc.arg('lifts'), lifts),
-date_last_used = IFNULL(sqlc.arg('date_last_used'), date_last_used)
+	name = COALESCE(sqlc.narg('name'), name),
+	exercises = COALESCE(sqlc.arg('exercises'), exercises),
+	date_last_used = COALESCE(sqlc.narg('date_last_used'), date_last_used)
 WHERE id = ? AND created_by = UUID_TO_BIN(sqlc.arg('created_by'));
 
--- name: DeleteTemplate :execresult
+-- name: DeleteTemplate :exec
 DELETE FROM template
 WHERE id = ? AND created_by = UUID_TO_BIN(sqlc.arg('created_by'));
