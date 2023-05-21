@@ -305,7 +305,8 @@ const updateLift = `-- name: UpdateLift :exec
 UPDATE lift set
 	exercise_name = COALESCE(?, exercise_name),
 	weight_lifted = COALESCE(?, weight_lifted),
-	reps = COALESCE(?, reps)
+	reps = COALESCE(?, reps),
+	set_type = COALESCE(?, set_type)
 WHERE id = ? AND user_id = UUID_TO_BIN(?)
 `
 
@@ -313,6 +314,7 @@ type UpdateLiftParams struct {
 	ExerciseName sql.NullString  `json:"exercise_name"`
 	WeightLifted sql.NullFloat64 `json:"weight_lifted"`
 	Reps         sql.NullInt32   `json:"reps"`
+	SetType      sql.NullString  `json:"set_type"`
 	ID           int64           `json:"id"`
 	UserID       string          `json:"user_id"`
 }
@@ -322,6 +324,7 @@ func (q *Queries) UpdateLift(ctx context.Context, arg UpdateLiftParams) error {
 		arg.ExerciseName,
 		arg.WeightLifted,
 		arg.Reps,
+		arg.SetType,
 		arg.ID,
 		arg.UserID,
 	)

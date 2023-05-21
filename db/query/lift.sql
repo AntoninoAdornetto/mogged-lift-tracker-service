@@ -48,7 +48,8 @@ ORDER BY reps DESC LIMIT ?;
 UPDATE lift set
 	exercise_name = COALESCE(sqlc.narg('exercise_name'), exercise_name),
 	weight_lifted = COALESCE(sqlc.narg('weight_lifted'), weight_lifted),
-	reps = COALESCE(sqlc.narg('reps'), reps)
+	reps = COALESCE(sqlc.narg('reps'), reps),
+	set_type = COALESCE(sqlc.narg('set_type'), set_type)
 WHERE id = ? AND user_id = UUID_TO_BIN(sqlc.arg('user_id'));
 
 -- name: DeleteLift :execresult
