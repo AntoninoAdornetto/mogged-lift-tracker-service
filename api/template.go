@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/token"
@@ -17,11 +16,21 @@ const (
 )
 
 type TemplateResponse struct {
-	ID           int32                `json:"id"`
-	Name         string               `json:"name"`
-	Exercises    map[string][]db.Lift `json:"exercises"`
-	DateLastUsed time.Time            `json:"dateLastUsed"`
-	CreatedBy    string               `json:"createdBy"`
+	ID           int32           `json:"id"`
+	Name         string          `json:"name"`
+	Exercises    json.RawMessage `json:"exercises"`
+	DateLastUsed string          `json:"dateLastUsed"`
+	CreatedBy    string          `json:"createdBy"`
+}
+
+func templateResponse(t db.Template, userID string) TemplateResponse {
+	return TemplateResponse{
+		ID:           t.ID,
+		Name:         t.Name,
+		Exercises:    t.Exercises,
+		DateLastUsed: t.DateLastUsed.Format("2006-01-02"),
+		CreatedBy:    userID,
+	}
 }
 
 type createTemplateRequest struct {
@@ -65,5 +74,31 @@ func (server *Server) createTemplate(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, template)
+	ctx.JSON(http.StatusOK, templateResponse(template, userID))
+}
+
+type getTemplateRequest struct {
+	ID int32 `uri:"id" binding:"required"`
+}
+
+func (server *Server) getTemplate(ctx *gin.Context) {
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+
+	req := getTemplateRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	template, err := server.store.GetTemplate(ctx, db.GetTemplateParams{ID: req.ID, CreatedBy: userID})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(TEMPLATE_NOT_FOUND, req.ID)))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, templateResponse(template, userID))
 }
