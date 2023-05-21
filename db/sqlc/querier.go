@@ -54,7 +54,7 @@ type Querier interface {
 	ListWorkouts(ctx context.Context, userID string) ([]Workout, error)
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (sql.Result, error)
 	UpdateExercise(ctx context.Context, arg UpdateExerciseParams) error
-	UpdateLift(ctx context.Context, arg UpdateLiftParams) (sql.Result, error)
+	UpdateLift(ctx context.Context, arg UpdateLiftParams) error
 	UpdateMuscleGroup(ctx context.Context, arg UpdateMuscleGroupParams) (sql.Result, error)
 	UpdateProfile(ctx context.Context, arg UpdateProfileParams) (sql.Result, error)
 	UpdateStockExercise(ctx context.Context, arg UpdateStockExerciseParams) (sql.Result, error)
