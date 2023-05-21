@@ -72,6 +72,7 @@ func (server *Server) setupRouter() {
 	protected.DELETE("/deleteLift/:id", server.deleteLift)
 
 	protected.POST("/createTemplate", server.createTemplate)
+	protected.GET("/getTemplate/:id", server.getTemplate)
 
 	server.router = router
 }
