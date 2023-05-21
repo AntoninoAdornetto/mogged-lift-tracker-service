@@ -73,6 +73,7 @@ func (server *Server) setupRouter() {
 
 	protected.POST("/createTemplate", server.createTemplate)
 	protected.GET("/getTemplate/:id", server.getTemplate)
+	protected.GET("/listTemplates", server.listTemplates)
 
 	server.router = router
 }
