@@ -271,6 +271,7 @@ type updateLiftRequest struct {
 	ExerciseName string  `json:"exerciseName"`
 	WeightLifted float64 `json:"weightLifted"`
 	Reps         int32   `json:"reps"`
+	SetType      string  `json:"setType"`
 	ID           int64   `json:"id"`
 }
 
@@ -294,20 +295,12 @@ func (server *Server) updateLift(ctx *gin.Context) {
 	}
 
 	args := db.UpdateLiftParams{
-		ExerciseName: sql.NullString{
-			String: req.ExerciseName,
-			Valid:  req.ExerciseName != "",
-		},
-		WeightLifted: sql.NullFloat64{
-			Float64: req.WeightLifted,
-			Valid:   req.WeightLifted > 0,
-		},
-		Reps: sql.NullInt32{
-			Int32: req.Reps,
-			Valid: req.Reps > 0,
-		},
-		ID:     query.ID,
-		UserID: userID,
+		ExerciseName: sql.NullString{String: req.ExerciseName, Valid: req.ExerciseName != ""},
+		WeightLifted: sql.NullFloat64{Float64: req.WeightLifted, Valid: req.WeightLifted > 0},
+		SetType:      sql.NullString{String: req.SetType, Valid: req.SetType != ""},
+		Reps:         sql.NullInt32{Int32: req.Reps, Valid: req.Reps > 0},
+		ID:           query.ID,
+		UserID:       userID,
 	}
 
 	err = server.store.UpdateLift(ctx, args)
