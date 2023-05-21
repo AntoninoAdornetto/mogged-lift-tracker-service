@@ -61,10 +61,12 @@ CREATE TABLE `lift` (
 	`workout_id` MEDIUMINT UNSIGNED NOT NULL 
 );
 
+-- TODO. Think about adding a count for how many times a template workout has been initiated/completed.
+-- would need to leverage the workout table to know when a WO has been started via template.
 CREATE TABLE `template` (
 	`id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`name` VARCHAR(50) UNIQUE NOT NULL,
-	`lifts` JSON,
+	`exercises` JSON,
 	`date_last_used` DATE NOT NULL DEFAULT '1900-01-01',
 	`created_by` BINARY(16) NOT NULL
 );
