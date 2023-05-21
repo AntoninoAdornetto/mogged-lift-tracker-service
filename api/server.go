@@ -71,6 +71,8 @@ func (server *Server) setupRouter() {
 	protected.PATCH("/updateLift", server.updateLift)
 	protected.DELETE("/deleteLift/:id", server.deleteLift)
 
+	protected.POST("/createTemplate", server.createTemplate)
+
 	server.router = router
 }
 
