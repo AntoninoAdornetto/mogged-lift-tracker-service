@@ -182,7 +182,7 @@ func TestUpdateLift(t *testing.T) {
 	lift := GenRandLift(t, NewLiftArgs{UserID: userId.String(), WorkoutID: workout.ID})
 
 	newExerciseName := GenRandExercise(t, userId.String()).Name
-	_, err = testQueries.UpdateLift(context.Background(), UpdateLiftParams{
+	err = testQueries.UpdateLift(context.Background(), UpdateLiftParams{
 		ExerciseName: sql.NullString{
 			String: newExerciseName,
 			Valid:  true,
@@ -202,7 +202,7 @@ func TestUpdateLift(t *testing.T) {
 	require.Equal(t, query.ExerciseName, newExerciseName)
 
 	newWeightLifted := float64(util.RandomInt(100, 500))
-	_, err = testQueries.UpdateLift(context.Background(), UpdateLiftParams{
+	err = testQueries.UpdateLift(context.Background(), UpdateLiftParams{
 		WeightLifted: sql.NullFloat64{
 			Float64: newWeightLifted,
 			Valid:   true,
@@ -221,7 +221,7 @@ func TestUpdateLift(t *testing.T) {
 	require.Equal(t, query.WeightLifted, newWeightLifted)
 
 	newReps := int32(util.RandomInt(100, 500))
-	_, err = testQueries.UpdateLift(context.Background(), UpdateLiftParams{
+	err = testQueries.UpdateLift(context.Background(), UpdateLiftParams{
 		Reps: sql.NullInt32{
 			Int32: newReps,
 			Valid: true,

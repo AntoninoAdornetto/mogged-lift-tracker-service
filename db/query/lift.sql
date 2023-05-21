@@ -44,7 +44,7 @@ SELECT * FROM lift
 WHERE user_id = UUID_TO_BIN(sqlc.arg('user_id'))
 ORDER BY reps DESC LIMIT ?;
 
--- name: UpdateLift :execresult
+-- name: UpdateLift :exec
 UPDATE lift set
 	exercise_name = COALESCE(sqlc.narg('exercise_name'), exercise_name),
 	weight_lifted = COALESCE(sqlc.narg('weight_lifted'), weight_lifted),
