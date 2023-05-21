@@ -103,18 +103,8 @@ func (server *Server) getTemplate(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, templateResponse(template, userID))
 }
 
-type listTemplatesRequest struct {
-	CreatedBy string `uri:"user_id" binding:"required"`
-}
-
 func (server *Server) listTemplates(ctx *gin.Context) {
 	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
-
-	req := listTemplatesRequest{}
-	if err := ctx.ShouldBindUri(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
 
 	list, err := server.store.ListTemplates(ctx, userID)
 	if err != nil {
