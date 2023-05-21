@@ -191,7 +191,6 @@ func TestUpdateLift(t *testing.T) {
 		ID:     lift.ID,
 	})
 	require.NoError(t, err)
-	require.NoError(t, err)
 
 	query, err := testQueries.GetLift(context.Background(), GetLiftParams{
 		UserID: userId.String(),
@@ -238,6 +237,27 @@ func TestUpdateLift(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, query.ID, lift.ID)
 	require.Equal(t, query.Reps, newReps)
+}
+
+func TestUpdateSetType(t *testing.T) {
+	user := GenRandUser(t)
+	workout := GenRandWorkout(t, user.ID)
+	lift := GenRandLift(t, NewLiftArgs{UserID: user.ID, WorkoutID: workout.ID})
+
+	newSetType := sql.NullString{String: "warmup set", Valid: true}
+
+	err := testQueries.UpdateLift(context.Background(), UpdateLiftParams{
+		ID:      lift.ID,
+		SetType: newSetType,
+		UserID:  user.ID,
+	})
+	require.NoError(t, err)
+
+	query, err := testQueries.GetLift(context.Background(), GetLiftParams{ID: lift.ID, UserID: user.ID})
+	require.NoError(t, err)
+	require.NotZero(t, query.ID)
+	require.Equal(t, query.SetType, newSetType.String)
+	require.NotEqual(t, query.SetType, lift.SetType)
 }
 
 func TestDeleteLift(t *testing.T) {
