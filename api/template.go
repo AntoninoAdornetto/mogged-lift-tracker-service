@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -13,7 +14,8 @@ import (
 )
 
 const (
-	TEMPLATE_NOT_FOUND = "template with specified ID '%d' does not exist"
+	TEMPLATE_NOT_FOUND       = "template with specified ID '%d' does not exist"
+	TEMPLATE_CREATION_FAILED = "template not found. Creating the record must have failed, please try again"
 )
 
 type TemplateResponse struct {
@@ -68,7 +70,7 @@ func (server *Server) createTemplate(ctx *gin.Context) {
 	template, err := server.store.GetTemplate(ctx, db.GetTemplateParams{ID: int32(templateID), CreatedBy: userID})
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(TEMPLATE_NOT_FOUND, templateID)))
+			ctx.JSON(http.StatusNotFound, errorResponse(errors.New(TEMPLATE_CREATION_FAILED)))
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
