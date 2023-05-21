@@ -75,6 +75,7 @@ func (server *Server) setupRouter() {
 	protected.GET("/getTemplate/:id", server.getTemplate)
 	protected.GET("/listTemplates", server.listTemplates)
 	protected.PATCH("/updateTemplate", server.updateTemplate)
+	protected.DELETE("/deleteTemplate/:id", server.deleteTemplate)
 
 	server.router = router
 }
