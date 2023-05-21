@@ -33,7 +33,7 @@ func (q *Queries) CreateTemplate(ctx context.Context, arg CreateTemplateParams) 
 	return q.exec(ctx, q.createTemplateStmt, createTemplate, arg.Name, arg.Exercises, arg.CreatedBy)
 }
 
-const deleteTemplate = `-- name: DeleteTemplate :execresult
+const deleteTemplate = `-- name: DeleteTemplate :exec
 DELETE FROM template
 WHERE id = ? AND created_by = UUID_TO_BIN(?)
 `
@@ -43,8 +43,9 @@ type DeleteTemplateParams struct {
 	CreatedBy string `json:"created_by"`
 }
 
-func (q *Queries) DeleteTemplate(ctx context.Context, arg DeleteTemplateParams) (sql.Result, error) {
-	return q.exec(ctx, q.deleteTemplateStmt, deleteTemplate, arg.ID, arg.CreatedBy)
+func (q *Queries) DeleteTemplate(ctx context.Context, arg DeleteTemplateParams) error {
+	_, err := q.exec(ctx, q.deleteTemplateStmt, deleteTemplate, arg.ID, arg.CreatedBy)
+	return err
 }
 
 const getTemplate = `-- name: GetTemplate :one
@@ -104,32 +105,29 @@ func (q *Queries) ListTemplates(ctx context.Context, createdBy string) ([]Templa
 	return items, nil
 }
 
-const updateTemplate = `-- name: UpdateTemplate :execlastid
+const updateTemplate = `-- name: UpdateTemplate :exec
 UPDATE template SET
-name = IFNULL(?, name),
-lifts = IFNULL(?, lifts),
-date_last_used = IFNULL(?, date_last_used)
+	name = COALESCE(?, name),
+	exercises = COALESCE(?, exercises),
+	date_last_used = COALESCE(?, date_last_used)
 WHERE id = ? AND created_by = UUID_TO_BIN(?)
 `
 
 type UpdateTemplateParams struct {
-	Name         interface{} `json:"name"`
-	Lifts        interface{} `json:"lifts"`
-	DateLastUsed interface{} `json:"date_last_used"`
-	ID           int32       `json:"id"`
-	CreatedBy    string      `json:"created_by"`
+	Name         sql.NullString  `json:"name"`
+	Exercises    json.RawMessage `json:"exercises"`
+	DateLastUsed sql.NullTime    `json:"date_last_used"`
+	ID           int32           `json:"id"`
+	CreatedBy    string          `json:"created_by"`
 }
 
-func (q *Queries) UpdateTemplate(ctx context.Context, arg UpdateTemplateParams) (int64, error) {
-	result, err := q.exec(ctx, q.updateTemplateStmt, updateTemplate,
+func (q *Queries) UpdateTemplate(ctx context.Context, arg UpdateTemplateParams) error {
+	_, err := q.exec(ctx, q.updateTemplateStmt, updateTemplate,
 		arg.Name,
-		arg.Lifts,
+		arg.Exercises,
 		arg.DateLastUsed,
 		arg.ID,
 		arg.CreatedBy,
 	)
-	if err != nil {
-		return 0, err
-	}
-	return result.LastInsertId()
+	return err
 }

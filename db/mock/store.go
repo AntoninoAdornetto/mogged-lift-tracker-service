@@ -272,12 +272,11 @@ func (mr *MockStoreMockRecorder) DeleteStockExercise(arg0, arg1 interface{}) *go
 }
 
 // DeleteTemplate mocks base method.
-func (m *MockStore) DeleteTemplate(arg0 context.Context, arg1 db.DeleteTemplateParams) (sql.Result, error) {
+func (m *MockStore) DeleteTemplate(arg0 context.Context, arg1 db.DeleteTemplateParams) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteTemplate", arg0, arg1)
-	ret0, _ := ret[0].(sql.Result)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DeleteTemplate indicates an expected call of DeleteTemplate.
@@ -763,12 +762,11 @@ func (mr *MockStoreMockRecorder) UpdateStockExercise(arg0, arg1 interface{}) *go
 }
 
 // UpdateTemplate mocks base method.
-func (m *MockStore) UpdateTemplate(arg0 context.Context, arg1 db.UpdateTemplateParams) (int64, error) {
+func (m *MockStore) UpdateTemplate(arg0 context.Context, arg1 db.UpdateTemplateParams) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateTemplate", arg0, arg1)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // UpdateTemplate indicates an expected call of UpdateTemplate.
