@@ -19,14 +19,14 @@ const (
 type TemplateResponse struct {
 	ID           int32                `json:"id"`
 	Name         string               `json:"name"`
-	Lifts        map[string][]db.Lift `json:"lifts"`
+	Exercises    map[string][]db.Lift `json:"exercises"`
 	DateLastUsed time.Time            `json:"dateLastUsed"`
 	CreatedBy    string               `json:"createdBy"`
 }
 
 type createTemplateRequest struct {
 	Name      string          `json:"name" binding:"required"`
-	Lifts     json.RawMessage `json:"lifts" binding:"required"`
+	Exercises json.RawMessage `json:"exercises" binding:"required"`
 	CreatedBy string          `json:"createdBy" binding:"required"`
 }
 
@@ -41,7 +41,7 @@ func (server *Server) createTemplate(ctx *gin.Context) {
 
 	record, err := server.store.CreateTemplate(ctx, db.CreateTemplateParams{
 		Name:      req.Name,
-		Lifts:     req.Lifts,
+		Exercises: req.Exercises,
 		CreatedBy: userID,
 	})
 	if err != nil {
