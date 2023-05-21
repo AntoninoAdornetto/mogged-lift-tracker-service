@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/token"
@@ -118,4 +119,63 @@ func (server *Server) listTemplates(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, templates)
+}
+
+type updateTemplateRequest struct {
+	ID           int32           `json:"id" binding:"required"`
+	Name         string          `json:"name"`
+	Exercises    json.RawMessage `json:"exercises"`
+	DateLastUsed string          `json:"dateLastUsed"`
+	CreatedBy    string          `json:"createdBy" binding:"required"`
+}
+
+func (server *Server) updateTemplate(ctx *gin.Context) {
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+
+	req := updateTemplateRequest{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	query, err := server.store.GetTemplate(ctx, db.GetTemplateParams{ID: req.ID, CreatedBy: userID})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNoContent, errorResponse(fmt.Errorf(TEMPLATE_NOT_FOUND, req.ID)))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	var t time.Time
+	if req.DateLastUsed != "" {
+		t, err = time.Parse("2006-01-02", req.DateLastUsed)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, errorResponse(fmt.Errorf("incorrect date format for value: %s. Should be YYYY-MM-DD", req.DateLastUsed)))
+			return
+		}
+	}
+
+	args := db.UpdateTemplateParams{
+		Name:         sql.NullString{String: req.Name, Valid: req.Name != ""},
+		DateLastUsed: sql.NullTime{Time: t, Valid: !t.IsZero()},
+		Exercises:    req.Exercises,
+		ID:           query.ID,
+		CreatedBy:    userID,
+	}
+
+	err = server.store.UpdateTemplate(ctx, args)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	template, err := server.store.GetTemplate(ctx, db.GetTemplateParams{ID: query.ID, CreatedBy: userID})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, templateResponse(template, userID))
 }
