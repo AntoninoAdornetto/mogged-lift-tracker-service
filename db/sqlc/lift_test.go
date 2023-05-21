@@ -267,7 +267,7 @@ func TestDeleteLift(t *testing.T) {
 	workout := GenRandWorkout(t, userId.String())
 	lift := GenRandLift(t, NewLiftArgs{UserID: userId.String(), WorkoutID: workout.ID})
 
-	_, err = testQueries.DeleteLift(context.Background(), DeleteLiftParams{
+	err = testQueries.DeleteLift(context.Background(), DeleteLiftParams{
 		ID:     lift.ID,
 		UserID: userId.String(),
 	})

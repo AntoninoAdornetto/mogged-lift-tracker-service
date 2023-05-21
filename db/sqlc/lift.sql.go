@@ -48,7 +48,7 @@ func (q *Queries) CreateLift(ctx context.Context, arg CreateLiftParams) (sql.Res
 	)
 }
 
-const deleteLift = `-- name: DeleteLift :execresult
+const deleteLift = `-- name: DeleteLift :exec
 DELETE FROM lift
 WHERE id = ? AND user_id = UUID_TO_BIN(?)
 `
@@ -58,8 +58,9 @@ type DeleteLiftParams struct {
 	UserID string `json:"user_id"`
 }
 
-func (q *Queries) DeleteLift(ctx context.Context, arg DeleteLiftParams) (sql.Result, error) {
-	return q.exec(ctx, q.deleteLiftStmt, deleteLift, arg.ID, arg.UserID)
+func (q *Queries) DeleteLift(ctx context.Context, arg DeleteLiftParams) error {
+	_, err := q.exec(ctx, q.deleteLiftStmt, deleteLift, arg.ID, arg.UserID)
+	return err
 }
 
 const getLift = `-- name: GetLift :one
