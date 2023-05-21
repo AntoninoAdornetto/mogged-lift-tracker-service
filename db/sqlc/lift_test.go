@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"sort"
 	"testing"
@@ -182,9 +183,12 @@ func TestUpdateLift(t *testing.T) {
 
 	newExerciseName := GenRandExercise(t, userId.String()).Name
 	_, err = testQueries.UpdateLift(context.Background(), UpdateLiftParams{
-		ExerciseName: newExerciseName,
-		UserID:       userId.String(),
-		ID:           lift.ID,
+		ExerciseName: sql.NullString{
+			String: newExerciseName,
+			Valid:  true,
+		},
+		UserID: userId.String(),
+		ID:     lift.ID,
 	})
 	require.NoError(t, err)
 	require.NoError(t, err)
@@ -199,9 +203,12 @@ func TestUpdateLift(t *testing.T) {
 
 	newWeightLifted := float64(util.RandomInt(100, 500))
 	_, err = testQueries.UpdateLift(context.Background(), UpdateLiftParams{
-		WeightLifted: newWeightLifted,
-		UserID:       userId.String(),
-		ID:           lift.ID,
+		WeightLifted: sql.NullFloat64{
+			Float64: newWeightLifted,
+			Valid:   true,
+		},
+		UserID: userId.String(),
+		ID:     lift.ID,
 	})
 	require.NoError(t, err)
 
@@ -215,7 +222,10 @@ func TestUpdateLift(t *testing.T) {
 
 	newReps := int32(util.RandomInt(100, 500))
 	_, err = testQueries.UpdateLift(context.Background(), UpdateLiftParams{
-		Reps:   newReps,
+		Reps: sql.NullInt32{
+			Int32: newReps,
+			Valid: true,
+		},
 		UserID: userId.String(),
 		ID:     lift.ID,
 	})

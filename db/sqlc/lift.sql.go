@@ -173,14 +173,14 @@ func (q *Queries) GetMaxLiftsByExercise(ctx context.Context, arg GetMaxLiftsByEx
 
 const getMaxLiftsByMuscleGroup = `-- name: GetMaxLiftsByMuscleGroup :many
 SELECT muscle_group, exercise_name, weight_lifted, reps FROM lift
-JOIN exercise ON exercise.user_id = lift.user_id AND exercise.name = lift.exercise_name AND exercise.muscle_group = ?
+JOIN exercise ON exercise.user_id = UUID_TO_BIN(?) AND exercise.name = lift.exercise_name AND exercise.muscle_group = ?
 WHERE lift.user_id = UUID_TO_BIN(?)
 ORDER BY weight_lifted DESC
 `
 
 type GetMaxLiftsByMuscleGroupParams struct {
-	MuscleGroup string `json:"muscle_group"`
 	UserID      string `json:"user_id"`
+	MuscleGroup string `json:"muscle_group"`
 }
 
 type GetMaxLiftsByMuscleGroupRow struct {
@@ -191,7 +191,7 @@ type GetMaxLiftsByMuscleGroupRow struct {
 }
 
 func (q *Queries) GetMaxLiftsByMuscleGroup(ctx context.Context, arg GetMaxLiftsByMuscleGroupParams) ([]GetMaxLiftsByMuscleGroupRow, error) {
-	rows, err := q.query(ctx, q.getMaxLiftsByMuscleGroupStmt, getMaxLiftsByMuscleGroup, arg.MuscleGroup, arg.UserID)
+	rows, err := q.query(ctx, q.getMaxLiftsByMuscleGroupStmt, getMaxLiftsByMuscleGroup, arg.UserID, arg.MuscleGroup, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -303,18 +303,18 @@ func (q *Queries) ListLiftsFromWorkout(ctx context.Context, arg ListLiftsFromWor
 
 const updateLift = `-- name: UpdateLift :execresult
 UPDATE lift set
-exercise_name = IFNULL(?, exercise_name),
-weight_lifted = IFNULL(?, weight_lifted),
-reps = IFNULL(?, reps)
+	exercise_name = COALESCE(?, exercise_name),
+	weight_lifted = COALESCE(?, weight_lifted),
+	reps = COALESCE(?, reps)
 WHERE id = ? AND user_id = UUID_TO_BIN(?)
 `
 
 type UpdateLiftParams struct {
-	ExerciseName interface{} `json:"exercise_name"`
-	WeightLifted interface{} `json:"weight_lifted"`
-	Reps         interface{} `json:"reps"`
-	ID           int64       `json:"id"`
-	UserID       string      `json:"user_id"`
+	ExerciseName sql.NullString  `json:"exercise_name"`
+	WeightLifted sql.NullFloat64 `json:"weight_lifted"`
+	Reps         sql.NullInt32   `json:"reps"`
+	ID           int64           `json:"id"`
+	UserID       string          `json:"user_id"`
 }
 
 func (q *Queries) UpdateLift(ctx context.Context, arg UpdateLiftParams) (sql.Result, error) {
