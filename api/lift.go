@@ -231,3 +231,38 @@ func (server *Server) getMaxLiftsByMuscleGroup(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, res)
 }
+
+type getMaxRepLiftsRequest struct {
+	Limit int32 `uri:"limit"`
+}
+
+func (server *Server) getMaxRepLifts(ctx *gin.Context) {
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+
+	req := getMaxRepLiftsRequest{}
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	lifts, err := server.store.GetMaxRepLifts(ctx, db.GetMaxRepLiftsParams{UserID: userID, Limit: req.Limit})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	res := make([]LiftResponse, len(lifts))
+	for i, v := range lifts {
+		res[i] = LiftResponse{
+			ID:           v.ID,
+			Reps:         v.Reps,
+			WeightLifted: v.WeightLifted,
+			ExerciseName: v.ExerciseName,
+			SetType:      v.SetType,
+			UserID:       userID,
+			WorkoutID:    v.WorkoutID,
+		}
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
