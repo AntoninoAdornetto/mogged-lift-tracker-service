@@ -12,12 +12,14 @@ import (
 
 const createSession = `-- name: CreateSession :exec
 INSERT INTO ` + "`" + `session` + "`" + `(
+	id,
 	refresh_token,
 	user_agent,
 	client_ip,
 	expires_at,
 	user_id
 ) VALUES (
+	UUID_TO_BIN(?),
 	?,
 	?,
 	?,
@@ -27,6 +29,7 @@ INSERT INTO ` + "`" + `session` + "`" + `(
 `
 
 type CreateSessionParams struct {
+	ID           string    `json:"id"`
 	RefreshToken string    `json:"refresh_token"`
 	UserAgent    string    `json:"user_agent"`
 	ClientIp     string    `json:"client_ip"`
@@ -36,6 +39,7 @@ type CreateSessionParams struct {
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
 	_, err := q.exec(ctx, q.createSessionStmt, createSession,
+		arg.ID,
 		arg.RefreshToken,
 		arg.UserAgent,
 		arg.ClientIp,
@@ -56,23 +60,43 @@ func (q *Queries) DeleteSession(ctx context.Context, userID string) error {
 }
 
 const getSession = `-- name: GetSession :one
-SELECT id, refresh_token, user_agent, client_ip, is_banned, expires_at, created_at, user_id FROM session
-WHERE user_id = UUID_TO_BIN(?)
+SELECT 
+BIN_TO_UUID(id) AS id,
+BIN_TO_UUID(user_id) AS user_id,
+refresh_token,
+user_agent,
+client_ip,
+is_banned,
+expires_at,
+created_at
+FROM session
+WHERE id = UUID_TO_BIN(?)
 LIMIT 1
 `
 
-func (q *Queries) GetSession(ctx context.Context, userID string) (Session, error) {
-	row := q.queryRow(ctx, q.getSessionStmt, getSession, userID)
-	var i Session
+type GetSessionRow struct {
+	ID           string    `json:"id"`
+	UserID       string    `json:"user_id"`
+	RefreshToken string    `json:"refresh_token"`
+	UserAgent    string    `json:"user_agent"`
+	ClientIp     string    `json:"client_ip"`
+	IsBanned     bool      `json:"is_banned"`
+	ExpiresAt    time.Time `json:"expires_at"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+func (q *Queries) GetSession(ctx context.Context, id string) (GetSessionRow, error) {
+	row := q.queryRow(ctx, q.getSessionStmt, getSession, id)
+	var i GetSessionRow
 	err := row.Scan(
 		&i.ID,
+		&i.UserID,
 		&i.RefreshToken,
 		&i.UserAgent,
 		&i.ClientIp,
 		&i.IsBanned,
 		&i.ExpiresAt,
 		&i.CreatedAt,
-		&i.UserID,
 	)
 	return i, err
 }

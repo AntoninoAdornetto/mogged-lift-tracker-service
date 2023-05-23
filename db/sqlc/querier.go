@@ -42,7 +42,7 @@ type Querier interface {
 	GetMuscleGroup(ctx context.Context, id int32) (MuscleGroup, error)
 	GetMuscleGroupByName(ctx context.Context, name string) (MuscleGroup, error)
 	GetProfile(ctx context.Context, userID string) (Profile, error)
-	GetSession(ctx context.Context, userID string) (Session, error)
+	GetSession(ctx context.Context, id string) (GetSessionRow, error)
 	GetStockExercise(ctx context.Context, id int32) (StockExercise, error)
 	GetTemplate(ctx context.Context, arg GetTemplateParams) (Template, error)
 	GetUserByEmail(ctx context.Context, emailAddress string) (GetUserByEmailRow, error)
