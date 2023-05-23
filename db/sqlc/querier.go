@@ -16,6 +16,7 @@ type Querier interface {
 	CreateLift(ctx context.Context, arg CreateLiftParams) (sql.Result, error)
 	CreateMuscleGroup(ctx context.Context, name string) (sql.Result, error)
 	CreateProfile(ctx context.Context, arg CreateProfileParams) (int64, error)
+	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	CreateStockExercise(ctx context.Context, arg CreateStockExerciseParams) (sql.Result, error)
 	CreateTemplate(ctx context.Context, arg CreateTemplateParams) (sql.Result, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) error
@@ -25,6 +26,7 @@ type Querier interface {
 	DeleteLift(ctx context.Context, arg DeleteLiftParams) error
 	DeleteMuscleGroup(ctx context.Context, id int32) (sql.Result, error)
 	DeleteProfile(ctx context.Context, userID string) error
+	DeleteSession(ctx context.Context, userID string) error
 	DeleteStockExercise(ctx context.Context, id int32) (sql.Result, error)
 	DeleteTemplate(ctx context.Context, arg DeleteTemplateParams) error
 	DeleteUser(ctx context.Context, userID string) error
@@ -40,6 +42,7 @@ type Querier interface {
 	GetMuscleGroup(ctx context.Context, id int32) (MuscleGroup, error)
 	GetMuscleGroupByName(ctx context.Context, name string) (MuscleGroup, error)
 	GetProfile(ctx context.Context, userID string) (Profile, error)
+	GetSession(ctx context.Context, id string) (GetSessionRow, error)
 	GetStockExercise(ctx context.Context, id int32) (StockExercise, error)
 	GetTemplate(ctx context.Context, arg GetTemplateParams) (Template, error)
 	GetUserByEmail(ctx context.Context, emailAddress string) (GetUserByEmailRow, error)

@@ -42,6 +42,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createProfileStmt, err = db.PrepareContext(ctx, createProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateProfile: %w", err)
 	}
+	if q.createSessionStmt, err = db.PrepareContext(ctx, createSession); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateSession: %w", err)
+	}
 	if q.createStockExerciseStmt, err = db.PrepareContext(ctx, createStockExercise); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateStockExercise: %w", err)
 	}
@@ -68,6 +71,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.deleteProfileStmt, err = db.PrepareContext(ctx, deleteProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteProfile: %w", err)
+	}
+	if q.deleteSessionStmt, err = db.PrepareContext(ctx, deleteSession); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteSession: %w", err)
 	}
 	if q.deleteStockExerciseStmt, err = db.PrepareContext(ctx, deleteStockExercise); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteStockExercise: %w", err)
@@ -113,6 +119,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getProfileStmt, err = db.PrepareContext(ctx, getProfile); err != nil {
 		return nil, fmt.Errorf("error preparing query GetProfile: %w", err)
+	}
+	if q.getSessionStmt, err = db.PrepareContext(ctx, getSession); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSession: %w", err)
 	}
 	if q.getStockExerciseStmt, err = db.PrepareContext(ctx, getStockExercise); err != nil {
 		return nil, fmt.Errorf("error preparing query GetStockExercise: %w", err)
@@ -212,6 +221,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createProfileStmt: %w", cerr)
 		}
 	}
+	if q.createSessionStmt != nil {
+		if cerr := q.createSessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createSessionStmt: %w", cerr)
+		}
+	}
 	if q.createStockExerciseStmt != nil {
 		if cerr := q.createStockExerciseStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createStockExerciseStmt: %w", cerr)
@@ -255,6 +269,11 @@ func (q *Queries) Close() error {
 	if q.deleteProfileStmt != nil {
 		if cerr := q.deleteProfileStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteProfileStmt: %w", cerr)
+		}
+	}
+	if q.deleteSessionStmt != nil {
+		if cerr := q.deleteSessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteSessionStmt: %w", cerr)
 		}
 	}
 	if q.deleteStockExerciseStmt != nil {
@@ -330,6 +349,11 @@ func (q *Queries) Close() error {
 	if q.getProfileStmt != nil {
 		if cerr := q.getProfileStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getProfileStmt: %w", cerr)
+		}
+	}
+	if q.getSessionStmt != nil {
+		if cerr := q.getSessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSessionStmt: %w", cerr)
 		}
 	}
 	if q.getStockExerciseStmt != nil {
@@ -482,6 +506,7 @@ type Queries struct {
 	createLiftStmt               *sql.Stmt
 	createMuscleGroupStmt        *sql.Stmt
 	createProfileStmt            *sql.Stmt
+	createSessionStmt            *sql.Stmt
 	createStockExerciseStmt      *sql.Stmt
 	createTemplateStmt           *sql.Stmt
 	createUserStmt               *sql.Stmt
@@ -491,6 +516,7 @@ type Queries struct {
 	deleteLiftStmt               *sql.Stmt
 	deleteMuscleGroupStmt        *sql.Stmt
 	deleteProfileStmt            *sql.Stmt
+	deleteSessionStmt            *sql.Stmt
 	deleteStockExerciseStmt      *sql.Stmt
 	deleteTemplateStmt           *sql.Stmt
 	deleteUserStmt               *sql.Stmt
@@ -506,6 +532,7 @@ type Queries struct {
 	getMuscleGroupStmt           *sql.Stmt
 	getMuscleGroupByNameStmt     *sql.Stmt
 	getProfileStmt               *sql.Stmt
+	getSessionStmt               *sql.Stmt
 	getStockExerciseStmt         *sql.Stmt
 	getTemplateStmt              *sql.Stmt
 	getUserByEmailStmt           *sql.Stmt
@@ -539,6 +566,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		createLiftStmt:               q.createLiftStmt,
 		createMuscleGroupStmt:        q.createMuscleGroupStmt,
 		createProfileStmt:            q.createProfileStmt,
+		createSessionStmt:            q.createSessionStmt,
 		createStockExerciseStmt:      q.createStockExerciseStmt,
 		createTemplateStmt:           q.createTemplateStmt,
 		createUserStmt:               q.createUserStmt,
@@ -548,6 +576,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		deleteLiftStmt:               q.deleteLiftStmt,
 		deleteMuscleGroupStmt:        q.deleteMuscleGroupStmt,
 		deleteProfileStmt:            q.deleteProfileStmt,
+		deleteSessionStmt:            q.deleteSessionStmt,
 		deleteStockExerciseStmt:      q.deleteStockExerciseStmt,
 		deleteTemplateStmt:           q.deleteTemplateStmt,
 		deleteUserStmt:               q.deleteUserStmt,
@@ -563,6 +592,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getMuscleGroupStmt:           q.getMuscleGroupStmt,
 		getMuscleGroupByNameStmt:     q.getMuscleGroupByNameStmt,
 		getProfileStmt:               q.getProfileStmt,
+		getSessionStmt:               q.getSessionStmt,
 		getStockExerciseStmt:         q.getStockExerciseStmt,
 		getTemplateStmt:              q.getTemplateStmt,
 		getUserByEmailStmt:           q.getUserByEmailStmt,
