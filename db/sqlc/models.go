@@ -51,6 +51,17 @@ type Profile struct {
 	UserID            []byte  `json:"user_id"`
 }
 
+type Session struct {
+	ID           []byte    `json:"id"`
+	RefreshToken string    `json:"refresh_token"`
+	UserAgent    string    `json:"user_agent"`
+	ClientIp     string    `json:"client_ip"`
+	IsBanned     bool      `json:"is_banned"`
+	ExpiresAt    time.Time `json:"expires_at"`
+	CreatedAt    time.Time `json:"created_at"`
+	UserID       []byte    `json:"user_id"`
+}
+
 type StockExercise struct {
 	ID          int32  `json:"id"`
 	Name        string `json:"name"`
