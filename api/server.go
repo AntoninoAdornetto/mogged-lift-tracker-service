@@ -34,8 +34,9 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 
 func (server *Server) setupRouter() {
 	router := gin.Default()
-	router.POST("auth/login", server.login)
 	router.POST("/createUser", server.createUser)
+	router.POST("/auth/login", server.login)
+	router.POST("/auth/renewToken", server.renewToken)
 
 	protected := router.Group("/").Use(authMiddleware(server.tokenMaker))
 
