@@ -11,7 +11,7 @@ import (
 const minSecretSize = 32
 
 type Maker interface {
-	CreateToken(userID string, duration time.Duration) (string, error)
+	CreateToken(userID string, duration time.Duration) (string, *Payload, error)
 	VerifyToken(token string) (*Payload, error)
 }
 
@@ -27,14 +27,15 @@ func NewJWTMaker(secretKey string) (Maker, error) {
 	return &JWTMaker{secretKey}, nil
 }
 
-func (maker *JWTMaker) CreateToken(userID string, duration time.Duration) (string, error) {
+func (maker *JWTMaker) CreateToken(userID string, duration time.Duration) (string, *Payload, error) {
 	payload, err := NewPayload(userID, duration)
 	if err != nil {
-		return "", nil
+		return "", payload, nil
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
-	return token.SignedString([]byte(maker.secretKey))
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
+	token, err := jwtToken.SignedString([]byte(maker.secretKey))
+	return token, payload, err
 }
 
 func (maker *JWTMaker) VerifyToken(token string) (*Payload, error) {
