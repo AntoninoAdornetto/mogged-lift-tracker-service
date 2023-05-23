@@ -23,19 +23,23 @@ func TestGetSession(t *testing.T) {
 
 func TestDeleteSession(t *testing.T) {
 	user := GenRandUser(t)
-	GenRandSession(t, user.ID)
+	session := GenRandSession(t, user.ID)
 
 	err := testQueries.DeleteSession(context.Background(), user.ID)
 	require.NoError(t, err)
 
-	session, err := testQueries.GetSession(context.Background(), user.ID)
+	query, err := testQueries.GetSession(context.Background(), session.ID)
 	require.Error(t, err)
-	require.Empty(t, session)
+	require.Empty(t, query)
 }
 
 // asserts both CREATE & GET queries
-func GenRandSession(t *testing.T, userID string) Session {
+func GenRandSession(t *testing.T, userID string) GetSessionRow {
+	sessionID, err := uuid.NewRandom()
+	require.NoError(t, err)
+
 	args := CreateSessionParams{
+		ID:           sessionID.String(),
 		RefreshToken: util.RandomStr(20),
 		UserID:       userID,
 		ClientIp: fmt.Sprintf("%d.%d.%d.%d",
@@ -47,19 +51,18 @@ func GenRandSession(t *testing.T, userID string) Session {
 		ExpiresAt: time.Now().Add(time.Hour * 24),
 	}
 
-	err := testQueries.CreateSession(context.Background(), args)
+	err = testQueries.CreateSession(context.Background(), args)
 	require.NoError(t, err)
 
-	session, err := testQueries.GetSession(context.Background(), userID)
+	session, err := testQueries.GetSession(context.Background(), sessionID.String())
 	require.NoError(t, err)
 
-	parsedUUID, err := uuid.FromBytes(session.UserID)
 	require.NoError(t, err)
 	require.Equal(t, args.RefreshToken, session.RefreshToken)
-	require.Equal(t, args.UserID, parsedUUID.String())
+	require.Equal(t, args.UserID, session.UserID)
 	require.Equal(t, args.ClientIp, session.ClientIp)
 	require.Equal(t, args.UserAgent, session.UserAgent)
 	require.WithinDuration(t, args.ExpiresAt, session.ExpiresAt, time.Minute)
-
+	require.Equal(t, args.ID, session.ID)
 	return session
 }
