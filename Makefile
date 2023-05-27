@@ -1,23 +1,23 @@
 network:
 	docker network create mog-network
 
-dbcontainer: 
-	docker run --name moggdb --network mog-network -e MYSQL_ROOT_PASSWORD=secret -p 3307:3306 -d mysql:latest
+mysql: 
+	docker run --name mysql --network mog-network -p 3306:3306 -e MYSQL_ROOT_PASSWORD=secret -d mysql:latest
 
 createdb:
-	docker exec -it moggdb mysql -u root -p"secret" -e "CREATE DATABASE ismogged;" 
+	docker exec -it mysql mysql -u root -p"secret" -e "CREATE DATABASE ismogged;" 
 
 dropdb:
-	docker exec -it moggdb mysql -u root -p"secret" -e "DROP DATABASE ismogged;" 
+	docker exec -it mysql mysql -u root -p"secret" -e "DROP DATABASE ismogged;" 
 
 mysqlshell:
-	docker exec -it moggdb bash
+	docker exec -it mysql bash
 
 migrateup:
-	migrate -path db/migration -database "mysql://root:secret@tcp(localhost:3307)/ismogged?parseTime=true" --verbose up
+	migrate -path db/migration -database "mysql://root:secret@tcp(localhost:3306)/ismogged?parseTime=true" --verbose up
 
 migratedown:
-	migrate -path db/migration -database "mysql://root:secret@tcp(localhost:3307)/ismogged" --verbose down 
+	migrate -path db/migration -database "mysql://root:secret@tcp(localhost:3306)/ismogged" --verbose down 
 
 sqlc:
 	docker run --rm -v $(shell pwd):/src -w /src kjconroy/sqlc generate
@@ -34,4 +34,4 @@ coveragereport:
 start-server:
 	go run main.go
 
-.PHONY: network dbcontainer createdb dropdb mysqlshell migrateup migratedown sqlc ctest start-server
+.PHONY: network mysql createdb dropdb mysqlshell migrateup migratedown sqlc ctest start-server
