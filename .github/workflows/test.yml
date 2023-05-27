@@ -18,7 +18,7 @@ jobs:
           MYSQL_DATABASE: ismogged
           MYSQL_PASSWORD: secret
         ports:
-          - 3307:3306
+          - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
@@ -31,7 +31,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: '1.18'
+          go-version: '1.19'
 
       - name: Install golang-migrate
         run: |
