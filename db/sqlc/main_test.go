@@ -11,7 +11,7 @@ import (
 
 const (
 	dbDriver = "mysql"
-	dbSource = "root:secret@tcp(localhost:3307)/ismogged?parseTime=true"
+	dbSource = "root:secret@tcp(localhost:3306)/ismogged?parseTime=true"
 )
 
 var testQueries *Queries
