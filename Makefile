@@ -1,11 +1,11 @@
 mysql: 
-	docker run --name moggdb -e MYSQL_ROOT_PASSWORD=secret -p 3306:3306 -d mysql:latest
+	docker run --name mysql8 -e MYSQL_ROOT_PASSWORD=secret -p 3306:3306 -d mysql:latest
 
 createdb:
-	docker exec -it moggdb mysql -u root -p"secret" -e "CREATE DATABASE ismogged;" 
+	docker exec -it mysql8 mysql -u root -p"secret" -e "CREATE DATABASE ismogged;" 
 
 dropdb:
-	docker exec -it moggdb mysql -u root -p"secret" -e "DROP DATABASE ismogged;" 
+	docker exec -it mysql8 mysql -u root -p"secret" -e "DROP DATABASE ismogged;" 
 
 mysqlshell:
 	docker exec -it moggdb bash
