@@ -18,7 +18,7 @@ jobs:
           MYSQL_DATABASE: ismogged
           MYSQL_PASSWORD: secret
         ports:
-          - 3307:3306
+          - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
