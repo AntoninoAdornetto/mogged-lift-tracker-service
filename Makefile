@@ -1,3 +1,6 @@
+network:
+	docker network create mog-network
+
 dbcontainer: 
 	docker run --name moggdb --network mog-network -e MYSQL_ROOT_PASSWORD=secret -p 3307:3306 -d mysql:latest
 
@@ -31,4 +34,4 @@ coveragereport:
 start-server:
 	go run main.go
 
-.PHONY: dbcontainer createdb dropdb mysqlshell migrateup migratedown sqlc ctest start-server
+.PHONY: network dbcontainer createdb dropdb mysqlshell migrateup migratedown sqlc ctest start-server
