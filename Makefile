@@ -1,4 +1,4 @@
-dbcontainer: 
+mysql: 
 	docker run --name moggdb -e MYSQL_ROOT_PASSWORD=secret -p 3306:3306 -d mysql:latest
 
 createdb:
@@ -31,4 +31,4 @@ coveragereport:
 start-server:
 	go run main.go
 
-.PHONY: dbcontainer createdb dropdb mysqlshell migrateup migratedown sqlc ctest start-server
+.PHONY: mysql createdb dropdb mysqlshell migrateup migratedown sqlc ctest start-server
