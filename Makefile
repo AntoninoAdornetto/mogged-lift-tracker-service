@@ -1,5 +1,5 @@
 dbcontainer: 
-	docker run --name moggdb -e MYSQL_ROOT_PASSWORD=secret -p 3307:3306 -d mysql:latest
+	docker run --name moggdb --network mog-network -e MYSQL_ROOT_PASSWORD=secret -p 3307:3306 -d mysql:latest
 
 createdb:
 	docker exec -it moggdb mysql -u root -p"secret" -e "CREATE DATABASE ismogged;" 
