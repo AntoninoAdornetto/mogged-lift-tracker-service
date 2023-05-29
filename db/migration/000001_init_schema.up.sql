@@ -81,17 +81,17 @@ CREATE INDEX `lift_user_index_0` ON `lift` (`user_id`);
 CREATE INDEX `lift_weight_index_0` ON `lift` (`weight_lifted`);
 
 
-ALTER TABLE `profile` ADD FOREIGN KEY `profile_user_id_fk` (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
+ALTER TABLE `profile` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
 
-ALTER TABLE `exercise` ADD FOREIGN KEY `exercise_mg_name_fk` (`muscle_group`) REFERENCES `muscle_group` (`name`) ON DELETE CASCADE;
-ALTER TABLE `exercise` ADD FOREIGN KEY `exercise_cat_name_fk` (`category`) REFERENCES `category` (`name`) ON DELETE CASCADE;
-ALTER TABLE `exercise` ADD FOREIGN KEY `exercise_user_id_fk` (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
+ALTER TABLE `exercise` ADD FOREIGN KEY (`muscle_group`) REFERENCES `muscle_group` (`name`) ON DELETE CASCADE;
+ALTER TABLE `exercise` ADD FOREIGN KEY (`category`) REFERENCES `category` (`name`) ON DELETE CASCADE;
+ALTER TABLE `exercise` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
 
-ALTER TABLE `workout` ADD FOREIGN KEY `wo_user_id_fk` (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
+ALTER TABLE `workout` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
 
-ALTER TABLE `lift` ADD FOREIGN KEY `lift_exercise_name_fk` (`exercise_name`) REFERENCES `exercise` (`name`) ON DELETE CASCADE;
-ALTER TABLE `lift` ADD FOREIGN KEY `lift_user_id_fk` (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
-ALTER TABLE `lift` ADD FOREIGN KEY `lift_wo_id_fk` (`workout_id`) REFERENCES `workout` (`id`) ON DELETE CASCADE;
+ALTER TABLE `lift` ADD FOREIGN KEY (`exercise_name`) REFERENCES `exercise` (`name`) ON DELETE CASCADE;
+ALTER TABLE `lift` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
+ALTER TABLE `lift` ADD FOREIGN KEY (`workout_id`) REFERENCES `workout` (`id`) ON DELETE CASCADE;
 -- @TODO: determine if index on lift.workout_id can be beneficial
 
-ALTER TABLE `template` ADD FOREIGN KEY `template_user_id_fk` (`created_by`) REFERENCES `user` (`id`) ON DELETE CASCADE;
+ALTER TABLE `template` ADD FOREIGN KEY (`created_by`) REFERENCES `user` (`id`) ON DELETE CASCADE;
