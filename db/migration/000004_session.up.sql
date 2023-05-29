@@ -9,4 +9,4 @@ CREATE TABLE `session` (
 	`user_id` BINARY(16) NOT NULL
 );
 
-ALTER TABLE `session` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
+ALTER TABLE `session` ADD FOREIGN KEY `session_user_id_fk` (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
