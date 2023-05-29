@@ -80,19 +80,3 @@ CREATE INDEX `workout_user_index_0` ON `workout` (`user_id`);
 CREATE INDEX `lift_user_index_0` ON `lift` (`user_id`);
 CREATE INDEX `lift_weight_index_0` ON `lift` (`weight_lifted`);
 CREATE INDEX `lift_wo_id_index_0` ON `lift` (`workout_id`);
-
-
-ALTER TABLE `profile` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
-
-ALTER TABLE `exercise` ADD FOREIGN KEY (`muscle_group`) REFERENCES `muscle_group` (`name`) ON DELETE CASCADE;
-ALTER TABLE `exercise` ADD FOREIGN KEY (`category`) REFERENCES `category` (`name`) ON DELETE CASCADE;
-ALTER TABLE `exercise` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
-
-ALTER TABLE `workout` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
-
-ALTER TABLE `lift` ADD FOREIGN KEY (`exercise_name`) REFERENCES `exercise` (`name`) ON DELETE CASCADE;
-ALTER TABLE `lift` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
-ALTER TABLE `lift` ADD FOREIGN KEY (`workout_id`) REFERENCES `workout` (`id`) ON DELETE CASCADE;
--- @TODO: determine if index on lift.workout_id can be beneficial
-
-ALTER TABLE `template` ADD FOREIGN KEY (`created_by`) REFERENCES `user` (`id`) ON DELETE CASCADE;

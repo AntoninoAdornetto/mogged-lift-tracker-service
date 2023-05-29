@@ -9,4 +9,4 @@ CREATE TABLE `session` (
 	`user_id` BINARY(16) NOT NULL
 );
 
-ALTER TABLE `session` ADD FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
+CREATE INDEX `session_user_id_index_0` ON `session` (`user_id`);
