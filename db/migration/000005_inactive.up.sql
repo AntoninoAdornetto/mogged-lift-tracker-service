@@ -1,9 +1,4 @@
-CREATE TABLE `inactive_users` (
+CREATE TABLE `inactive_user` (
 	`id` BINARY(16) PRIMARY KEY,
-	`recorded` DATE DEFAULT (NOW()),
-	`complete` BOOLEAN DEFAULT false
+	`recorded` DATE DEFAULT (NOW())
 );
-
-CREATE TRIGGER `inactive` AFTER DELETE ON user
-	FOR EACH ROW
-		INSERT INTO `inactive_users` (id) VALUES (OLD.id);

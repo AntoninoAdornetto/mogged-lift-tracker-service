@@ -1,1 +1,1 @@
-DROP TRIGGER `inactive`;
+DROP TABLE IF EXISTS `inactive_user`;
