@@ -49,6 +49,7 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, emailAddress string) (GetUserByEmailRow, error)
 	GetUserById(ctx context.Context, userID string) (GetUserByIdRow, error)
 	GetWorkout(ctx context.Context, arg GetWorkoutParams) (Workout, error)
+	InsertInactiveUser(ctx context.Context, userID string) error
 	ListCategories(ctx context.Context) ([]Category, error)
 	ListExercises(ctx context.Context, userID string) ([]Exercise, error)
 	ListLiftsFromWorkout(ctx context.Context, arg ListLiftsFromWorkoutParams) ([]Lift, error)

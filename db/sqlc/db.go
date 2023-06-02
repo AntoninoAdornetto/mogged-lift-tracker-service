@@ -141,6 +141,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getWorkoutStmt, err = db.PrepareContext(ctx, getWorkout); err != nil {
 		return nil, fmt.Errorf("error preparing query GetWorkout: %w", err)
 	}
+	if q.insertInactiveUserStmt, err = db.PrepareContext(ctx, insertInactiveUser); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertInactiveUser: %w", err)
+	}
 	if q.listCategoriesStmt, err = db.PrepareContext(ctx, listCategories); err != nil {
 		return nil, fmt.Errorf("error preparing query ListCategories: %w", err)
 	}
@@ -389,6 +392,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getWorkoutStmt: %w", cerr)
 		}
 	}
+	if q.insertInactiveUserStmt != nil {
+		if cerr := q.insertInactiveUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertInactiveUserStmt: %w", cerr)
+		}
+	}
 	if q.listCategoriesStmt != nil {
 		if cerr := q.listCategoriesStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listCategoriesStmt: %w", cerr)
@@ -547,6 +555,7 @@ type Queries struct {
 	getUserByEmailStmt           *sql.Stmt
 	getUserByIdStmt              *sql.Stmt
 	getWorkoutStmt               *sql.Stmt
+	insertInactiveUserStmt       *sql.Stmt
 	listCategoriesStmt           *sql.Stmt
 	listExercisesStmt            *sql.Stmt
 	listLiftsFromWorkoutStmt     *sql.Stmt
@@ -608,6 +617,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getUserByEmailStmt:           q.getUserByEmailStmt,
 		getUserByIdStmt:              q.getUserByIdStmt,
 		getWorkoutStmt:               q.getWorkoutStmt,
+		insertInactiveUserStmt:       q.insertInactiveUserStmt,
 		listCategoriesStmt:           q.listCategoriesStmt,
 		listExercisesStmt:            q.listExercisesStmt,
 		listLiftsFromWorkoutStmt:     q.listLiftsFromWorkoutStmt,
