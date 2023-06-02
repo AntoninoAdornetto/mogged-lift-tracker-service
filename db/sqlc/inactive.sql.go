@@ -20,3 +20,12 @@ func (q *Queries) GetInactiveUser(ctx context.Context, userID string) (string, e
 	err := row.Scan(&id)
 	return id, err
 }
+
+const insertInactiveUser = `-- name: InsertInactiveUser :exec
+INSERT INTO ` + "`" + `inactive_user` + "`" + ` (id) VALUES (UUID_TO_BIN(?))
+`
+
+func (q *Queries) InsertInactiveUser(ctx context.Context, userID string) error {
+	_, err := q.exec(ctx, q.insertInactiveUserStmt, insertInactiveUser, userID)
+	return err
+}
