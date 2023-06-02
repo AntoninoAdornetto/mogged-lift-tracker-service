@@ -34,6 +34,7 @@ type Querier interface {
 	GetCategory(ctx context.Context, id int32) (Category, error)
 	GetExercise(ctx context.Context, arg GetExerciseParams) (Exercise, error)
 	GetExerciseByName(ctx context.Context, arg GetExerciseByNameParams) (Exercise, error)
+	GetInactiveUser(ctx context.Context, userID string) (string, error)
 	GetLift(ctx context.Context, arg GetLiftParams) (Lift, error)
 	GetMaxLifts(ctx context.Context, arg GetMaxLiftsParams) ([]Lift, error)
 	GetMaxLiftsByExercise(ctx context.Context, arg GetMaxLiftsByExerciseParams) ([]Lift, error)
