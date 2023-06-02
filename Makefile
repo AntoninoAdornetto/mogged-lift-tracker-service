@@ -31,7 +31,7 @@ ctest:
 coveragereport:
 	go test -coverprofile=coverage/coverage.out ./... && go tool cover -html=coverage/coverage.out -o=coverage/coverage.html
 
-start-server:
+server:
 	go run main.go
 
-.PHONY: network mysql createdb dropdb mysqlshell migrateup migratedown sqlc ctest start-server
+.PHONY: network mysql createdb dropdb mysqlshell migrateup migratedown triggersup triggersdown sqlc mock ctest server
