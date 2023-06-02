@@ -5,6 +5,7 @@
 package db
 
 import (
+	"database/sql"
 	"encoding/json"
 	"time"
 )
@@ -24,6 +25,11 @@ type Exercise struct {
 	MostRepsLifted   int32   `json:"most_reps_lifted"`
 	RestTimer        string  `json:"rest_timer"`
 	UserID           []byte  `json:"user_id"`
+}
+
+type InactiveUser struct {
+	ID       []byte       `json:"id"`
+	Recorded sql.NullTime `json:"recorded"`
 }
 
 type Lift struct {
