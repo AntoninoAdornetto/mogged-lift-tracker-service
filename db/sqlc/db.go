@@ -96,6 +96,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getExerciseByNameStmt, err = db.PrepareContext(ctx, getExerciseByName); err != nil {
 		return nil, fmt.Errorf("error preparing query GetExerciseByName: %w", err)
 	}
+	if q.getInactiveUserStmt, err = db.PrepareContext(ctx, getInactiveUser); err != nil {
+		return nil, fmt.Errorf("error preparing query GetInactiveUser: %w", err)
+	}
 	if q.getLiftStmt, err = db.PrepareContext(ctx, getLift); err != nil {
 		return nil, fmt.Errorf("error preparing query GetLift: %w", err)
 	}
@@ -311,6 +314,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getExerciseByNameStmt: %w", cerr)
 		}
 	}
+	if q.getInactiveUserStmt != nil {
+		if cerr := q.getInactiveUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getInactiveUserStmt: %w", cerr)
+		}
+	}
 	if q.getLiftStmt != nil {
 		if cerr := q.getLiftStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getLiftStmt: %w", cerr)
@@ -524,6 +532,7 @@ type Queries struct {
 	getCategoryStmt              *sql.Stmt
 	getExerciseStmt              *sql.Stmt
 	getExerciseByNameStmt        *sql.Stmt
+	getInactiveUserStmt          *sql.Stmt
 	getLiftStmt                  *sql.Stmt
 	getMaxLiftsStmt              *sql.Stmt
 	getMaxLiftsByExerciseStmt    *sql.Stmt
@@ -584,6 +593,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getCategoryStmt:              q.getCategoryStmt,
 		getExerciseStmt:              q.getExerciseStmt,
 		getExerciseByNameStmt:        q.getExerciseByNameStmt,
+		getInactiveUserStmt:          q.getInactiveUserStmt,
 		getLiftStmt:                  q.getLiftStmt,
 		getMaxLiftsStmt:              q.getMaxLiftsStmt,
 		getMaxLiftsByExerciseStmt:    q.getMaxLiftsByExerciseStmt,

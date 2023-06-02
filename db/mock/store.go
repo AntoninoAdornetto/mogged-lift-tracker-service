@@ -386,6 +386,21 @@ func (mr *MockStoreMockRecorder) GetExerciseByName(arg0, arg1 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExerciseByName", reflect.TypeOf((*MockStore)(nil).GetExerciseByName), arg0, arg1)
 }
 
+// GetInactiveUser mocks base method.
+func (m *MockStore) GetInactiveUser(arg0 context.Context, arg1 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetInactiveUser", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetInactiveUser indicates an expected call of GetInactiveUser.
+func (mr *MockStoreMockRecorder) GetInactiveUser(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInactiveUser", reflect.TypeOf((*MockStore)(nil).GetInactiveUser), arg0, arg1)
+}
+
 // GetLift mocks base method.
 func (m *MockStore) GetLift(arg0 context.Context, arg1 db.GetLiftParams) (db.Lift, error) {
 	m.ctrl.T.Helper()
