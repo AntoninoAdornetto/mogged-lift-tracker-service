@@ -104,7 +104,11 @@ func TestUpdateEmail(t *testing.T) {
 
 func TestChangePassword(t *testing.T) {
 	user := GenRandUser(t)
-	require.Equal(t, user.PasswordChangedAt.Year(), 1970) // indicates password has never been changed
+	require.Equal(
+		t,
+		user.PasswordChangedAt.Year(),
+		1970,
+	) // indicates password has never been changed
 
 	newPassword := util.RandomStr(12)
 	err := testQueries.ChangePassword(context.Background(), ChangePasswordParams{
@@ -127,6 +131,12 @@ func TestDeleteUser(t *testing.T) {
 
 	_, err = testQueries.GetUserByEmail(context.Background(), user.EmailAddress)
 	require.Error(t, err)
+
+	inactiveUserID, err := testQueries.GetInactiveUser(context.Background(), user.ID)
+	require.NoError(t, err)
+
+	// trigger is set to insert the deleted user id into inactive user table
+	require.Equal(t, inactiveUserID, user.ID)
 }
 
 func GenRandUser(t *testing.T) GetUserByEmailRow {
@@ -150,7 +160,11 @@ func GenRandUser(t *testing.T) GetUserByEmailRow {
 	require.Equal(t, args.FirstName, user.FirstName)
 	require.Equal(t, args.LastName, user.LastName)
 	require.Equal(t, args.EmailAddress, user.EmailAddress)
-	require.Equal(t, user.PasswordChangedAt.Year(), 1970) // indicates the password has never been changed
+	require.Equal(
+		t,
+		user.PasswordChangedAt.Year(),
+		1970,
+	) // indicates the password has never been changed
 	require.GreaterOrEqual(t, len(args.Password), 10)
 	require.NotEqual(t, password, user.Password)
 	require.Equal(t, hashedPassword, user.Password)
