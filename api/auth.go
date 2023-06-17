@@ -14,7 +14,7 @@ import (
 
 type loginRequest struct {
 	EmailAddress string `json:"emailAddress" binding:"required,email"`
-	Password     string `json:"password" binding:"required"`
+	Password     string `json:"password"     binding:"required"`
 }
 
 type loginResponse struct {
@@ -36,7 +36,10 @@ func (server *Server) login(ctx *gin.Context) {
 	user, err := server.store.GetUserByEmail(ctx, req.EmailAddress)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(USEREMAIL_NOT_FOUND, req.EmailAddress)))
+			ctx.JSON(
+				http.StatusNotFound,
+				errorResponse(fmt.Errorf(USEREMAIL_NOT_FOUND, req.EmailAddress)),
+			)
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -48,13 +51,25 @@ func (server *Server) login(ctx *gin.Context) {
 		return
 	}
 
-	token, accessTokenPayload, err := server.tokenMaker.CreateToken(user.ID, server.config.AccessTokenDuration)
+	token, accessTokenPayload, err := server.tokenMaker.CreateToken(
+		user.ID,
+		server.config.AccessTokenDuration,
+	)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	refreshToken, refreshTokenPayload, err := server.tokenMaker.CreateToken(user.ID, server.config.RefreshTokenDuration)
+	refreshToken, refreshTokenPayload, err := server.tokenMaker.CreateToken(
+		user.ID,
+		server.config.RefreshTokenDuration,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = server.store.DeleteSession(ctx, user.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -76,7 +91,10 @@ func (server *Server) login(ctx *gin.Context) {
 	session, err := server.store.GetSession(ctx, refreshTokenPayload.ID.String())
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(errors.New("session not found, please login again")))
+			ctx.JSON(
+				http.StatusNotFound,
+				errorResponse(errors.New("session not found, please login again")),
+			)
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -119,14 +137,20 @@ func (server *Server) renewToken(ctx *gin.Context) {
 
 	refreshTokenPayload, err := server.tokenMaker.VerifyToken(req.RefreshToken)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("session has expired, please login again")))
+		ctx.JSON(
+			http.StatusUnauthorized,
+			errorResponse(errors.New("session has expired, please login again")),
+		)
 		return
 	}
 
 	session, err := server.store.GetSession(ctx, refreshTokenPayload.ID.String())
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(errors.New("failed to fetch session, please login again")))
+			ctx.JSON(
+				http.StatusNotFound,
+				errorResponse(errors.New("failed to fetch session, please login again")),
+			)
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -139,12 +163,18 @@ func (server *Server) renewToken(ctx *gin.Context) {
 	}
 
 	if session.UserID != refreshTokenPayload.UserID {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("session does not belong to requested user")))
+		ctx.JSON(
+			http.StatusUnauthorized,
+			errorResponse(errors.New("session does not belong to requested user")),
+		)
 		return
 	}
 
 	if session.RefreshToken != req.RefreshToken {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid session, please login again")))
+		ctx.JSON(
+			http.StatusUnauthorized,
+			errorResponse(errors.New("invalid session, please login again")),
+		)
 		return
 	}
 
@@ -153,7 +183,10 @@ func (server *Server) renewToken(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, accessTokenPayload, err := server.tokenMaker.CreateToken(refreshTokenPayload.UserID, server.config.AccessTokenDuration)
+	accessToken, accessTokenPayload, err := server.tokenMaker.CreateToken(
+		refreshTokenPayload.UserID,
+		server.config.AccessTokenDuration,
+	)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
