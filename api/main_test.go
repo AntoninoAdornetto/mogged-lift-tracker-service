@@ -15,6 +15,7 @@ func newTestServer(t *testing.T, store db.Store) *Server {
 	config := util.Config{
 		AccessTokenDuration: time.Minute,
 		SecretKey:           util.RandomStr(32),
+		AllowedOrigins:      "*",
 	}
 
 	server, err := NewServer(config, store)

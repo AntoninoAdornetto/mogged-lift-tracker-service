@@ -13,6 +13,7 @@ type Config struct {
 	SecretKey            string        `mapstructure:"SECRET_KEY"`
 	AccessTokenDuration  time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
 	RefreshTokenDuration time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
+	AllowedOrigins       string        `mapstructure:"ALLOWED_ORIGINS"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
