@@ -31,14 +31,12 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 	}
 
 	server.setupRouter()
-	server.setupCors(server.router)
 	return server, nil
 }
 
 func (server *Server) setupCors(router *gin.Engine) {
 	config := cors.DefaultConfig()
 	origins := strings.Split(server.config.AllowedOrigins, ",")
-	fmt.Println(origins)
 	config.AllowOrigins = origins
 	config.AllowMethods = []string{"GET", "POST", "PATCH", "DELETE"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization"}
@@ -47,6 +45,8 @@ func (server *Server) setupCors(router *gin.Engine) {
 
 func (server *Server) setupRouter() {
 	router := gin.Default()
+	server.setupCors(router)
+
 	router.POST("/createUser", server.createUser)
 	router.POST("/auth/login", server.login)
 	router.POST("/auth/renewToken", server.renewToken)
