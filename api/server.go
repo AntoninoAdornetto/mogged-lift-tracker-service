@@ -2,10 +2,12 @@ package api
 
 import (
 	"fmt"
+	"strings"
 
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/token"
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/util"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,7 +31,17 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 	}
 
 	server.setupRouter()
+	server.setupCors(server.router)
 	return server, nil
+}
+
+func (server *Server) setupCors(router *gin.Engine) {
+	config := cors.DefaultConfig()
+	origins := strings.Split(server.config.AllowedOrigins, ",")
+	config.AllowOrigins = origins
+	config.AllowMethods = []string{"GET", "POST", "PATCH", "DELETE"}
+	config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization"}
+	router.Use(cors.New(config))
 }
 
 func (server *Server) setupRouter() {
