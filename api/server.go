@@ -38,6 +38,7 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 func (server *Server) setupCors(router *gin.Engine) {
 	config := cors.DefaultConfig()
 	origins := strings.Split(server.config.AllowedOrigins, ",")
+	fmt.Println(origins)
 	config.AllowOrigins = origins
 	config.AllowMethods = []string{"GET", "POST", "PATCH", "DELETE"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization"}
