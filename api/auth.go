@@ -179,8 +179,8 @@ func (server *Server) renewToken(ctx *gin.Context) {
 		return
 	}
 
-	// check for validation only when session ID is pulled from http only cookie.
-	// when caller makes request with refreshToken, we skip verifying the token below
+	// this check is invoked only when the session ID is pulled from http cookie.
+	// when caller makes request with refresh token, this check is not hit
 	if !req.Validated {
 		payload, err := server.tokenMaker.VerifyToken(session.RefreshToken)
 		if err != nil {
