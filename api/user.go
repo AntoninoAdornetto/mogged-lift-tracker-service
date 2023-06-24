@@ -15,7 +15,7 @@ import (
 
 const (
 	USERID_NOT_FOUND            = "user with specified ID '%s' does not exist"
-	USEREMAIL_NOT_FOUND         = "user with specified eMail '%s' does not exist"
+	USEREMAIL_NOT_FOUND         = "%s is not registered to an account"
 	LOGGED_IN_USER_DOESNT_MATCH = "authenticated user does not match the requested account"
 )
 
@@ -28,10 +28,10 @@ type UserResponse struct {
 }
 
 type createUserRequest struct {
-	FirstName    string `json:"firstName" binding:"required"`
-	LastName     string `json:"lastName" binding:"required"`
+	FirstName    string `json:"firstName"    binding:"required"`
+	LastName     string `json:"lastName"     binding:"required"`
 	EmailAddress string `json:"emailAddress" binding:"required,email"`
-	Password     string `json:"password" binding:"required,gt=8"`
+	Password     string `json:"password"     binding:"required,gt=8"`
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
@@ -63,7 +63,10 @@ func (server *Server) createUser(ctx *gin.Context) {
 	user, err := server.store.GetUserByEmail(ctx, req.EmailAddress)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(USEREMAIL_NOT_FOUND, req.EmailAddress)))
+			ctx.JSON(
+				http.StatusNotFound,
+				errorResponse(fmt.Errorf(USEREMAIL_NOT_FOUND, req.EmailAddress)),
+			)
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -95,7 +98,10 @@ func (server *Server) getUserByEmail(ctx *gin.Context) {
 	user, err := server.store.GetUserByEmail(ctx, req.EmailAddress)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(USEREMAIL_NOT_FOUND, req.EmailAddress)))
+			ctx.JSON(
+				http.StatusNotFound,
+				errorResponse(fmt.Errorf(USEREMAIL_NOT_FOUND, req.EmailAddress)),
+			)
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -120,7 +126,7 @@ type updateUserRequest struct {
 	FirstName    string `json:"firstName"`
 	LastName     string `json:"lastName"`
 	EmailAddress string `json:"emailAddress" binding:"omitempty,email"`
-	ID           string `json:"id" binding:"required"`
+	ID           string `json:"id"           binding:"required"`
 }
 
 func (server *Server) updateUser(ctx *gin.Context) {
@@ -186,9 +192,9 @@ func (server *Server) updateUser(ctx *gin.Context) {
 }
 
 type changePasswordRequest struct {
-	ID              string `json:"id" binding:"required"`
+	ID              string `json:"id"              binding:"required"`
 	CurrentPassword string `json:"currentPassword" binding:"required,gt=8"`
-	NewPassword     string `json:"newPassword" binding:"required,gt=8"`
+	NewPassword     string `json:"newPassword"     binding:"required,gt=8"`
 }
 
 func (server *Server) changePassword(ctx *gin.Context) {
@@ -216,7 +222,10 @@ func (server *Server) changePassword(ctx *gin.Context) {
 	}
 
 	if user.Password != req.CurrentPassword {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("your current password is incorrect")))
+		ctx.JSON(
+			http.StatusUnauthorized,
+			errorResponse(errors.New("your current password is incorrect")),
+		)
 		return
 	}
 

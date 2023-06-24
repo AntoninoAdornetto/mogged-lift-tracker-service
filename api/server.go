@@ -34,17 +34,24 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 	return server, nil
 }
 
+func writeHeaders(ctx *gin.Context) {
+	// max browser preflight cache time for chromium
+	ctx.Writer.Header().Set("Access-Control-Max-Age", "7200")
+}
+
 func (server *Server) setupCors(router *gin.Engine) {
 	config := cors.DefaultConfig()
 	origins := strings.Split(server.config.AllowedOrigins, ",")
 	config.AllowOrigins = origins
 	config.AllowMethods = []string{"GET", "POST", "PATCH", "DELETE"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization"}
+	config.AllowCredentials = true
 	router.Use(cors.New(config))
 }
 
 func (server *Server) setupRouter() {
 	router := gin.Default()
+	router.Use(writeHeaders)
 	server.setupCors(router)
 
 	router.POST("/createUser", server.createUser)

@@ -8,13 +8,22 @@ import (
 	"time"
 
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
+	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/token"
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/util"
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	SESSION_NOT_FOUND    = "Failed to find active session. Please login again"
+	SESSION_EXPIRED      = "Session has expired. Please login again"
+	SESSION_MISMATCH     = "Session does not belong to requested user. Please login again"
+	SESSION_INVALID      = "Invalid session. Please login again"
+	INVALID_SESSION_ARGS = "Session credentials were not provided. Please login again"
+)
+
 type loginRequest struct {
 	EmailAddress string `json:"emailAddress" binding:"required,email"`
-	Password     string `json:"password" binding:"required"`
+	Password     string `json:"password"     binding:"required"`
 }
 
 type loginResponse struct {
@@ -36,7 +45,10 @@ func (server *Server) login(ctx *gin.Context) {
 	user, err := server.store.GetUserByEmail(ctx, req.EmailAddress)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(USEREMAIL_NOT_FOUND, req.EmailAddress)))
+			ctx.JSON(
+				http.StatusNotFound,
+				errorResponse(fmt.Errorf(USEREMAIL_NOT_FOUND, req.EmailAddress)),
+			)
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -48,13 +60,25 @@ func (server *Server) login(ctx *gin.Context) {
 		return
 	}
 
-	token, accessTokenPayload, err := server.tokenMaker.CreateToken(user.ID, server.config.AccessTokenDuration)
+	token, accessTokenPayload, err := server.tokenMaker.CreateToken(
+		user.ID,
+		server.config.AccessTokenDuration,
+	)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	refreshToken, refreshTokenPayload, err := server.tokenMaker.CreateToken(user.ID, server.config.RefreshTokenDuration)
+	refreshToken, refreshTokenPayload, err := server.tokenMaker.CreateToken(
+		user.ID,
+		server.config.RefreshTokenDuration,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = server.store.DeleteSession(ctx, user.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -76,12 +100,25 @@ func (server *Server) login(ctx *gin.Context) {
 	session, err := server.store.GetSession(ctx, refreshTokenPayload.ID.String())
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(errors.New("session not found, please login again")))
+			ctx.JSON(
+				http.StatusNotFound,
+				errorResponse(errors.New("session not found, please login again")),
+			)
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+
+	http.SetCookie(ctx.Writer, &http.Cookie{
+		Name:     "session_id",
+		Value:    session.ID,
+		Secure:   true,
+		HttpOnly: true,
+		Expires:  session.ExpiresAt,
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   3600,
+	})
 
 	ctx.JSON(http.StatusOK, loginResponse{
 		AccessToken:           token,
@@ -100,7 +137,10 @@ func (server *Server) login(ctx *gin.Context) {
 }
 
 type renewTokenRequest struct {
-	RefreshToken string `json:"refreshToken" binding:"required"`
+	RefreshToken        string `json:"refreshToken"`
+	RefreshTokenPayload *token.Payload
+	SessionID           string
+	Validated           bool
 }
 
 type renewTokenResponse struct {
@@ -108,29 +148,46 @@ type renewTokenResponse struct {
 	AccessTokenExpiresAt time.Time `json:"accessTokenExpiresAt"`
 }
 
-// Look into a cookie to store the refresh token so that we can potentially keep the user
-// logged in for a good amount of time.
 func (server *Server) renewToken(ctx *gin.Context) {
-	req := renewTokenRequest{}
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
+	req := &renewTokenRequest{}
+
+	if err := ctx.ShouldBindJSON(req); err != nil {
+		sessionID, err := ctx.Cookie("session_id")
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New(INVALID_SESSION_ARGS)))
+			return
+		}
+		req.SessionID = sessionID
+	} else {
+		payload, err := server.tokenMaker.VerifyToken(req.RefreshToken)
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New(SESSION_EXPIRED)))
+			return
+		}
+		req.SessionID = payload.ID.String()
+		req.Validated = true
+		req.RefreshTokenPayload = payload
 	}
 
-	refreshTokenPayload, err := server.tokenMaker.VerifyToken(req.RefreshToken)
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("session has expired, please login again")))
-		return
-	}
-
-	session, err := server.store.GetSession(ctx, refreshTokenPayload.ID.String())
+	session, err := server.store.GetSession(ctx, req.SessionID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(errors.New("failed to fetch session, please login again")))
+			ctx.JSON(http.StatusNotFound, errorResponse(errors.New(SESSION_NOT_FOUND)))
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
+	}
+
+	// this check is invoked only when the session ID is pulled from http cookie.
+	// when caller makes request with refresh token, this check is not hit
+	if !req.Validated {
+		payload, err := server.tokenMaker.VerifyToken(session.RefreshToken)
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New(SESSION_EXPIRED)))
+			return
+		}
+		req.RefreshTokenPayload = payload
 	}
 
 	if session.IsBanned {
@@ -138,22 +195,23 @@ func (server *Server) renewToken(ctx *gin.Context) {
 		return
 	}
 
-	if session.UserID != refreshTokenPayload.UserID {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("session does not belong to requested user")))
-		return
-	}
-
-	if session.RefreshToken != req.RefreshToken {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid session, please login again")))
+	if session.UserID != req.RefreshTokenPayload.UserID {
+		ctx.JSON(
+			http.StatusUnauthorized,
+			errorResponse(errors.New(SESSION_MISMATCH)),
+		)
 		return
 	}
 
 	if time.Now().After(session.ExpiresAt) {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("expired session")))
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New(SESSION_EXPIRED)))
 		return
 	}
 
-	accessToken, accessTokenPayload, err := server.tokenMaker.CreateToken(refreshTokenPayload.UserID, server.config.AccessTokenDuration)
+	accessToken, accessTokenPayload, err := server.tokenMaker.CreateToken(
+		req.RefreshTokenPayload.UserID,
+		server.config.AccessTokenDuration,
+	)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
