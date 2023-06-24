@@ -45,6 +45,7 @@ func (server *Server) setupCors(router *gin.Engine) {
 	config.AllowOrigins = origins
 	config.AllowMethods = []string{"GET", "POST", "PATCH", "DELETE"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization"}
+	config.AllowCredentials = true
 	router.Use(cors.New(config))
 }
 
