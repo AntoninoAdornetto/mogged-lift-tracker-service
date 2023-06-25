@@ -116,7 +116,7 @@ func (server *Server) login(ctx *gin.Context) {
 		Secure:   true,
 		HttpOnly: true,
 		Expires:  session.ExpiresAt,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
 		MaxAge:   3600,
 		Path:     "/api",
 	})
