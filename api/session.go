@@ -38,29 +38,3 @@ func (server *Server) validateSession(ctx *gin.Context) {
 		IsLoggedIn: time.Now().Before(session.ExpiresAt),
 	})
 }
-
-// type getSessionResponse struct {
-// 	IsLoggedIn bool `json:"isLoggedIn"`
-// }
-
-// func (server *Server) getSession(ctx *gin.Context) {
-// 	sessionID, err := ctx.Cookie("session_id")
-// 	if err != nil {
-// 		ctx.JSON(http.StatusNotFound, errorResponse(errors.New(SESSION_NOT_ESTABLISHED)))
-// 		return
-// 	}
-
-// 	session, err := server.store.GetSession(ctx, sessionID)
-// 	if err != nil {
-// 		if err == sql.ErrNoRows {
-// 			ctx.JSON(http.StatusNotFound, errorResponse(errors.New(SESSION_NOT_FOUND)))
-// 			return
-// 		}
-// 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, getSessionResponse{
-// 		IsLoggedIn: time.Now().Before(session.ExpiresAt),
-// 	})
-// }
