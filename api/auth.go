@@ -118,6 +118,7 @@ func (server *Server) login(ctx *gin.Context) {
 		Expires:  session.ExpiresAt,
 		SameSite: http.SameSiteStrictMode,
 		MaxAge:   3600,
+		Path:     "/api",
 	})
 
 	ctx.JSON(http.StatusOK, loginResponse{
