@@ -46,7 +46,14 @@ func TestCreateExercise(t *testing.T) {
 			Name: "Bad Request",
 			Body: gin.H{},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -62,7 +69,14 @@ func TestCreateExercise(t *testing.T) {
 				"userID":       userID.String(),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.CreateExerciseParams{
@@ -71,7 +85,10 @@ func TestCreateExercise(t *testing.T) {
 					Category:    exercise.Category,
 					UserID:      userID.String(),
 				}
-				store.EXPECT().CreateExercise(gomock.Any(), gomock.Eq(args)).Times(1).Return(int64(0), sql.ErrConnDone)
+				store.EXPECT().
+					CreateExercise(gomock.Any(), gomock.Eq(args)).
+					Times(1).
+					Return(int64(0), sql.ErrConnDone)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
@@ -86,7 +103,14 @@ func TestCreateExercise(t *testing.T) {
 				"userID":       userID.String(),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.CreateExerciseParams{
@@ -95,9 +119,14 @@ func TestCreateExercise(t *testing.T) {
 					Category:    exercise.Category,
 					UserID:      userID.String(),
 				}
-				store.EXPECT().CreateExercise(gomock.Any(), gomock.Eq(args)).Times(1).Return(int64(exercise.ID), nil)
-				store.EXPECT().GetExercise(gomock.Any(), gomock.Eq(db.GetExerciseParams{ID: exercise.ID, UserID: userID.String()})).
-					Times(1).Return(db.Exercise{}, sql.ErrNoRows)
+				store.EXPECT().
+					CreateExercise(gomock.Any(), gomock.Eq(args)).
+					Times(1).
+					Return(int64(exercise.ID), nil)
+				store.EXPECT().
+					GetExercise(gomock.Any(), gomock.Eq(db.GetExerciseParams{ID: exercise.ID, UserID: userID.String()})).
+					Times(1).
+					Return(db.Exercise{}, sql.ErrNoRows)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, recorder.Code)
@@ -112,7 +141,14 @@ func TestCreateExercise(t *testing.T) {
 				"userID":       userID.String(),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.CreateExerciseParams{
@@ -121,9 +157,14 @@ func TestCreateExercise(t *testing.T) {
 					Category:    exercise.Category,
 					UserID:      userID.String(),
 				}
-				store.EXPECT().CreateExercise(gomock.Any(), gomock.Eq(args)).Times(1).Return(int64(exercise.ID), nil)
-				store.EXPECT().GetExercise(gomock.Any(), gomock.Eq(db.GetExerciseParams{ID: exercise.ID, UserID: userID.String()})).
-					Times(1).Return(db.Exercise{}, sql.ErrConnDone)
+				store.EXPECT().
+					CreateExercise(gomock.Any(), gomock.Eq(args)).
+					Times(1).
+					Return(int64(exercise.ID), nil)
+				store.EXPECT().
+					GetExercise(gomock.Any(), gomock.Eq(db.GetExerciseParams{ID: exercise.ID, UserID: userID.String()})).
+					Times(1).
+					Return(db.Exercise{}, sql.ErrConnDone)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
@@ -138,7 +179,14 @@ func TestCreateExercise(t *testing.T) {
 				"userID":       userID.String(),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.CreateExerciseParams{
@@ -147,9 +195,14 @@ func TestCreateExercise(t *testing.T) {
 					Category:    exercise.Category,
 					UserID:      userID.String(),
 				}
-				store.EXPECT().CreateExercise(gomock.Any(), gomock.Eq(args)).Times(1).Return(int64(exercise.ID), nil)
-				store.EXPECT().GetExercise(gomock.Any(), gomock.Eq(db.GetExerciseParams{ID: exercise.ID, UserID: userID.String()})).
-					Times(1).Return(exercise, nil)
+				store.EXPECT().
+					CreateExercise(gomock.Any(), gomock.Eq(args)).
+					Times(1).
+					Return(int64(exercise.ID), nil)
+				store.EXPECT().
+					GetExercise(gomock.Any(), gomock.Eq(db.GetExerciseParams{ID: exercise.ID, UserID: userID.String()})).
+					Times(1).
+					Return(exercise, nil)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -187,7 +240,7 @@ func TestCreateExercise(t *testing.T) {
 			payload, err := json.Marshal(tc.Body)
 			require.NoError(t, err)
 
-			url := "/createExercise"
+			url := "/api/createExercise"
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(payload))
 			require.NoError(t, err)
 

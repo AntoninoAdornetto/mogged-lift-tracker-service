@@ -37,7 +37,14 @@ func TestCreateProfile(t *testing.T) {
 			Name: "Bad Request",
 			Body: gin.H{},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 			},
@@ -56,7 +63,14 @@ func TestCreateProfile(t *testing.T) {
 				"userID":            userID.String(),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.CreateProfileParams{
@@ -67,7 +81,10 @@ func TestCreateProfile(t *testing.T) {
 					TimezoneOffset:    profile.TimezoneOffset,
 					UserID:            userID.String(),
 				}
-				store.EXPECT().CreateProfile(gomock.Any(), gomock.Eq(args)).Times(1).Return(int64(0), sql.ErrConnDone)
+				store.EXPECT().
+					CreateProfile(gomock.Any(), gomock.Eq(args)).
+					Times(1).
+					Return(int64(0), sql.ErrConnDone)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
@@ -84,7 +101,14 @@ func TestCreateProfile(t *testing.T) {
 				"userID":            userID.String(),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.CreateProfileParams{
@@ -95,8 +119,14 @@ func TestCreateProfile(t *testing.T) {
 					TimezoneOffset:    profile.TimezoneOffset,
 					UserID:            userID.String(),
 				}
-				store.EXPECT().CreateProfile(gomock.Any(), gomock.Eq(args)).Times(1).Return(int64(profile.ID), nil)
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrNoRows)
+				store.EXPECT().
+					CreateProfile(gomock.Any(), gomock.Eq(args)).
+					Times(1).
+					Return(int64(profile.ID), nil)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(db.Profile{}, sql.ErrNoRows)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, recorder.Code)
@@ -113,7 +143,14 @@ func TestCreateProfile(t *testing.T) {
 				"userID":            userID.String(),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.CreateProfileParams{
@@ -124,8 +161,14 @@ func TestCreateProfile(t *testing.T) {
 					TimezoneOffset:    profile.TimezoneOffset,
 					UserID:            userID.String(),
 				}
-				store.EXPECT().CreateProfile(gomock.Any(), gomock.Eq(args)).Times(1).Return(int64(profile.ID), nil)
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrConnDone)
+				store.EXPECT().
+					CreateProfile(gomock.Any(), gomock.Eq(args)).
+					Times(1).
+					Return(int64(profile.ID), nil)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(db.Profile{}, sql.ErrConnDone)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
@@ -142,7 +185,14 @@ func TestCreateProfile(t *testing.T) {
 				"userID":            userID.String(),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				args := db.CreateProfileParams{
@@ -153,8 +203,14 @@ func TestCreateProfile(t *testing.T) {
 					TimezoneOffset:    profile.TimezoneOffset,
 					UserID:            userID.String(),
 				}
-				store.EXPECT().CreateProfile(gomock.Any(), gomock.Eq(args)).Times(1).Return(int64(profile.ID), nil)
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
+				store.EXPECT().
+					CreateProfile(gomock.Any(), gomock.Eq(args)).
+					Times(1).
+					Return(int64(profile.ID), nil)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(profile, nil)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -200,7 +256,7 @@ func TestCreateProfile(t *testing.T) {
 			payload, err := json.Marshal(tc.Body)
 			require.NoError(t, err)
 
-			url := "/createProfile"
+			url := "/api/createProfile"
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(payload))
 			require.NoError(t, err)
 
@@ -226,10 +282,20 @@ func TestGetProfile(t *testing.T) {
 			Name:   "Not Found",
 			UserID: userID.String(),
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrNoRows)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(db.Profile{}, sql.ErrNoRows)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, recorder.Code)
@@ -239,10 +305,20 @@ func TestGetProfile(t *testing.T) {
 			Name:   "Internal Error",
 			UserID: userID.String(),
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrConnDone)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(db.Profile{}, sql.ErrConnDone)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
@@ -252,10 +328,20 @@ func TestGetProfile(t *testing.T) {
 			Name:   "OK",
 			UserID: userID.String(),
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(profile, nil)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -291,7 +377,7 @@ func TestGetProfile(t *testing.T) {
 			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
-			url := fmt.Sprintf("/getProfile/%s", tc.UserID)
+			url := fmt.Sprintf("/api/getProfile/%s", tc.UserID)
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
@@ -318,7 +404,14 @@ func TestUpdateProfile(t *testing.T) {
 			Name: "Bad Request",
 			Body: gin.H{},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 			},
@@ -337,10 +430,20 @@ func TestUpdateProfile(t *testing.T) {
 				"userID":            userID.String(),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrNoRows)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(db.Profile{}, sql.ErrNoRows)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, recorder.Code)
@@ -357,10 +460,20 @@ func TestUpdateProfile(t *testing.T) {
 				"userID":            userID.String(),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrConnDone)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(db.Profile{}, sql.ErrConnDone)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
@@ -377,11 +490,24 @@ func TestUpdateProfile(t *testing.T) {
 				"userID":            userID.String(),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
-				store.EXPECT().UpdateProfile(gomock.Any(), gomock.Eq(updateParams)).Times(1).Return(nil, sql.ErrConnDone)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(profile, nil)
+				store.EXPECT().
+					UpdateProfile(gomock.Any(), gomock.Eq(updateParams)).
+					Times(1).
+					Return(nil, sql.ErrConnDone)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
@@ -398,12 +524,28 @@ func TestUpdateProfile(t *testing.T) {
 				"userID":            userID.String(),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
-				store.EXPECT().UpdateProfile(gomock.Any(), gomock.Eq(updateParams)).Times(1).Return(nil, nil)
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrConnDone)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(profile, nil)
+				store.EXPECT().
+					UpdateProfile(gomock.Any(), gomock.Eq(updateParams)).
+					Times(1).
+					Return(nil, nil)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(db.Profile{}, sql.ErrConnDone)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
@@ -420,12 +562,28 @@ func TestUpdateProfile(t *testing.T) {
 				"userID":            userID.String(),
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
-				store.EXPECT().UpdateProfile(gomock.Any(), gomock.Eq(updateParams)).Times(1).Return(nil, nil)
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(updatedProfile, nil)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(profile, nil)
+				store.EXPECT().
+					UpdateProfile(gomock.Any(), gomock.Eq(updateParams)).
+					Times(1).
+					Return(nil, nil)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(updatedProfile, nil)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -471,7 +629,7 @@ func TestUpdateProfile(t *testing.T) {
 			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
-			url := "/updateProfile"
+			url := "/api/updateProfile"
 			request, err := http.NewRequest(http.MethodPatch, url, bytes.NewReader(data))
 			require.NoError(t, err)
 
@@ -497,10 +655,20 @@ func TestDeleteProfile(t *testing.T) {
 			Name:   "Not Found -> Get Profile",
 			UserID: userID.String(),
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrNoRows)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(db.Profile{}, sql.ErrNoRows)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, recorder.Code)
@@ -510,10 +678,20 @@ func TestDeleteProfile(t *testing.T) {
 			Name:   "Internal Error -> Get Profile",
 			UserID: userID.String(),
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(db.Profile{}, sql.ErrConnDone)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(db.Profile{}, sql.ErrConnDone)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
@@ -523,11 +701,24 @@ func TestDeleteProfile(t *testing.T) {
 			Name:   "Internal Error -> Delete Profile",
 			UserID: userID.String(),
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
-				store.EXPECT().DeleteProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(sql.ErrConnDone)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(profile, nil)
+				store.EXPECT().
+					DeleteProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(sql.ErrConnDone)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
@@ -537,11 +728,24 @@ func TestDeleteProfile(t *testing.T) {
 			Name:   "OK -> No Content",
 			UserID: userID.String(),
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationBearerType, userID.String(), time.Minute)
+				addAuthorization(
+					t,
+					request,
+					tokenMaker,
+					authorizationBearerType,
+					userID.String(),
+					time.Minute,
+				)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().GetProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(profile, nil)
-				store.EXPECT().DeleteProfile(gomock.Any(), gomock.Eq(userID.String())).Times(1).Return(nil)
+				store.EXPECT().
+					GetProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(profile, nil)
+				store.EXPECT().
+					DeleteProfile(gomock.Any(), gomock.Eq(userID.String())).
+					Times(1).
+					Return(nil)
 			},
 			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNoContent, recorder.Code)
@@ -571,7 +775,7 @@ func TestDeleteProfile(t *testing.T) {
 			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
-			url := fmt.Sprintf("/deleteProfile/%s", tc.UserID)
+			url := fmt.Sprintf("/api/deleteProfile/%s", tc.UserID)
 			request, err := http.NewRequest(http.MethodDelete, url, nil)
 			require.NoError(t, err)
 
