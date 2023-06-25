@@ -54,11 +54,14 @@ func (server *Server) setupRouter() {
 	router.Use(writeHeaders)
 	server.setupCors(router)
 
-	router.POST("/createUser", server.createUser)
-	router.POST("/auth/login", server.login)
-	router.POST("/auth/renewToken", server.renewToken)
+	api := router.Group("/api")
 
-	protected := router.Group("/").Use(authMiddleware(server.tokenMaker))
+	api.POST("/createUser", server.createUser)
+	api.POST("/auth/login", server.login)
+	api.POST("/auth/renewToken", server.renewToken)
+	api.GET("/validateSession", server.validateSession)
+
+	protected := api.Group("").Use(authMiddleware(server.tokenMaker))
 
 	protected.GET("/getUserByEmail/:email", server.getUserByEmail)
 	protected.PATCH("/updateUser", server.updateUser)
