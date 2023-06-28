@@ -9,6 +9,10 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	INSERT_STOCK_EXERCISES = "INSERT INTO exercise (name, muscle_group, category, isStock, user_id) SELECT name, muscle_group, category, true, UUID_TO_BIN(?) FROM stock_exercise"
+)
+
 type Store interface {
 	Querier
 	NewUserTx(ctx context.Context, args CreateUserParams) (NewUserTxResults, error)
@@ -52,10 +56,13 @@ type NewUserTxResults struct {
 	ID           uuid.UUID
 }
 
-func (store *SQLStore) NewUserTx(ctx context.Context, args CreateUserParams) (NewUserTxResults, error) {
+func (store *SQLStore) NewUserTx(
+	ctx context.Context,
+	args CreateUserParams,
+) (NewUserTxResults, error) {
 	user := &NewUserTxResults{}
 
-	err := store.execTx(ctx, func(q *Queries) error {
+	err := store.execTx(ctx, func(_ *Queries) error {
 		var err error
 
 		err = store.CreateUser(ctx, CreateUserParams{
@@ -75,8 +82,7 @@ func (store *SQLStore) NewUserTx(ctx context.Context, args CreateUserParams) (Ne
 
 		userId, err := uuid.Parse(query.ID)
 
-		statement := "INSERT INTO exercise (name, muscle_group, category, isStock, user_id) SELECT name, muscle_group, category, true, UUID_TO_BIN(?) FROM stock_exercise"
-		_, err = store.db.ExecContext(ctx, statement, userId)
+		_, err = store.db.ExecContext(ctx, INSERT_STOCK_EXERCISES, userId)
 		if err != nil {
 			return err
 		}
