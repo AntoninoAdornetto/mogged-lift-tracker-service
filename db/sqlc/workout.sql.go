@@ -49,7 +49,7 @@ func (q *Queries) DeleteWorkout(ctx context.Context, arg DeleteWorkoutParams) er
 }
 
 const getWorkout = `-- name: GetWorkout :one
-SELECT id, duration, lifts, user_id FROM workout
+SELECT id, duration, lifts, completed_date, user_id FROM workout
 WHERE id = ? AND user_id = UUID_TO_BIN(?)
 `
 
@@ -65,13 +65,14 @@ func (q *Queries) GetWorkout(ctx context.Context, arg GetWorkoutParams) (Workout
 		&i.ID,
 		&i.Duration,
 		&i.Lifts,
+		&i.CompletedDate,
 		&i.UserID,
 	)
 	return i, err
 }
 
 const listWorkouts = `-- name: ListWorkouts :many
-SELECT id, duration, lifts, user_id FROM workout
+SELECT id, duration, lifts, completed_date, user_id FROM workout
 WHERE user_id = UUID_TO_BIN(?)
 `
 
@@ -88,6 +89,7 @@ func (q *Queries) ListWorkouts(ctx context.Context, userID string) ([]Workout, e
 			&i.ID,
 			&i.Duration,
 			&i.Lifts,
+			&i.CompletedDate,
 			&i.UserID,
 		); err != nil {
 			return nil, err

@@ -93,8 +93,9 @@ type User struct {
 }
 
 type Workout struct {
-	ID       int32           `json:"id"`
-	Duration string          `json:"duration"`
-	Lifts    json.RawMessage `json:"lifts"`
-	UserID   []byte          `json:"user_id"`
+	ID            int32           `json:"id"`
+	Duration      string          `json:"duration"`
+	Lifts         json.RawMessage `json:"lifts"`
+	CompletedDate time.Time       `json:"completed_date"`
+	UserID        []byte          `json:"user_id"`
 }
