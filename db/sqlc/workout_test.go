@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/util"
 	"github.com/google/uuid"
@@ -61,6 +62,27 @@ func TestGetWorkout(t *testing.T) {
 			require.Equal(t, lift.SetType, qWorkoutMap[k][i].SetType)
 			require.Equal(t, lift.WorkoutID, qWorkoutMap[k][i].WorkoutID)
 		}
+	}
+}
+
+func TestListWorkouts(t *testing.T) {
+	n := 5
+	user := GenRandUser(t)
+
+	workouts := make([]Workout, n)
+	for i := range workouts {
+		workouts[i] = GenRandWorkout(t, user.ID)
+	}
+
+	query, err := testQueries.ListWorkouts(context.Background(), user.ID)
+	require.NoError(t, err)
+
+	for i, v := range query {
+		require.Equal(t, workouts[i].CompletedDate, v.CompletedDate)
+		require.Equal(t, workouts[i].ID, v.ID)
+		require.Equal(t, workouts[i].Lifts, v.Lifts)
+		require.Equal(t, workouts[i].Duration, v.Duration)
+		require.Equal(t, workouts[i].UserID, v.UserID)
 	}
 }
 
@@ -168,6 +190,7 @@ func GenRandWorkout(t *testing.T, userId string) Workout {
 		UserID: userId,
 	})
 	require.NoError(t, err)
+	require.WithinDuration(t, time.Now().UTC(), query.CompletedDate.UTC(), time.Hour*24)
 
 	return query
 }
