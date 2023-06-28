@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/token"
@@ -16,16 +17,17 @@ const (
 )
 
 type WorkoutResponse struct {
-	ID       int32           `json:"id"`
-	Duration string          `json:"duration"`
-	Lifts    json.RawMessage `json:"lifts"`
-	UserID   string          `json:"userID"`
+	ID            int32           `json:"id"`
+	CompletedData time.Time       `json:"completedDate"`
+	Duration      string          `json:"duration"`
+	UserID        string          `json:"userID"`
+	Lifts         json.RawMessage `json:"lifts"`
 }
 
 type createWorkoutRequest struct {
-	UserID   string          `json:"userID" binding:"required"`
+	UserID   string          `json:"userID"   binding:"required"`
 	Duration string          `json:"duration" binding:"required"`
-	Lifts    json.RawMessage `json:"lifts" binding:"required"`
+	Lifts    json.RawMessage `json:"lifts"    binding:"required"`
 }
 
 func (server *Server) createWorkout(ctx *gin.Context) {
@@ -46,15 +48,16 @@ func (server *Server) createWorkout(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, WorkoutResponse{
-		ID:       workout.ID,
-		Duration: workout.Duration,
-		Lifts:    workout.Lifts,
-		UserID:   req.UserID,
+		ID:            workout.ID,
+		CompletedData: workout.CompletedDate,
+		Duration:      workout.Duration,
+		Lifts:         workout.Lifts,
+		UserID:        req.UserID,
 	})
 }
 
 type getWorkoutRequest struct {
-	ID     int32  `uri:"id" binding:"required"`
+	ID     int32  `uri:"id"      binding:"required"`
 	UserID string `uri:"user_id" binding:"required"`
 }
 
@@ -65,7 +68,10 @@ func (server *Server) getWorkout(ctx *gin.Context) {
 		return
 	}
 
-	workout, err := server.store.GetWorkout(ctx, db.GetWorkoutParams{ID: req.ID, UserID: req.UserID})
+	workout, err := server.store.GetWorkout(
+		ctx,
+		db.GetWorkoutParams{ID: req.ID, UserID: req.UserID},
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(WORKOUT_NOT_FOUND, req.ID)))
@@ -76,10 +82,11 @@ func (server *Server) getWorkout(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, WorkoutResponse{
-		ID:       workout.ID,
-		Duration: workout.Duration,
-		Lifts:    workout.Lifts,
-		UserID:   req.UserID,
+		ID:            workout.ID,
+		Duration:      workout.Duration,
+		Lifts:         workout.Lifts,
+		UserID:        req.UserID,
+		CompletedData: workout.CompletedDate,
 	})
 }
 
@@ -134,7 +141,10 @@ func (server *Server) updateWorkout(ctx *gin.Context) {
 		return
 	}
 
-	workout, err := server.store.GetWorkout(ctx, db.GetWorkoutParams{ID: req.ID, UserID: authHeader.UserID})
+	workout, err := server.store.GetWorkout(
+		ctx,
+		db.GetWorkoutParams{ID: req.ID, UserID: authHeader.UserID},
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(WORKOUT_NOT_FOUND, req.ID)))
@@ -144,7 +154,13 @@ func (server *Server) updateWorkout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, workout)
+	ctx.JSON(http.StatusOK, WorkoutResponse{
+		ID:            workout.ID,
+		CompletedData: workout.CompletedDate,
+		Duration:      workout.Duration,
+		Lifts:         workout.Lifts,
+		UserID:        authHeader.UserID,
+	})
 }
 
 type deleteWorkoutRequest struct {
