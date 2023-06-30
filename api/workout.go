@@ -18,7 +18,7 @@ const (
 
 type WorkoutResponse struct {
 	ID            int32           `json:"id"`
-	CompletedData time.Time       `json:"completedDate"`
+	CompletedDate time.Time       `json:"completedDate"`
 	Duration      string          `json:"duration"`
 	UserID        string          `json:"userID"`
 	Lifts         json.RawMessage `json:"lifts"`
@@ -48,11 +48,10 @@ func (server *Server) createWorkout(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, WorkoutResponse{
-		ID:            workout.ID,
-		CompletedData: workout.CompletedDate,
-		Duration:      workout.Duration,
-		Lifts:         workout.Lifts,
-		UserID:        req.UserID,
+		ID:       workout.ID,
+		Duration: workout.Duration,
+		Lifts:    workout.Lifts,
+		UserID:   req.UserID,
 	})
 }
 
@@ -86,7 +85,7 @@ func (server *Server) getWorkout(ctx *gin.Context) {
 		Duration:      workout.Duration,
 		Lifts:         workout.Lifts,
 		UserID:        req.UserID,
-		CompletedData: workout.CompletedDate,
+		CompletedDate: workout.CompletedDate.Time,
 	})
 }
 
@@ -111,9 +110,10 @@ func (server *Server) listWorkouts(ctx *gin.Context) {
 }
 
 type updateWorkoutRequest struct {
-	ID       int32           `json:"id"`
-	Duration string          `json:"duration"`
-	Lifts    json.RawMessage `json:"lifts"`
+	ID            int32           `json:"id"`
+	Duration      string          `json:"duration"`
+	Lifts         json.RawMessage `json:"lifts"`
+	CompletedDate time.Time       `json:"completedDate"`
 }
 
 func (server *Server) updateWorkout(ctx *gin.Context) {
@@ -131,6 +131,10 @@ func (server *Server) updateWorkout(ctx *gin.Context) {
 		Duration: sql.NullString{
 			String: req.Duration,
 			Valid:  req.Duration != "",
+		},
+		CompletedDate: sql.NullTime{
+			Time:  req.CompletedDate,
+			Valid: req.CompletedDate.Before(time.Now()),
 		},
 		UserID: authHeader.UserID,
 	}
@@ -156,7 +160,7 @@ func (server *Server) updateWorkout(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, WorkoutResponse{
 		ID:            workout.ID,
-		CompletedData: workout.CompletedDate,
+		CompletedDate: workout.CompletedDate.Time,
 		Duration:      workout.Duration,
 		Lifts:         workout.Lifts,
 		UserID:        authHeader.UserID,
