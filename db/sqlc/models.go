@@ -96,6 +96,6 @@ type Workout struct {
 	ID            int32           `json:"id"`
 	Duration      string          `json:"duration"`
 	Lifts         json.RawMessage `json:"lifts"`
-	CompletedDate time.Time       `json:"completed_date"`
+	CompletedDate sql.NullTime    `json:"completed_date"`
 	UserID        []byte          `json:"user_id"`
 }

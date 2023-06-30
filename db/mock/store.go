@@ -401,6 +401,21 @@ func (mr *MockStoreMockRecorder) GetInactiveUser(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInactiveUser", reflect.TypeOf((*MockStore)(nil).GetInactiveUser), arg0, arg1)
 }
 
+// GetLastWorkout mocks base method.
+func (m *MockStore) GetLastWorkout(arg0 context.Context, arg1 string) (db.Workout, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLastWorkout", arg0, arg1)
+	ret0, _ := ret[0].(db.Workout)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLastWorkout indicates an expected call of GetLastWorkout.
+func (mr *MockStoreMockRecorder) GetLastWorkout(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastWorkout", reflect.TypeOf((*MockStore)(nil).GetLastWorkout), arg0, arg1)
+}
+
 // GetLift mocks base method.
 func (m *MockStore) GetLift(arg0 context.Context, arg1 db.GetLiftParams) (db.Lift, error) {
 	m.ctrl.T.Helper()
@@ -564,6 +579,21 @@ func (m *MockStore) GetTemplate(arg0 context.Context, arg1 db.GetTemplateParams)
 func (mr *MockStoreMockRecorder) GetTemplate(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplate", reflect.TypeOf((*MockStore)(nil).GetTemplate), arg0, arg1)
+}
+
+// GetTotalWorkouts mocks base method.
+func (m *MockStore) GetTotalWorkouts(arg0 context.Context, arg1 string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTotalWorkouts", arg0, arg1)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTotalWorkouts indicates an expected call of GetTotalWorkouts.
+func (mr *MockStoreMockRecorder) GetTotalWorkouts(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTotalWorkouts", reflect.TypeOf((*MockStore)(nil).GetTotalWorkouts), arg0, arg1)
 }
 
 // GetUserByEmail mocks base method.
