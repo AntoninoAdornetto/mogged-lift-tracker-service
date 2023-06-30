@@ -87,6 +87,7 @@ func TestListWorkouts(t *testing.T) {
 }
 
 func TestUpdateWorkout(t *testing.T) {
+	// Primarily used for completing a workout
 	user := GenRandUser(t)
 	userId, err := uuid.Parse(user.ID)
 	require.NoError(t, err)
@@ -97,12 +98,17 @@ func TestUpdateWorkout(t *testing.T) {
 		String: "01:00:0s",
 		Valid:  true,
 	}
+	completionDate := sql.NullTime{
+		Time:  time.Now(),
+		Valid: true,
+	}
 
 	err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
-		Duration: newDuration,
-		Lifts:    newWorkout.Lifts,
-		ID:       workout.ID,
-		UserID:   userId.String(),
+		Duration:      newDuration,
+		Lifts:         newWorkout.Lifts,
+		ID:            workout.ID,
+		UserID:        userId.String(),
+		CompletedDate: completionDate,
 	})
 	require.NoError(t, err)
 
@@ -115,6 +121,7 @@ func TestUpdateWorkout(t *testing.T) {
 	require.Equal(t, query.ID, workout.ID)
 	require.Equal(t, query.Lifts, newWorkout.Lifts)
 	require.NotEqual(t, query.Lifts, workout.Lifts)
+	require.WithinDuration(t, query.CompletedDate.Time, time.Now(), time.Minute)
 }
 
 func TestDeleteWorkout(t *testing.T) {
@@ -190,7 +197,5 @@ func GenRandWorkout(t *testing.T, userId string) Workout {
 		UserID: userId,
 	})
 	require.NoError(t, err)
-	require.WithinDuration(t, time.Now().UTC(), query.CompletedDate.UTC(), time.Hour*24)
-
 	return query
 }
