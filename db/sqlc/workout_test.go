@@ -144,6 +144,55 @@ func TestDeleteWorkout(t *testing.T) {
 	require.Zero(t, query.ID)
 }
 
+func TestGetTotalWorkouts(t *testing.T) {
+	n := 5
+	workouts := make([]Workout, n)
+	user := GenRandUser(t)
+
+	for i := range workouts {
+		workouts[i] = GenRandWorkout(t, user.ID)
+	}
+
+	recordCount, err := testQueries.GetTotalWorkouts(context.Background(), user.ID)
+	require.NoError(t, err)
+	require.Equal(t, int(recordCount), n)
+}
+
+func TestGetLastWorkout(t *testing.T) {
+	user := GenRandUser(t)
+	oldWorkout := GenRandWorkout(t, user.ID)
+	newWorkout := GenRandWorkout(t, user.ID)
+
+	oldWorkoutDate := time.Date(2023, time.January, 1, 1, 1, 1, 1, time.Now().Location())
+	latestWorkoutDate := time.Now()
+
+	err := testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
+		ID:     oldWorkout.ID,
+		UserID: user.ID,
+		CompletedDate: sql.NullTime{
+			Valid: true,
+			Time:  oldWorkoutDate,
+		},
+	})
+	require.NoError(t, err)
+
+	err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
+		ID:     newWorkout.ID,
+		UserID: user.ID,
+		CompletedDate: sql.NullTime{
+			Valid: true,
+			Time:  latestWorkoutDate,
+		},
+	})
+	require.NoError(t, err)
+
+	query, err := testQueries.GetLastWorkout(context.Background(), user.ID)
+	require.NoError(t, err)
+
+	require.NotZero(t, query.CompletedDate.Time)
+	require.WithinDuration(t, query.CompletedDate.Time, latestWorkoutDate, time.Minute)
+}
+
 // using Lift struct but not actually creating an entry into Lift table
 // that is what the lift table is for
 func BuildLiftsMap(t *testing.T, args BuildLiftMapParams) {
