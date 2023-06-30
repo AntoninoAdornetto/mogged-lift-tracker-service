@@ -48,8 +48,40 @@ func (q *Queries) DeleteWorkout(ctx context.Context, arg DeleteWorkoutParams) er
 	return err
 }
 
+const getLastWorkout = `-- name: GetLastWorkout :one
+SELECT id, duration, lifts, completed_date, user_id FROM workout
+WHERE user_id = UUID_TO_BIN(?)
+ORDER BY completed_date DESC
+LIMIT 1
+`
+
+func (q *Queries) GetLastWorkout(ctx context.Context, userID string) (Workout, error) {
+	row := q.queryRow(ctx, q.getLastWorkoutStmt, getLastWorkout, userID)
+	var i Workout
+	err := row.Scan(
+		&i.ID,
+		&i.Duration,
+		&i.Lifts,
+		&i.CompletedDate,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const getTotalWorkouts = `-- name: GetTotalWorkouts :one
+SELECT COUNT(*) FROM workout
+WHERE user_id = UUID_TO_BIN(?)
+`
+
+func (q *Queries) GetTotalWorkouts(ctx context.Context, userID string) (int64, error) {
+	row := q.queryRow(ctx, q.getTotalWorkoutsStmt, getTotalWorkouts, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getWorkout = `-- name: GetWorkout :one
-SELECT id, duration, lifts, user_id FROM workout
+SELECT id, duration, lifts, completed_date, user_id FROM workout
 WHERE id = ? AND user_id = UUID_TO_BIN(?)
 `
 
@@ -65,13 +97,14 @@ func (q *Queries) GetWorkout(ctx context.Context, arg GetWorkoutParams) (Workout
 		&i.ID,
 		&i.Duration,
 		&i.Lifts,
+		&i.CompletedDate,
 		&i.UserID,
 	)
 	return i, err
 }
 
 const listWorkouts = `-- name: ListWorkouts :many
-SELECT id, duration, lifts, user_id FROM workout
+SELECT id, duration, lifts, completed_date, user_id FROM workout
 WHERE user_id = UUID_TO_BIN(?)
 `
 
@@ -88,6 +121,7 @@ func (q *Queries) ListWorkouts(ctx context.Context, userID string) ([]Workout, e
 			&i.ID,
 			&i.Duration,
 			&i.Lifts,
+			&i.CompletedDate,
 			&i.UserID,
 		); err != nil {
 			return nil, err
@@ -106,21 +140,24 @@ func (q *Queries) ListWorkouts(ctx context.Context, userID string) ([]Workout, e
 const updateWorkout = `-- name: UpdateWorkout :exec
 UPDATE workout SET
 	duration = COALESCE(?, duration),
-	lifts = COALESCE(?, lifts)
+	lifts = COALESCE(?, lifts),
+	completed_date = COALESCE(?, completed_date)
 WHERE id = ? AND user_id = UUID_TO_BIN(?)
 `
 
 type UpdateWorkoutParams struct {
-	Duration sql.NullString  `json:"duration"`
-	Lifts    json.RawMessage `json:"lifts"`
-	ID       int32           `json:"id"`
-	UserID   string          `json:"user_id"`
+	Duration      sql.NullString  `json:"duration"`
+	Lifts         json.RawMessage `json:"lifts"`
+	CompletedDate sql.NullTime    `json:"completed_date"`
+	ID            int32           `json:"id"`
+	UserID        string          `json:"user_id"`
 }
 
 func (q *Queries) UpdateWorkout(ctx context.Context, arg UpdateWorkoutParams) error {
 	_, err := q.exec(ctx, q.updateWorkoutStmt, updateWorkout,
 		arg.Duration,
 		arg.Lifts,
+		arg.CompletedDate,
 		arg.ID,
 		arg.UserID,
 	)

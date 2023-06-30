@@ -48,6 +48,7 @@ CREATE TABLE `workout` (
 	`id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`duration` VARCHAR(10) NOT NULL DEFAULT '00:00:00s',
 	`lifts` JSON,
+	`completed_date` TIMESTAMP,
 	`user_id` BINARY(16) NOT NULL 
 );
 

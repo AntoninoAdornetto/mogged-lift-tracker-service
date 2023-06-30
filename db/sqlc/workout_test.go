@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/util"
 	"github.com/google/uuid"
@@ -64,7 +65,29 @@ func TestGetWorkout(t *testing.T) {
 	}
 }
 
+func TestListWorkouts(t *testing.T) {
+	n := 5
+	user := GenRandUser(t)
+
+	workouts := make([]Workout, n)
+	for i := range workouts {
+		workouts[i] = GenRandWorkout(t, user.ID)
+	}
+
+	query, err := testQueries.ListWorkouts(context.Background(), user.ID)
+	require.NoError(t, err)
+
+	for i, v := range query {
+		require.Equal(t, workouts[i].CompletedDate, v.CompletedDate)
+		require.Equal(t, workouts[i].ID, v.ID)
+		require.Equal(t, workouts[i].Lifts, v.Lifts)
+		require.Equal(t, workouts[i].Duration, v.Duration)
+		require.Equal(t, workouts[i].UserID, v.UserID)
+	}
+}
+
 func TestUpdateWorkout(t *testing.T) {
+	// Primarily used for completing a workout
 	user := GenRandUser(t)
 	userId, err := uuid.Parse(user.ID)
 	require.NoError(t, err)
@@ -75,12 +98,17 @@ func TestUpdateWorkout(t *testing.T) {
 		String: "01:00:0s",
 		Valid:  true,
 	}
+	completionDate := sql.NullTime{
+		Time:  time.Now(),
+		Valid: true,
+	}
 
 	err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
-		Duration: newDuration,
-		Lifts:    newWorkout.Lifts,
-		ID:       workout.ID,
-		UserID:   userId.String(),
+		Duration:      newDuration,
+		Lifts:         newWorkout.Lifts,
+		ID:            workout.ID,
+		UserID:        userId.String(),
+		CompletedDate: completionDate,
 	})
 	require.NoError(t, err)
 
@@ -93,6 +121,7 @@ func TestUpdateWorkout(t *testing.T) {
 	require.Equal(t, query.ID, workout.ID)
 	require.Equal(t, query.Lifts, newWorkout.Lifts)
 	require.NotEqual(t, query.Lifts, workout.Lifts)
+	require.WithinDuration(t, query.CompletedDate.Time, time.Now(), time.Minute)
 }
 
 func TestDeleteWorkout(t *testing.T) {
@@ -113,6 +142,55 @@ func TestDeleteWorkout(t *testing.T) {
 	})
 	require.Error(t, err)
 	require.Zero(t, query.ID)
+}
+
+func TestGetTotalWorkouts(t *testing.T) {
+	n := 5
+	workouts := make([]Workout, n)
+	user := GenRandUser(t)
+
+	for i := range workouts {
+		workouts[i] = GenRandWorkout(t, user.ID)
+	}
+
+	recordCount, err := testQueries.GetTotalWorkouts(context.Background(), user.ID)
+	require.NoError(t, err)
+	require.Equal(t, int(recordCount), n)
+}
+
+func TestGetLastWorkout(t *testing.T) {
+	user := GenRandUser(t)
+	oldWorkout := GenRandWorkout(t, user.ID)
+	newWorkout := GenRandWorkout(t, user.ID)
+
+	oldWorkoutDate := time.Date(2023, time.January, 1, 1, 1, 1, 1, time.Now().Location())
+	latestWorkoutDate := time.Now()
+
+	err := testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
+		ID:     oldWorkout.ID,
+		UserID: user.ID,
+		CompletedDate: sql.NullTime{
+			Valid: true,
+			Time:  oldWorkoutDate,
+		},
+	})
+	require.NoError(t, err)
+
+	err = testQueries.UpdateWorkout(context.Background(), UpdateWorkoutParams{
+		ID:     newWorkout.ID,
+		UserID: user.ID,
+		CompletedDate: sql.NullTime{
+			Valid: true,
+			Time:  latestWorkoutDate,
+		},
+	})
+	require.NoError(t, err)
+
+	query, err := testQueries.GetLastWorkout(context.Background(), user.ID)
+	require.NoError(t, err)
+
+	require.NotZero(t, query.CompletedDate.Time)
+	require.WithinDuration(t, query.CompletedDate.Time, latestWorkoutDate, time.Minute)
 }
 
 // using Lift struct but not actually creating an entry into Lift table
@@ -168,6 +246,5 @@ func GenRandWorkout(t *testing.T, userId string) Workout {
 		UserID: userId,
 	})
 	require.NoError(t, err)
-
 	return query
 }

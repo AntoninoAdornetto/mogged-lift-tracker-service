@@ -99,6 +99,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getInactiveUserStmt, err = db.PrepareContext(ctx, getInactiveUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetInactiveUser: %w", err)
 	}
+	if q.getLastWorkoutStmt, err = db.PrepareContext(ctx, getLastWorkout); err != nil {
+		return nil, fmt.Errorf("error preparing query GetLastWorkout: %w", err)
+	}
 	if q.getLiftStmt, err = db.PrepareContext(ctx, getLift); err != nil {
 		return nil, fmt.Errorf("error preparing query GetLift: %w", err)
 	}
@@ -131,6 +134,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getTemplateStmt, err = db.PrepareContext(ctx, getTemplate); err != nil {
 		return nil, fmt.Errorf("error preparing query GetTemplate: %w", err)
+	}
+	if q.getTotalWorkoutsStmt, err = db.PrepareContext(ctx, getTotalWorkouts); err != nil {
+		return nil, fmt.Errorf("error preparing query GetTotalWorkouts: %w", err)
 	}
 	if q.getUserByEmailStmt, err = db.PrepareContext(ctx, getUserByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserByEmail: %w", err)
@@ -322,6 +328,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getInactiveUserStmt: %w", cerr)
 		}
 	}
+	if q.getLastWorkoutStmt != nil {
+		if cerr := q.getLastWorkoutStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getLastWorkoutStmt: %w", cerr)
+		}
+	}
 	if q.getLiftStmt != nil {
 		if cerr := q.getLiftStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getLiftStmt: %w", cerr)
@@ -375,6 +386,11 @@ func (q *Queries) Close() error {
 	if q.getTemplateStmt != nil {
 		if cerr := q.getTemplateStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getTemplateStmt: %w", cerr)
+		}
+	}
+	if q.getTotalWorkoutsStmt != nil {
+		if cerr := q.getTotalWorkoutsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getTotalWorkoutsStmt: %w", cerr)
 		}
 	}
 	if q.getUserByEmailStmt != nil {
@@ -541,6 +557,7 @@ type Queries struct {
 	getExerciseStmt              *sql.Stmt
 	getExerciseByNameStmt        *sql.Stmt
 	getInactiveUserStmt          *sql.Stmt
+	getLastWorkoutStmt           *sql.Stmt
 	getLiftStmt                  *sql.Stmt
 	getMaxLiftsStmt              *sql.Stmt
 	getMaxLiftsByExerciseStmt    *sql.Stmt
@@ -552,6 +569,7 @@ type Queries struct {
 	getSessionStmt               *sql.Stmt
 	getStockExerciseStmt         *sql.Stmt
 	getTemplateStmt              *sql.Stmt
+	getTotalWorkoutsStmt         *sql.Stmt
 	getUserByEmailStmt           *sql.Stmt
 	getUserByIdStmt              *sql.Stmt
 	getWorkoutStmt               *sql.Stmt
@@ -603,6 +621,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getExerciseStmt:              q.getExerciseStmt,
 		getExerciseByNameStmt:        q.getExerciseByNameStmt,
 		getInactiveUserStmt:          q.getInactiveUserStmt,
+		getLastWorkoutStmt:           q.getLastWorkoutStmt,
 		getLiftStmt:                  q.getLiftStmt,
 		getMaxLiftsStmt:              q.getMaxLiftsStmt,
 		getMaxLiftsByExerciseStmt:    q.getMaxLiftsByExerciseStmt,
@@ -614,6 +633,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getSessionStmt:               q.getSessionStmt,
 		getStockExerciseStmt:         q.getStockExerciseStmt,
 		getTemplateStmt:              q.getTemplateStmt,
+		getTotalWorkoutsStmt:         q.getTotalWorkoutsStmt,
 		getUserByEmailStmt:           q.getUserByEmailStmt,
 		getUserByIdStmt:              q.getUserByIdStmt,
 		getWorkoutStmt:               q.getWorkoutStmt,
