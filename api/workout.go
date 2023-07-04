@@ -109,6 +109,42 @@ func (server *Server) listWorkouts(ctx *gin.Context) {
 	})
 }
 
+type getTotalWorkoutsResponse struct {
+	CompletedWorkouts int64 `json:"completedWorkouts"`
+}
+
+func (server *Server) getTotalWorkouts(ctx *gin.Context) {
+	authHeader := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	recordCount, err := server.store.GetTotalWorkouts(ctx, authHeader.UserID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, getTotalWorkoutsResponse{
+		CompletedWorkouts: recordCount,
+	})
+}
+
+type getLastWorkoutDateResposne struct {
+	LastWorkoutDate time.Time `json:"lastWorkoutDate"`
+}
+
+func (server *Server) getLastWorkoutDate(ctx *gin.Context) {
+	authHeader := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	workout, err := server.store.GetLastWorkout(ctx, authHeader.UserID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, getLastWorkoutDateResposne{
+		LastWorkoutDate: workout.CompletedDate.Time,
+	})
+}
+
 type updateWorkoutRequest struct {
 	ID            int32           `json:"id"`
 	Duration      string          `json:"duration"`
