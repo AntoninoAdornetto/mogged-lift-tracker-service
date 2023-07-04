@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -14,7 +15,11 @@ const (
 )
 
 type validateSessionResponse struct {
-	IsLoggedIn bool `json:"isLoggedIn"`
+	IsLoggedIn   bool   `json:"isLoggedIn"`
+	FirstName    string `json:"firstName"`
+	LastName     string `json:"lastName"`
+	EmailAddress string `json:"emailAddress"`
+	UserID       string `json:"userID"`
 }
 
 func (server *Server) validateSession(ctx *gin.Context) {
@@ -34,7 +39,25 @@ func (server *Server) validateSession(ctx *gin.Context) {
 		return
 	}
 
+	user, err := server.store.GetUserById(ctx, session.UserID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(
+				http.StatusNotFound,
+				errorResponse(fmt.Errorf(USERID_NOT_FOUND, session.UserID)),
+			)
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	// @TODO - Get Profile settings. Such as measurement system, timezone?
 	ctx.JSON(http.StatusOK, validateSessionResponse{
-		IsLoggedIn: time.Now().Before(session.ExpiresAt),
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		EmailAddress: user.EmailAddress,
+		IsLoggedIn:   time.Now().Before(session.ExpiresAt),
+		UserID:       user.ID,
 	})
 }
