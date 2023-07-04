@@ -92,6 +92,8 @@ func (server *Server) setupRouter() {
 	protected.GET("/getMaxLiftsByExercise/:exercise_name", server.getMaxLiftsByExercise)
 	protected.GET("/getMaxLiftsByMuscleGroup/:muscle_group", server.getMaxLiftsByMuscleGroup)
 	protected.GET("/getMaxRepLifts/:limit", server.getMaxRepLifts)
+	protected.GET("/getTotalWorkouts", server.getTotalWorkouts)
+	protected.GET("/getLastWorkout", server.getLastWorkoutDate)
 	protected.PATCH("/updateLift", server.updateLift)
 	protected.DELETE("/deleteLift/:id", server.deleteLift)
 
