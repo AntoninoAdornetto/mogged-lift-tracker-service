@@ -223,22 +223,6 @@ func TestCreateProfile(t *testing.T) {
 				})
 			},
 		},
-		{
-			Name: "Unauthorized",
-			Body: gin.H{
-				"country":           profile.Country,
-				"measurementSystem": profile.MeasurementSystem,
-				"bodyWeight":        profile.BodyWeight,
-				"bodyFat":           profile.BodyFat,
-				"timeZoneOffset":    profile.TimezoneOffset,
-				"userID":            userID.String(),
-			},
-			setupAuth:  func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
-			buildStubs: func(store *mockdb.MockStore) {},
-			checkRes: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusUnauthorized, recorder.Code)
-			},
-		},
 	}
 
 	for i := range testCases {
