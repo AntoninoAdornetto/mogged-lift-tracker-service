@@ -57,6 +57,7 @@ func (server *Server) setupRouter() {
 	api := router.Group("/api")
 
 	api.POST("/createUser", server.createUser)
+	api.POST("/createProfile", server.createProfile)
 	api.POST("/auth/login", server.login)
 	api.POST("/auth/renewToken", server.renewToken)
 	api.GET("/validateSession", server.validateSession)
@@ -68,7 +69,6 @@ func (server *Server) setupRouter() {
 	protected.PATCH("/changePassword", server.changePassword)
 	protected.DELETE("/deleteUser/:id", server.deleteUser)
 
-	protected.POST("/createProfile", server.createProfile)
 	protected.GET("/getProfile/:user_id", server.getProfile)
 	protected.PATCH("/updateProfile", server.updateProfile)
 	protected.DELETE("/deleteProfile/:user_id", server.deleteProfile)
