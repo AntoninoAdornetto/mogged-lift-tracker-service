@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	db "github.com/AntoninoAdornetto/mogged-lift-tracker-service/db/sqlc"
+	"github.com/AntoninoAdornetto/mogged-lift-tracker-service/token"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,11 +27,24 @@ type ExerciseResponse struct {
 	UserID           string  `json:"userID"`
 }
 
+func exerciseRes(ex db.Exercise, id string) ExerciseResponse {
+	return ExerciseResponse{
+		ID:               ex.ID,
+		Category:         ex.Category,
+		MuscleGroup:      ex.MuscleGroup,
+		IsStock:          ex.Isstock,
+		MostRepsLifted:   ex.MostRepsLifted,
+		MostWeightLifted: ex.MostWeightLifted,
+		RestTimer:        ex.RestTimer,
+		UserID:           id,
+		Name:             ex.Name,
+	}
+}
+
 type createExerciseRequest struct {
 	Name        string `json:"exerciseName" binding:"required"`
-	MuscleGroup string `json:"muscleGroup" binding:"required"`
-	Category    string `json:"category" binding:"required"`
-	UserID      string `json:"userID" binding:"required"`
+	MuscleGroup string `json:"muscleGroup"  binding:"required"`
+	Category    string `json:"category"     binding:"required"`
 }
 
 func (server *Server) createExercise(ctx *gin.Context) {
@@ -40,11 +54,13 @@ func (server *Server) createExercise(ctx *gin.Context) {
 		return
 	}
 
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+
 	args := db.CreateExerciseParams{
 		Name:        req.Name,
 		MuscleGroup: req.MuscleGroup,
 		Category:    req.Category,
-		UserID:      req.UserID,
+		UserID:      userID,
 	}
 
 	exerciseID, err := server.store.CreateExercise(ctx, args)
@@ -53,7 +69,11 @@ func (server *Server) createExercise(ctx *gin.Context) {
 		return
 	}
 
-	exercise, err := server.store.GetExercise(ctx, db.GetExerciseParams{ID: int32(exerciseID), UserID: req.UserID})
+	exercise, err := server.store.GetExercise(
+		ctx,
+		db.GetExerciseParams{ID: int32(exerciseID), UserID: userID},
+	)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(EXERCISE_NOT_FOUND, exerciseID)))
@@ -63,22 +83,11 @@ func (server *Server) createExercise(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, ExerciseResponse{
-		ID:               exercise.ID,
-		Category:         exercise.Category,
-		IsStock:          exercise.Isstock,
-		MostRepsLifted:   exercise.MostRepsLifted,
-		MostWeightLifted: exercise.MostWeightLifted,
-		MuscleGroup:      exercise.MuscleGroup,
-		Name:             exercise.Name,
-		RestTimer:        exercise.RestTimer,
-		UserID:           req.UserID,
-	})
+	ctx.JSON(http.StatusOK, exerciseRes(exercise, userID))
 }
 
 type getExerciseRequest struct {
-	ID     int32  `uri:"id" binding:"required"`
-	UserID string `uri:"user_id" binding:"required"`
+	ID int32 `uri:"id" binding:"required"`
 }
 
 func (server *Server) getExercise(ctx *gin.Context) {
@@ -88,9 +97,11 @@ func (server *Server) getExercise(ctx *gin.Context) {
 		return
 	}
 
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+
 	args := db.GetExerciseParams{
 		ID:     req.ID,
-		UserID: req.UserID,
+		UserID: userID,
 	}
 
 	exercise, err := server.store.GetExercise(ctx, args)
@@ -103,22 +114,11 @@ func (server *Server) getExercise(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, ExerciseResponse{
-		ID:               exercise.ID,
-		Category:         exercise.Category,
-		IsStock:          exercise.Isstock,
-		MostRepsLifted:   exercise.MostRepsLifted,
-		MostWeightLifted: exercise.MostWeightLifted,
-		MuscleGroup:      exercise.MuscleGroup,
-		Name:             exercise.Name,
-		RestTimer:        exercise.RestTimer,
-		UserID:           req.UserID,
-	})
+	ctx.JSON(http.StatusOK, exerciseRes(exercise, userID))
 }
 
 type getExerciseByNameRequest struct {
-	Name   string `uri:"exercise_name" binding:"required"`
-	UserID string `uri:"user_id" binding:"required"`
+	Name string `uri:"exercise" binding:"required"`
 }
 
 func (server *Server) getExerciseByName(ctx *gin.Context) {
@@ -128,46 +128,33 @@ func (server *Server) getExerciseByName(ctx *gin.Context) {
 		return
 	}
 
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+
 	args := db.GetExerciseByNameParams{
 		Name:   req.Name,
-		UserID: req.UserID,
+		UserID: userID,
 	}
 
 	exercise, err := server.store.GetExerciseByName(ctx, args)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(EXERCISE_NAME_NOT_FOUND, req.Name)))
+			ctx.JSON(
+				http.StatusNotFound,
+				errorResponse(fmt.Errorf(EXERCISE_NAME_NOT_FOUND, req.Name)),
+			)
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, ExerciseResponse{
-		ID:               exercise.ID,
-		Category:         exercise.Category,
-		IsStock:          exercise.Isstock,
-		MostRepsLifted:   exercise.MostRepsLifted,
-		MostWeightLifted: exercise.MostWeightLifted,
-		MuscleGroup:      exercise.MuscleGroup,
-		Name:             exercise.Name,
-		RestTimer:        exercise.RestTimer,
-		UserID:           req.UserID,
-	})
+	ctx.JSON(http.StatusOK, exerciseRes(exercise, userID))
 }
 
-type listExercisesRequest struct {
-	UserID string `uri:"user_id" binding:"required"`
-}
-
+// @TODO: add Server Side Pagination/Sorting
 func (server *Server) listExercises(ctx *gin.Context) {
-	req := listExercisesRequest{}
-	if err := ctx.ShouldBindUri(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
-
-	exercises, err := server.store.ListExercises(ctx, req.UserID)
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+	exercises, err := server.store.ListExercises(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -178,12 +165,11 @@ func (server *Server) listExercises(ctx *gin.Context) {
 }
 
 type updateExerciseRequest struct {
-	ID          int32  `json:"id" binding:"required"`
+	ID          int32  `json:"id"           binding:"required"`
 	Name        string `json:"exerciseName"`
 	MuscleGroup string `json:"muscleGroup"`
 	Category    string `json:"category"`
 	RestTimer   string `json:"restTimer"`
-	UserID      string `json:"userID" binding:"required"`
 }
 
 func (server *Server) updateExercise(ctx *gin.Context) {
@@ -193,7 +179,8 @@ func (server *Server) updateExercise(ctx *gin.Context) {
 		return
 	}
 
-	getExerciseArgs := db.GetExerciseParams{ID: req.ID, UserID: req.UserID}
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+	getExerciseArgs := db.GetExerciseParams{ID: req.ID, UserID: userID}
 
 	_, err := server.store.GetExercise(ctx, getExerciseArgs)
 	if err != nil {
@@ -224,7 +211,7 @@ func (server *Server) updateExercise(ctx *gin.Context) {
 			Valid:  req.RestTimer != "",
 		},
 		ID:     req.ID,
-		UserID: req.UserID,
+		UserID: userID,
 	}
 
 	err = server.store.UpdateExercise(ctx, args)
@@ -239,22 +226,11 @@ func (server *Server) updateExercise(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, ExerciseResponse{
-		ID:               exercise.ID,
-		Category:         exercise.Category,
-		IsStock:          exercise.Isstock,
-		MostRepsLifted:   exercise.MostRepsLifted,
-		MostWeightLifted: exercise.MostWeightLifted,
-		MuscleGroup:      exercise.MuscleGroup,
-		Name:             exercise.Name,
-		RestTimer:        exercise.RestTimer,
-		UserID:           req.UserID,
-	})
+	ctx.JSON(http.StatusOK, exerciseRes(exercise, userID))
 }
 
 type deleteExerciseRequest struct {
-	ID     int32  `uri:"id" binding:"required"`
-	UserID string `uri:"user_id" binding:"required"`
+	ID int32 `uri:"id" binding:"required"`
 }
 
 func (server *Server) deleteExercise(ctx *gin.Context) {
@@ -264,7 +240,12 @@ func (server *Server) deleteExercise(ctx *gin.Context) {
 		return
 	}
 
-	exercise, err := server.store.GetExercise(ctx, db.GetExerciseParams{ID: req.ID, UserID: req.UserID})
+	userID := ctx.MustGet(authorizationPayloadKey).(*token.Payload).UserID
+
+	exercise, err := server.store.GetExercise(
+		ctx,
+		db.GetExerciseParams{ID: req.ID, UserID: userID},
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(fmt.Errorf(EXERCISE_NOT_FOUND, req.ID)))
@@ -274,7 +255,10 @@ func (server *Server) deleteExercise(ctx *gin.Context) {
 		return
 	}
 
-	err = server.store.DeleteExercise(ctx, db.DeleteExerciseParams{ID: exercise.ID, UserID: req.UserID})
+	err = server.store.DeleteExercise(
+		ctx,
+		db.DeleteExerciseParams{ID: exercise.ID, UserID: userID},
+	)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
