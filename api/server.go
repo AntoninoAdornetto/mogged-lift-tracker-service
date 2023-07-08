@@ -75,10 +75,10 @@ func (server *Server) setupRouter() {
 
 	protected.POST("/createExercise", server.createExercise)
 	protected.GET("/getExercise/:id", server.getExercise)
-	protected.GET("/getByName/:exercise_name", server.getExerciseByName)
-	protected.GET("/listExercises/:user_id", server.listExercises)
+	protected.GET("/getByName/:exercise", server.getExerciseByName)
+	protected.GET("/listExercises", server.listExercises)
 	protected.PATCH("/updateExercise", server.updateExercise)
-	protected.DELETE("/deleteExercise/:id/:user_id", server.deleteExercise)
+	protected.DELETE("/deleteExercise/:id", server.deleteExercise)
 
 	protected.POST("/createWorkout", server.createWorkout)
 	protected.GET("/getWorkout/:id/:user_id", server.getWorkout)
